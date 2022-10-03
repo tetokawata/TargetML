@@ -1,3 +1,3 @@
 # TargetML
 
-Provide course slides, notes, example code and data of the targeted estimation with the machine learning.
+Provide material (in Material), example code (in ExampleCode) and data (in ExampleData) of the ML class in the University of Tokyo.
