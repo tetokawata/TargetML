@@ -1,0 +1,894 @@
+---
+title: "予測問題と予測木"
+subtitle: "機械学習の経済学への応用"
+author: "川田恵介"
+affiliation: "keisukekawata@iss.u-tokyo.ac.jp"
+format:
+  revealjs:
+    incremental: true
+execute: 
+  message: false
+  warning: false
+  echo: false
+  eval: true
+bibliography: references.bib
+---
+
+## 本スライドの内容
+
+```{r}
+pacman::p_load(tidyverse,
+               mlr3verse,
+               mlr3pipelines,
+               recipes,
+               TidyDensity,
+               patchwork,
+               DiagrammeR)
+
+MesurementR2 <-  msr("regr.rsq")
+
+ResampleCV <- rsmp("cv")
+
+LearnMean <- lrn("regr.featureless")
+
+LearnRpart <- lrn("regr.rpart",
+           cp = 0,
+           minbucket = 1,
+           minsplit = 1,
+           maxdepth = 2)
+
+LearnOLS <- lrn("regr.lm",
+               id = "OLS")
+
+LearnRanger <- lrn("regr.ranger",
+                  id = "RF")
+
+LearnLASSO <- lrn("regr.cv_glmnet",
+                    id = "LASSO")
+
+LearnTree <- lrn("regr.rpart",
+                    id = "Tree")
+
+SimData <- function(i,n){
+  set.seed(i)
+  TempData <- tibble(X = runif(n,-2,2)) |> 
+    mutate(D = sample(0:1,n,replace = TRUE),
+           AverageY = D + 2*if_else(X >= 0.5,1,0) + X^2,
+           Y = AverageY + rnorm(n,0,2)
+           )
+  return(TempData)
+}
+
+
+TestData <- tibble(X = seq(-2,2,0.01),
+                   D = 1) |> 
+  bind_rows(tibble(X = seq(-2,2,0.01),
+                   D = 0)) |> 
+  mutate(AverageY = D + 2*if_else(X >= 0.5,1,0) + X^2,
+         Y = AverageY)
+  
+
+
+Task <- as_task_regr(SimData(1,500) |> select(-AverageY),
+                     target = "Y")
+
+TestTask <- as_task_regr(TestData |> select(-AverageY),
+                        target = "Y")
+```
+
+-   母平均関数に"適合する関数" $f(X)$ を推定するアルゴリズムとして、予測木 (回帰木 \| 分類木) アルゴリズムの紹介
+
+-   Motivationとして予測問題の概論を紹介
+
+    -   母集団の推論問題は後日
+
+-   比較対象として、Naiveなアルゴリズムも紹介
+
+## 全体像
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'ResearchQuestion']
+      B1 [label = 'Prediction: MinimizingRisk']
+      B2 [label = 'PopulationInference: Valid ConfidenceInterval']
+      b2 [label = 'More DesignProblem']
+      C1 [label = 'Learn conditional average functions']
+      C2 [label = 'Learn conditional average functions']
+      c2 [label = 'Main Estimation']
+      D1 [label = 'Model Evaluation']
+      D2 [label = 'Construct CI']
+      T [label = 'Supervised MachineLearning']
+      A -> B1,B2
+      B2 -> b2 -> C2
+      B1 -> C1
+      C1 -> D1
+      C2 -> c2 -> D2
+      T -> C1,C2
+      {rank = same; D1;D2}
+      {rank = same; T;C1;C2}
+      {rank = same; B1;B2}
+      }")
+```
+
+# 予測: 一般問題
+
+-   教師付き学習の予測問題への応用を紹介
+
+## 典型的問題設定
+
+-   データ $\{Y,X=[X_1,..,X_L]\}$ が活用可能
+
+    -   ランダムサンプリング元の母集団を想定
+
+    -   **同じ**母集団から**新たに**抽出された事例について、 $Y$ を予測
+
+-   データから $Y$ の予測モデル $f(X)$ を推定 (学習)
+
+## 例
+
+-   需要予測: $X =$ 店舗の属性、気象予測、カレンダー, $Y =$ 販売量
+
+-   皮膚癌: $X =$ 写真、 $Y =$ 犬 \| 猫
+
+-   滞納予測: $X =$ 個人属性、 $Y =$ 返済を滞納するかどうか
+
+-   キャッチーな議論: [予測するマシンの世紀](https://www.predictionmachines.ai/)
+
+## 経済学における応用例
+
+-   「新しいアルゴリズムを用いると、予測性能がこのくらい改善する」的な研究は少ない
+
+    -   研究動機を工夫したものが多い
+
+-   [1年後生存の予測](https://doi.org/10.1126/science.aar5045) [@einav2018]
+
+    -   「終末期医療論争」の前提条件は成り立っているのか？
+
+-   [経済モデルの評価](https://doi.org/10.1086/718371) [@fudenberg2022]
+
+    -   「構造モデル」の評価
+
+## Standard Prediction RoadMap
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A1 [label = 'Imput Y, X, Data']
+      A2 [label = 'Learn PredictionModel']
+      A3 [label = 'Peformance Evaluation']
+      B [label = 'Learn ReferenceModel']
+      M1 [label = 'Research Quetion and Motivation']
+      M2 [label = 'Algorithm (EstimationMethod)']
+      M3 [label = 'Evaluation Method']
+      A1 -> A2 -> A3
+      A1 -> B -> A3
+      M1 -> A1
+      M2 -> A2,B
+      M3 -> A3
+      {rank = same; M1;A1}
+      {rank = same; M2;A2;B}
+      {rank = same; M3;A3}
+      }")
+```
+
+## 理想的かつ実現不可能な評価
+
+-   論点整理に有益
+
+-   理想的な評価は、既知の損失関数 $L$ についての母平均
+
+$$E[L(Y,f(X_1,..,X_L))]$$
+
+-   よく用いられるのは、二乗誤差
+
+$$L=(Y-f(X_1,..,X_L))^2$$
+
+## 含意
+
+$$E[(Y,f(X))^2]=\underbrace{E[(Y-\mu_Y(X))^2]}_{Irreducibel=個人差}$$
+
+$$+\underbrace{E[(\mu_Y(X)-f(X))^2]}_{Reducible}$$
+
+-   ただし $\mu_Y(X)=E[Y|X]$
+
+-   最善の予測モデル: $f(X)=\mu_Y(X)$
+
+## 含意
+
+-   母集団上で定義される評価を、データ上でどのように行うか？
+
+    -   AIC\|BICなどの活用, **サンプル分割**
+
+    -   後日
+
+-   予想誤差 $= Y-f(X)=\underbrace{Y-\mu_Y(X)}_{Irreducible} + \underbrace{\mu_Y(X)-f(X)}_{Reducible}$ をどのように削減するか？
+
+    -   Irreducible: 有効な予測変数 $X$ が活用できるデータの探索
+
+    -   Reducible: Algorithmの改善
+
+## Algorithm
+
+-   推定手順の大枠
+
+-   データを予測モデルに変換
+
+-   母平均に近い予測モデルを"得やすい"アルゴリズム $=$ 優れたアルゴリズム
+
+## 数値例: 理想のアルゴリズム
+
+```{r, dev='ragg_png'}
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point(aes(y = AverageY)) +
+  ylab("理想の予測モデル = 母平均") +
+  theme_bw() +
+  ylim(-6,11)
+
+Fig1 + Fig2
+```
+
+## 数値例: 実際のアルゴリズム
+
+```{r}
+LearnLASSO$train(Task)
+LearnOLS$train(Task)
+LearnRanger$train(Task)
+LearnTree$train(Task)
+
+
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point(aes(y = LearnLASSO$predict(TestTask)$response)) +
+  ylab("LASSO") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig3 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point(aes(y = LearnRanger$predict(TestTask)$response)) +
+  ylab("RadomForest") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig4 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point(aes(y = LearnOLS$predict(TestTask)$response)) +
+  ylab("OLS") +
+  theme_bw() +
+  ylim(-6,11) +
+  theme(legend.position = "none")
+
+Fig5 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point(aes(y = LearnTree$predict(TestTask)$response)) +
+  ylab("SuperLearner") +
+  theme_bw() +
+  ylim(-6,11) +
+  theme(legend.position = "none")
+
+Fig1 | (Fig2/Fig3) | (Fig4/Fig5)
+```
+
+## まとめ
+
+- 母平均が最善の予測モデル
+
+- 頑張って母平均を推定する
+
+# Naive algorithm
+
+-   単純平均法と丸暗記法
+
+## 単純平均法
+
+-   全データについての平均値
+
+$$f(x)=\sum_i Y_i/N$$
+
+-   $X$ は完全無視だが、大量の事例について平均を取れる
+
+## 丸暗記法
+
+-   全く同じ $X$ の値を持つ事例についての平均値
+
+    -   "最も近い" $X$ の事例について平均値
+
+$$f(x)=\sum_{i|X_i\simeq x}Y_i/N_{X_i\simeq x}$$
+
+-   一般に、少数事例について平均
+
+## 数値例
+
+-   $\{D,X\}$ から $Y$ を予測
+
+-   データ生成プロセス
+
+$$Y = D + 2\times I(X  >= 0.5) + X^2 + u$$
+
+-   $\Pr[D=1]=\Pr[D=0]=0.5$ , $X\sim U(-2,2)$ , $u\sim N(0,2)$
+
+-   理想の予測モデル: $f(D,X)=D + 2\times I(X>=0.5) + X^2$
+
+## 数値例
+
+```{r}
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  ylim(-6,11)
+
+Fig1 + Fig2
+```
+
+## 数値例
+
+```{r}
+LearnMean$train(Task)
+LearnRpart$param_set$values$maxdepth <- 30
+LearnRpart$train(Task)
+
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point() +
+  geom_point(aes(y = LearnMean$predict(TestTask)$response)) +
+  ylab("Mean") +
+  theme_bw() +
+  ylim(-6,11)
+
+Fig3 <- TestData |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_point() +
+  geom_point(aes(y = LearnRpart$predict(TestTask)$response)) +
+  ylab("Learning by Memoryzation") +
+  theme_bw() +
+  ylim(-6,11)
+
+
+Fig1 + (Fig2/Fig3)
+```
+
+## まとめ
+
+-   単純平均法の問題点: "一定"の予測値を決めうつ、荒い近似
+
+    -   $E[Y|X]$ と $X$ との関係性を完全無視
+
+-   丸暗記法の問題点: 平均値の推定に、"個人差"が強く反映
+
+    -   $X = \{1994年7月4 or 5日生まれ、男性、岩手県出身\}$ の予測年収は?
+
+    -   データにおける最も近い事例が、大谷翔平だと？？？
+
+-   予想: 中間的Algorithmが良さそう
+
+# 予測木アルゴリズム
+
+-   非常に"透明性が高く"教育的なアルゴリズム
+
+    -   コンセプトが明快、モデルが可視化できる場合も
+
+    -   重要な論点を抑えられる
+
+## 全体像
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A1 [label = 'Algorithm']
+      B1 [label = 'TreeModel']
+      C1 [label = 'LinearModel']
+      b1 [label = 'Pruning']
+      b2 [label = 'Averaging (RandomForest)']
+      c1 [label = 'OLS,LASSO,..']
+      A1 -> B1
+      A1 -> C1
+      B1 -> b1
+      B1 -> b2
+      C1 -> c1
+      }")
+```
+
+## 予測木アルゴリズム
+
+-   サブグループの"平均値"を予測値とする
+
+    -   伝統的方法: 人間がサブグループを決定
+
+    -   本講義: データがサブグループを決定
+
+-   トリビア: $Y=連続$ であれば回帰木、 $Y=離散$ であれば分類木\|決定木 と呼ばれる
+
+## 伝統的方法
+
+-   データを見る前に推定する(有限個のパラメータからなる)予測(母平均)モデルを設定
+
+    -   パラメータのみをデータによって決める
+
+-   例:
+
+$$f(D,X)=\beta_1\times I(D=1,X\le 0)+\beta_2\times I(D=1,X>0)$$
+
+$$+ \beta_3\times I(D=0,X\le 0) + \beta_4\times I(D=0,X> 0)$$
+
+## 推定方法: Empirical Risk Minimization
+
+-   データ上のLossを最小化するように推定: $L=二乗誤差$ であれば、
+
+$$\beta=\arg\min_{\beta} \sum_i (Y_i-f(X_i))^2$$
+
+-   伝統的アプローチでは、OLS \| サブサンプル平均と一致
+
+## 数値例
+
+```{r}
+TempData <- SimData(1,500) |> 
+                           mutate(X2 = if_else(D == 1 & X >= 0,1,0),
+                                  X3 = if_else(D == 0 & X < 0,1,0),
+                                  X4 = if_else(D == 0 & X >= 0,1,0)
+                                  ) |> 
+                           select(Y,X2:X3)
+
+TempTask <- as_task_regr(TempData,
+                         "Y")
+
+LearnOLS$train(TempTask)
+
+LearnRpart$param_set$values$maxdepth <- 2
+LearnRpart$train(Task)
+
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_line() +
+  geom_point(aes(y = LearnOLS$predict(TempTask)$response)) +
+  ylab("Traditional") +
+  theme_bw() +
+  ylim(-6,11)
+
+Fig3 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_line() +
+  geom_point(aes(y = LearnRpart$predict(Task)$response)) +
+  ylab("Adaptive") +
+  theme_bw() +
+  ylim(-6,11)
+
+
+Fig1 + Fig2
+```
+
+## Adaptive Tree
+
+-   伝統的方法: 分析者によるモデル設定 $+$ Empirical Risk Minimizationによる推定
+
+    -   モデル設定にパフォーマンスが大きく依存
+
+    -   適切なサブグループ分けは非常に困難
+
+-   Adaptiveな推定: サブグループ分けにも、 Empirical Risk Minimizationを活用
+
+## Recursive Partition アルゴリズム
+
+1.  データ、 **停止条件(最大分割回数等)**
+
+2.  第1分割: Empirical Riskを最小化するグループ分割 (通常2分割)を探索
+
+3.  第2分割: 第1分割の結果を**所与**として、Empirical Riskを最小化するグループ分割を探索
+
+4.  停止条件に達するまで、分割を繰り返す
+
+## 数値例
+
+```{r}
+Fig1 + (Fig2/Fig3)
+```
+
+## 停止条件
+
+-   停止条件をどう決める？
+
+    -   rpart関数での初期値: 最小サンプルサイズ = 20, 最大分割数 = 30など
+
+-   推定されたモデルやパフォーマンスが決定的に左右される
+
+-   NaiveなIdea
+
+    -   現実は複雑なので、単純なモデルはよくない
+
+    -   Empirical Risk Minimizationを適用
+
+## 例
+
+```{r}
+LearnRpart$param_set$values$maxdepth <- 3
+LearnRpart$train(Task)
+
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_line() +
+  geom_point(aes(y = LearnRpart$predict(Task)$response)) +
+  ylab("Adaptive with degree 3") +
+  theme_bw() +
+  ylim(-6,11)
+
+
+Fig1 + Fig2
+```
+
+## 例
+
+```{r}
+LearnRpart$param_set$values$maxdepth <- 10
+LearnRpart$train(Task)
+
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_line() +
+  geom_point(aes(y = LearnRpart$predict(Task)$response)) +
+  ylab("Adaptive with degree 10") +
+  theme_bw() +
+  ylim(-6,11)
+
+
+Fig1 + Fig2
+```
+
+## 例
+
+```{r}
+LearnRpart$param_set$values$maxdepth <- 30
+LearnRpart$train(Task)
+
+Fig1 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-6,11)
+
+Fig2 <- SimData(1,500) |> 
+  mutate(D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = AverageY,
+             color = D)
+         ) +
+  geom_line() +
+  geom_point(aes(y = LearnRpart$predict(Task)$response)) +
+  ylab("Adaptive with degree 30") +
+  theme_bw() +
+  ylim(-6,11)
+
+
+Fig1 + Fig2
+```
+
+## まとめ
+
+- 伝統的な予測木 $=$ 有限個のパラメータを推定
+
+    - 多くの潜在的パラメータを0と決めうち
+
+- Adaptiveな予想木 $=$ サブグループをデータに合うように生成
+
+    - 潜在的に無限個のパラメータを推定
+    
+- 停止条件に決定的な影響を受ける
+
+# 過剰適合(過学習)問題
+
+## とりあえず頭に入れること
+
+- ある母集団を予測する上で、優れたアルゴリズム (停止条件の設定を含む) を選びたい
+
+    - 常にうまくいくアルゴリズムは存在しない
+    
+- 次善の策は、上手く**いきやすい**アルゴリズムを用いてる
+
+- 通常の統計学と同じ脳内モデルが有益
+
+## 脳内モデル
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'Population; Y and X']
+      B [label = 'Set Algorithm']
+      C [label = 'Collect Data']
+      C1 [label = 'Data']
+      C2 [label = 'Data']
+      C3 [label = 'Data']
+      D1 [label = 'PredictionModel']
+      D2 [label = 'PredictionModel']
+      D3 [label = 'PredictionModel']
+      A -> B -> C -> C1,C2,C3
+      C1 -> D1
+      C2 -> D2
+      C3 -> D3
+      }")
+```
+
+
+## 数値例
+
+```{r}
+
+LearnRpart2 <- lrn("regr.rpart")
+LearnRpart2$param_set$values$maxdepth <- 2
+
+TempResult <- map_dfr(
+  1:100,
+  function(i) {
+    set.seed(i)
+    TempTask <- Task <- as_task_regr(SimData(i, 500) |> select(-AverageY),
+      target = "Y"
+    )
+    TempTestTask <- as_task_regr(tibble(
+      X = 1,
+      D = 1
+    ) |>
+      mutate(
+        AverageY = D + 2 * if_else(X >= 0.5, 1, 0) + X^2,
+        Y = AverageY + rnorm(1)
+      ) |> select(-AverageY),
+    target = "Y",
+    id = "Test"
+    )
+    LearnMean$train(TempTask)
+    LearnRpart$train(TempTask)
+    LearnRpart2$train(TempTask)
+    TempResult <- tibble(
+      Pred = LearnMean$predict(TempTestTask)$response,
+      True = LearnMean$predict(TempTestTask)$truth,
+      ResearcherID = i,
+      Method = "Mean"
+    ) |> 
+      bind_rows(tibble(
+      Pred = LearnRpart$predict(TempTestTask)$response,
+      True = LearnRpart$predict(TempTestTask)$truth,
+      ResearcherID = i,
+      Method = "Learning-by-memory"
+    ))|> 
+      bind_rows(tibble(
+      Pred = LearnRpart2$predict(TempTestTask)$response,
+      True = LearnRpart2$predict(TempTestTask)$truth,
+      ResearcherID = i,
+      Method = "Tree widh depth 2"
+    ))
+    return(TempResult)
+  }
+)
+
+TempResult |> 
+  ggplot(aes(y = ResearcherID,
+             x = Pred)) +
+  geom_point() +
+  ggside::geom_xsidehistogram() +
+  geom_vline(xintercept = 4) +
+  theme_bw() +
+  facet_wrap(~Method)
+
+```
+
+
+## Decomposition
+
+-   $f_n(X)$ 無限大のサンプルサイズで学習した結果得られる "仮想的な"予測モデル
+
+$$Y-f(X)=\underbrace{Y - \mu_Y(X)}_{IrreducibleError} + \underbrace{\mu_Y(X)-f(X)}_{ReducibleError}$$
+
+$$=\underbrace{Y - \mu_Y(X)}_{IrreducibleError} + \underbrace{\mu_Y(X)-f_{\infty}(X)}_{Approximation Error}+\underbrace{f_{\infty}(X)-f(X)}_{EstimationError}$$
+
+## トレードオフ
+
+-   モデルを複雑化 (より多くの分割)を行うと、現実は極めて複雑なので
+
+$$Y-f(X)=\underbrace{Y - \mu_Y(X)}_{IrreducibleError} + \underbrace{\mu_Y(X)-f_{\infty}(X)}_{Approximation Error\downarrow}+\underbrace{f_{\infty}(X)-f(X)}_{EstimationError\uparrow}$$
+
+## Estimation Errorの源泉
+
+-   $Y = \underbrace{\mu(X)}_{Signal}+\underbrace{u}_{Y-\mu(X):Noise}$
+
+-   Signalのみを取り出せる人がいれば、全て解決
+
+    -   目の前の香川出身38歳男性の所得を聞き、香川出身38歳男性の平均所得と個人差を分割できる？
+
+-   伝統的戦略は、大量の事例の平均を取る
+
+    - 漸近性質の活用
+
+-   複雑なモデルは、
+
+    -   $u$ の影響を強く受け、Estimation Errorが上昇する
+
+## 例
+
+-   単純なモデル
+
+$$\sum_{i|D_i=1} Y_i/N_{i|D_i=1}=\underbrace{\mu_Y(D_i=1)}_{Larger\ Approximation\ Error}+\sum_{i|D_i=1}u_i/N_{i|D_i=1}$$
+
+-   複雑なモデル
+
+$$\sum_{i|D_i=1; X_i=1} Y_i/N_{i|D_i=1 \& X_i=1}=\mu_Y(D_i=1; X_i=1 )+\underbrace{\sum_{i|D_i=1; X_i=1}u_i/N_{i|D_i=1; X_i=1}}_{Larger\ Estimation\ Error}$$
+
+## Empirical Risk Minimizationの問題
+
+-   理想は母集団上でRiskを最小化する
+
+$$\min E[(Y_i-f(X_i))^2]=E[(\mu_Y(X_i)+\underbrace{u_i-f(X_i)}_{Indepdent})^2]$$
+
+-   できないのでEmpirical Risk Minimization
+
+$$\sum_{i} (Y_i-f(X_i))^2=\sum_i(\mu_Y(X_i)+\underbrace{u_i-f(X_i)}_{GenerallyCorrelated})^2$$
+
+## 過剰適合 (過学習)
+
+-   $f(X_i)$ が $u_i$ の影響を**受けるほど**、小さくなる
+
+    -   丸暗記モデルでは0!!!!
+
+-   一般にデータと無矛盾なモデルを推定することは難しくない
+
+    - データに過剰に適合する(から過剰に学んだ)モデルであり、予測性能は悪い
+
+-   新しい論点: Benign Overfiting [@hastie2022; @bartlett2020]
+
+## 過剰適合 (過学習)の弊害
+
+- データの"偶然の偏り" (平均値からの大きな乖離があるサンプル) に影響されてしまう
+
+- Empirical Riskでは正しく評価できない
+
+    - 丸暗記でも勉強することはいいことだ！！！
+
+## まとめ
+
+- 通常の統計学と同様にSampling Uncetainlyを頭に入れる必要がある。
+
+- 矛盾する戦略
+
+    - 大量の事例の平均をとる (Estimation errorの削減)
+    
+    - 多くのサブグループを作る (Approximation errorの削減)
+
+## 引用

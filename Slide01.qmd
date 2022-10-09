@@ -1,0 +1,613 @@
+---
+title: "教師付き学習の概要と位置付け"
+subtitle: "機械学習の経済学への応用"
+author: "川田恵介"
+affiliation: "keisukekawata@iss.u-tokyo.ac.jp"
+format:
+  revealjs:
+    incremental: true
+execute: 
+  message: false
+  warning: false
+  echo: false
+  eval: true
+bibliography: references.bib
+---
+
+## 事務連絡
+
+- 講義資料 (https://github.com/tetokawata/TargetML)
+
+    - スライドのノート版、Example Code, Data, など
+    
+- 評価: レポート（3回予定）
+
+    - 手法の説明 & R (Pythonも可)での実装
+
+## 本講義
+
+
+```{r}
+pacman::p_load(tidyverse,
+               DiagrammeR)
+```
+
+- 教師付き学習の入門と応用
+
+    - 予測問題と母集団の”パラメタ”推定の入門
+    
+- 対象: 機械学習の初学者 &| 経済学 ($\simeq$ 社会科学; Biomedical Science) への応用に関心がある人
+
+- 便益: "統計モデルの定式化"依存を減らす
+
+    - ”機械学習", "データサイエンス"というキーワードの入った求人が大学内外から増えている
+    
+    - データ分析についての異なる”カルチャー”に馴染む
+
+## Motivation
+
+-   伝統的アプローチ: データを見る前に設定したParametricな統計モデルの推定: 例
+
+$$Y_i=\beta_0 +\beta_1X_{1i}+..+\beta_LX_{Li}+u_i,u_i\sim N(0,\sigma^2)$$
+
+-   定式化依存問題
+
+    -   [Statistics as a Science](https://magazine.amstat.org/blog/2015/02/01/statscience_feb2015/)
+
+    -   Let's Take the Con Out [@leamer1983]
+
+    -   Two culutures [@breiman2001] ([10年経って](https://muse.jhu.edu/issue/45147))
+
+## 本講義の推奨
+
+- 分析のゴールを明確に定め、それに適した手法を用いる
+
+    - 「とりあえず統計モデルを推定する」をやめる
+
+- 予測問題: 教師付き学習 (DataAdaptiveな推定)
+
+- 母集団の推論: Semiparametric推定 with 教師付き学習
+
+## 例: 中古マンション取引価格予測
+
+```{r}
+read_csv("Result/ComparePredictModel.csv") |> 
+  mutate(learner_id = if_else(learner_id == "OLS.RandomForest.nop.featureunion.SuperLearner",
+                              "SuperLearner",
+                              learner_id)
+         ) |> 
+  ggplot(aes(y = learner_id,
+             x = regr.rsq)) +
+  geom_point() +
+  xlim(0,1) +
+  theme_bw() +
+  ylab("") +
+  xlab("Out-of-sample R^2")
+```
+
+## 例: 中古マンション取引価格予測
+
+```{r}
+knitr::include_graphics("Figure/ComparePredictModel.png")
+```
+
+
+# 教師付き学習概論
+
+```{r}
+pacman::p_load(DiagrammeR,
+               tidyverse,
+               ggside,
+               estimatr)
+
+N <- 500
+b <- 1000
+ExampleSeed <- 1
+
+ParamShape <- 20
+ParamUnbalance <- 0.9
+ParamNose <- 3
+
+SimData <- function(i){
+  set.seed(i)
+  tibble(X = runif(N,0,1),
+       D = sample(0:1,N,replace = TRUE,prob = c(1 - ParamUnbalance,ParamUnbalance)) * if_else(X >= 0.3 & X <= 0.6,1,0) +
+         sample(0:1,N,replace = TRUE,prob = c(ParamUnbalance,1 - ParamUnbalance)) * if_else(X < 0.3 | X > 0.6,1,0),
+       Y = D - ParamShape*X + ParamShape*I(X^2) + rnorm(N,0,ParamNose),
+       TrueY = D - ParamShape*X + ParamShape*I(X^2)
+       ) |> 
+    mutate(D = factor(D))
+}
+
+```
+
+## 機械学習 (MachineLearning)
+
+-   "統計学"とは異なるルーツを持つ手法群: 大きく
+
+    -   教師付き学習 (SupervisedLearning); 教師なし学習 (UnSupervisedLearning); 強化学習 (ReinforcementLearning)
+
+-   本講義では教師付き学習とその応用を紹介
+
+-   おすすめ参考書
+
+    - [Introduction to Statistical Learning (with R code)](https://www.statlearning.com/)
+    
+    - [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/index.html)
+
+## 教師付き学習
+
+-   データ $Y,X=[X_1,..,X_L]$ から, 条件付き母分布の関数に最もfitする関数 $f(X)$ を推定(学習、Fitting、近似)
+
+-   典型的には母平均にfitする関数の学習を目指す
+
+$$\min E[(\mu_Y(X)-f(X))^2]$$
+
+-   $\mu_Y(X)=E[Y|X]$
+
+-   注: 最も一般的な課題設定はDensityFunction $(Pr[y\le Y|X])$ へのFitだが、依然として難しい
+
+## ポイント: 教師付き学習
+
+-   条件付き平均関数を推定する"伝統的手法"は多数存在
+
+    -   Parametric推定 (OLS、最尤法、ベイズ): 母集団を有限個のパラメータで**正しく記述できるとして**、推定
+
+    -   伝統的Nonparametric推定 (KernelRegression): 大量の変数を取り扱えない
+
+-   教師付き学習の利点: 大量の変数を扱う応用についても、統計モデルの定式化に強く依存せずに、母分布を近似可能
+
+    -   Data-adaptiveにモデルを設定・推定
+
+## ポイント: 教師付き学習の応用
+
+-   予測問題には、極めて有効
+
+-   工夫すれば、母集団の特徴（要約）を適切に推定できる
+
+    - 伝統的なNonparametric推定と同様に、収束速度が遅く、信頼区間が近似計算できない
+    
+    - Semiparametric推定を応用
+
+-   母分布そのものを"適切"に推定することは依然として困難
+
+# データ分析概論
+
+- 「分析のゴールの明確にし、推定手法をカスタマイズ」が**より**重要
+
+## データ分析のゴール
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A0 [label = 'Population, RandomSampled Data, and Clear Target (Estimand)']
+      A [label = 'EstimationTask']
+      B1 [label = 'Predict NewObservation']
+      B2 [label = 'Infer PopulationDistribution']
+      C1 [label = 'PredictionModel (with uncertainly)']
+      C2 [label = 'CIs of (Projection)Parameters (with PointEstimaters)']
+      Z [label = 'SupervisedLearning']
+      A0 -> A -> B1,B2
+      B1 -> C1
+      B2 -> C2
+      Z -> C1 [label = 'Direct Application']
+      Z -> C2 [label = 'With SemiparametricTheory']
+      {rank = same; B1;B2}
+      {rank = max; Z}
+      }")
+```
+
+## データ分析への具体的な要求
+
+- 予測問題: $E[(\mu_Y(X_1,..,X_L)-f(X_1,..,X_L))^2]$ を最小化
+
+    - 2次的要求: 予測モデルの説明可能性、SamplingUncertainlyの定量化
+    
+- 母集団の特徴の推定: 明確に解釈 **された** 母集団の特徴について、意味のある信頼区間を形成
+
+    - $\sqrt{N}$ 正規性 (Asymptotic Normality)
+    
+    - 漸近効率性
+
+## 古典的推定
+
+- 母集団の推定は、古典的な推定手法においても、中心的課題
+
+    - "Parametricな統計モデルをデータを見る前に設定し、推定する"
+
+$$E[Y|X]=\beta_0 + \beta_1X_1+..+\beta_LX_L$$
+
+- **推定された統計モデルを用いて**、研究課題に答える
+
+- Estimandの定式化, 識別・推定上の仮定を**全て**統計モデル上で議論する
+
+## 理想の世界
+
+-   母集団を、単純なモデルで記述でき、かつ大部分は既知
+
+-   例: 母平均 $\mu_Y(D,X)$ は以下に従うことを知っている
+
+$$\mu_Y(X_1,X_2)=\beta_0 + \beta_DD + \beta_1X + \beta_2X^2$$
+
+-   $\beta$ の値は未知
+
+## 理想の世界
+
+-   十分なサンプルサイズがあり、**モデルがただしければ**、 OLSで $\mu_Y(D,X)$ を**高い**精度で推定できる
+
+    -   誤差項にParametricAssumptionを追加できれば、最尤法\|ベイズ推定も可能
+
+-   推定された関数 $f(D,X)$ は、
+
+    -   $E[(\mu_Y(D,X)-f(D,X))^2]$ を実用可能な水準まで削減 (予測達成)
+
+    -   $\beta$ について信頼区間計算が可能 (パラメータ推定達成)
+
+    -   そもそも単純なので、人間がそのまま理解できる (記述達成)
+
+
+
+## 数値例: データ
+
+```{r}
+
+SimData(1) |> 
+  mutate(D = if_else(D == 1,
+                      "1",
+                      "0")) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point(alpha = 0.3) +
+  theme_bw()
+```
+
+## 数値例: 母平均
+
+```{r}
+SimData(1) |> 
+  mutate(D = if_else(D == 1,
+                      "Y = -20*X + 20*X^2",
+                      "Y = 1 -20*X + 20*X^2")) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point(alpha = 0.3) +
+  geom_line(aes(y = TrueY)) +
+  theme_bw()
+```
+
+## 数値例: 予測
+
+```{r}
+map_dfr(1:100, function(i){
+  TempPred <- lm(Y ~ D + X + I(X^2),
+                SimData(i)
+                ) |> 
+   predict(tibble(D = factor(1),
+                  X = 0.75))
+ return(tibble(Pred = TempPred,
+               ResearcherID = i,
+               True = 1 - 20*0.75 + 20*(0.75^2)))
+}) |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID)) +
+  geom_point() +
+  geom_xsidehistogram() +
+  geom_point(aes(x = True)) +
+  xlab("f(D == 1,X == 0.75)") +
+  theme_bw()
+```
+
+## Sampling Uncertainly
+
+- 確率的に選ばれた、母集団の一部を観察
+
+    - 同じ手法・母集団・研究課題に挑む研究者であったとしても、異なる結論が出てくる
+    
+    - たくさんの工夫
+
+## 数値例: $beta_1$
+
+```{r}
+map_dfr(1:100, function(i){
+  TempPred <- lm_robust(Y ~ D + X + I(X^2),
+                SimData(i)
+                )
+ return(tibble(Pred = TempPred$coefficients[2],
+               ResearcherID = i))
+}) |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID)) +
+  geom_point() +
+  geom_xsidehistogram() +
+  geom_vline(xintercept = 1) +
+  xlab("beta_D") +
+  xlim(-1,3) +
+  theme_bw()
+```
+
+## 漸近性質の活用
+
+- ”サンプルサイズが大きくなれば、推定値は真の値の近くに分布する”性質を活用
+
+- 一致性: 無限大に大きくなれば、全員真の値に収束
+
+    - 経済学的では非実用的
+    
+- 漸近正規性: より早い速度で、正規分布に収束
+
+    - 信頼区間の計算が可能
+
+## 数値例: $beta_1$
+
+```{r}
+map_dfr(1:100, function(i){
+  TempPred <- lm_robust(Y ~ D + X + I(X^2),
+                SimData(i)
+  )
+ return(tibble(Pred = TempPred$coefficients[2],
+               ResearcherID = i,
+               True = 1 + 1 + 0.3*(1^2),
+               Low = TempPred$conf.low[2],
+               High = TempPred$conf.high[2]))
+}) |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID,
+             xmin = Low,
+             xmax = High)) +
+  geom_pointrange() +
+  geom_xsidehistogram() +
+  geom_vline(xintercept = 1) +
+  xlab("beta_D") +
+  xlim(-1,3) +
+  theme_bw()
+```
+
+## 誤定式
+
+- 経済学のほぼ全ての応用で、正しいモデルを設定することは不可能
+
+    - 任意の $\beta$ について、 $\mu_Y(X)\neq f(X) = \beta_0 + \beta_1X_1+\beta_2X_2$
+
+- 一般に予測性能が悪化し、母集団についての信頼区間が”信頼できなくなる”
+
+## 数値例: $beta_1$
+
+```{r}
+map_dfr(1:100, function(i){
+  TempPred <- lm_robust(Y ~ D + X,
+                SimData(i)
+  )
+ return(tibble(Pred = TempPred$coefficients[2],
+               ResearcherID = i,
+               True = 1 + 1 + 0.3*(1^2),
+               Low = TempPred$conf.low[2],
+               High = TempPred$conf.high[2]))
+}) |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID,
+             xmin = Low,
+             xmax = High)) +
+  geom_pointrange() +
+  geom_xsidehistogram() +
+  geom_vline(xintercept = 1) +
+  xlab("beta_D") +
+  xlim(-3,3) +
+  theme_bw()
+```
+
+## 誤定式化の避け方
+
+- モデルを柔軟にする (推定するパラメータを増やす) と誤定式のリスクは必ず減る
+
+$$Y_i=\beta_0 + \beta_DD_i+\beta_1X_i+..+\beta_LX_i^L+u_i$$
+
+- 過剰適合が生じ、 推定が"できなくなる"
+
+- 教師付き学習の代表的アイディア: モデルを適切に単純化する
+
+    - 変数を"Shrink, Chop, and Throw out!!!"
+
+## 応用: 母集団の推定
+
+-   母集団の推定にも応用可能だが、工夫が必要
+
+-   例えば、 $\tau＝E[\mu_Y(1,X)-\mu_Y(0,X)]$ を
+
+$$=f(D=1,X)-f(D=0,X)$$
+
+として推定
+
+-   収束度が遅く、信頼区間の近似計算ができない
+
+    -   Varianceを低下させるために、Biasを導入しているため
+
+## 数値例: Naive Method
+
+```{r}
+map_dfr(1:100, function(i){
+  Z <- model.matrix(~ 0 + D + X + I(X^2),
+                  SimData(i))
+  Y <- SimData(i)$Y
+  Fit <- gamlr::gamlr(x = Z,
+                      y = Y)
+ return(tibble(Pred = coef(Fit)[2],
+               ResearcherID = i))
+}) |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID)) +
+  geom_point() +
+  geom_xsidehistogram() +
+  geom_vline(xintercept = 1) +
+  theme_bw()
+```
+
+## 応用: SemiParametric推定
+
+-   SemiParametric推定の手法を応用することで、収束の遅さを保管する (TargetedLearning \| DebiasedMachineLearning) 。
+
+-   Scoreの設定: $m$ の設定;
+
+$$0=E[m(Y_i,D_i,X_{i},g,\tau)]$$
+
+- $g$ : 未知のNuisance関数 (例: 条件付き母平均、 傾向スコア)
+
+- $m$ を $g$ の推定誤差についてRobustな関数として設定すれば、 $g$ の推定に機械学習を応用可能
+
+## 数値例: Semipara
+
+```{r}
+map_dfr(1:100, function(i){
+  Z <- model.matrix(~ 0 + X + I(X^2),
+                  SimData(i))
+  D <- if_else(SimData(i)$D == "1",1,0)
+  Y <- SimData(i)$Y |> as.numeric()
+  Fit <- gamlr::doubleML(x = Z,
+                         d = D,
+                         y = Y,
+                         nfold = 20)
+ return(tibble(Pred = coef(Fit),
+               SD = tidy(summary(Fit))$std.error,
+               ResearcherID = i))
+}) |> 
+  ggplot(aes(x = Pred,
+             xmin = Pred - 1.96*SD,
+             xmax = Pred + 1.96*SD,
+             y = ResearcherID)) +
+  geom_pointrange() +
+  geom_xsidehistogram() +
+  geom_vline(xintercept = 1) +
+  theme_bw()
+```
+
+## 応用: 経済学
+
+-   経済学における"典型的"な実証課題は、 **特定の解釈ができる**母集団の特徴を推定する
+
+    -   識別: 特定の解釈ができるかどうかを議論
+
+    -   データのみから判断不可能\|困難
+
+## 応用: 差別
+
+-   例: 母集団における「WindowsOS UserとMac\|LinuxOS Userとの間での賃金差」は、両OS Users間での差別と解釈できるか？
+
+    -   差別 $=$ 規範的判断を、データのみからは判断不可能\|困難 (ヒュームの法則)
+
+## 応用: 因果効果
+
+-   例: 母集団における「WindowsOS UserとMac\|LinuxOS Userとの間での賃金差」は、使用するOSからの因果効果と言えるか？
+
+    -   OS間での観察できない要因も揃えた上で比較したい
+
+## まとめ
+
+- 「事前に正しい統計モデルを設定する」推定法には、多くの問題点
+
+    - 仮定が見にくい
+    
+    - 細かい定式化に推定結果が依存
+
+- 教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+
+    - 予測問題: 多くの優れたアルゴリズム
+    
+    - 母集団の推論: セミラパ推定 + 既存アルゴリズム
+    
+- 因果効果の識別(事前解釈)は、別問題
+
+## まとめ
+
+- 「事前に正しい統計モデルを設定する」推定法には、多くの問題点
+
+    - 仮定が見にくい
+    
+    - 細かい定式化に推定結果が依存
+
+- 教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+
+    - 予測問題: 多くの優れたアルゴリズム
+    
+    - 母集団の推論: セミラパ推定 + 既存アルゴリズム
+    
+- 因果効果の識別(事前解釈)は、別問題
+
+## 混乱した議論
+
+- 機械学習 | 傾向スコアを使えば、因果効果を**識別**できる
+
+- 機械学習を使っても因果効果は**識別**できないので、因果効果の**推定**には役に立たない
+
+## RoadMap
+
+- 代表的教師付き学習アルゴリズムの紹介: 
+
+    - Tree/LinearModel系
+    
+    - Stacking (実用上の推奨)
+    
+- 条件付き平均差の推定
+
+    - [Double/DebiasedMachineLearning](https://arxiv.org/abs/1608.00060)
+    
+- 他の応用
+
+    - [GeneralizedPartialLinearModel](https://arxiv.org/abs/2006.08402)
+
+    - [SensitivityAnalysis](https://www.nber.org/papers/w30302)
+    
+    - [NonParametricPrediction](https://arxiv.org/abs/1610.01271https://arxiv.org/abs/1610.01271)
+
+## Core Packages: Semipara + ML
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'caret']
+      a [label = 'tidymodels']
+      B [label = 'mlr']
+      b [label = 'mlr3']
+      b1 [label = 'DoubleML']
+      C [label = 'SuperLearner']
+      c [label = 'sl3']
+      c1 [label = 'AIPW']
+      c2 [label = 'tlverse']
+      d [label = 'grf']
+      e [label = 'sckit-learn (python)']
+      e1 [label = 'EconML (python)']
+      A -> a [label = 'Update']
+      B -> b [label = 'Update']
+      C -> c [label = 'Update']
+      b -> b1
+      c -> c1,c2
+      e -> b1
+      e -> e1
+      {rank = same;A;B;C}
+      {rank = same;b1;c1;c2;d}
+      {rank = max; e; e1}
+      }")
+```
+
+## 次回に向けた準備
+
+- RとRStudioとパッケージのインストール
+
+    - [RとRstudioのインストール](https://youtu.be/fDlXx8e5W78)
+    
+    - [Packagesのインストール](https://youtu.be/2fmThveX7_s)
+    
+    - [ProjectFolderの作成](https://youtu.be/rqQP4jsF0oQ)
+    
+    - [Dataのアップロード](https://youtu.be/f2EU44WFyQM)
+
+- 必要パッケージ: mlr3verse; tidyverse; rpart.plot
+
+
+## Reference
