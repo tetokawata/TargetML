@@ -1,0 +1,462 @@
+---
+title: "Resampling: Model Averaging and Evaluation"
+subtitle: "機械学習の経済学への応用"
+author: "川田恵介"
+affiliation: "keisukekawata@iss.u-tokyo.ac.jp"
+format:
+  revealjs:
+    incremental: true
+execute: 
+  message: false
+  warning: false
+  echo: false
+  eval: true
+bibliography: references.bib
+---
+
+## 本スライドの内容
+
+```{r SetUp}
+pacman::p_load(tidyverse,
+               ranger,
+               rpart,
+               rpart.plot,
+               DiagrammeR,
+               patchwork)
+
+set.seed(111)
+
+SimData <- function(i,n){
+  set.seed(i)
+  TempData <- tibble(X = runif(n,-2,2)) |> 
+    mutate(D = sample(0:1,n,replace = TRUE),
+           AverageY = D + 2*if_else(X >= 0.5,1,0) + X^2,
+           Y = AverageY + rnorm(n,0,2)
+           )
+  return(TempData)
+}
+
+TestData <- tibble(X = seq(-2,2,0.01),
+                   D = 0) |>
+  bind_rows(tibble(X = seq(-2,2,0.01),
+                   D = 1)) |> 
+  mutate(AverageY = D + 2*if_else(X >= 0.5,1,0) + X^2)
+```
+
+## Resampling in ML
+
+- データから再抽出を行う
+
+    - Bootstrap, Subsampling, CrossValidaiton
+    
+- 現代的なデータ分析において、重要性が高まる
+
+    - 機械学習において特に重宝されている印象
+
+## Concepts
+
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'Original Data']
+      B1 [label = 'Bootstrap']
+      B2 [label = 'SubSampling']
+      C1 [label = 'ModelAveraging']
+      D1 [label = 'Inference']
+      E1 [label = 'Regulization']
+      C2 [label = 'CrossFit|Validation']
+      D2 [label = 'Training/Test']
+      A -> B1 [label = 'With Replacement']
+      A -> B2 [label = 'Without Replacement']
+      B2 -> C2,D2
+      B1 -> C1,D1
+      C1 -> E1 [label = 'To improve prediction peformance']
+      }")
+```
+
+# Bagging | Random Forest
+
+- ReSamplingは、予測精度改善( $=$ 母平均への適合)に貢献できるか？
+
+- どういう理屈で？
+
+## Regulization
+
+- "複雑すぎるモデルを、適切に単純化する"
+
+- 推定された"複雑"すぎる予測モデルは、分散が大きすぎる
+
+    - 分散の削減 (バイアスを導入)
+      
+- 予測木での実践: 深すぎる予測木を適切に単純化
+
+    - **Bootstrap Model Aggregation (Bagging)**
+    
+    - Pruning (後日)
+
+## Bagging
+
+- 予測精度を向上させるために、非常に"実用的"な手法
+
+    - Pruningよりも有効なケースが多い
+
+- アイディア: 大量の予測値の平均を取ることで、安定させる
+
+    - 例: ranger関数のDefault設定では、500本の予測木を学習し、その平均値を最終予測モデルとする。
+
+## 理想のBagging
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'PredictionTask']
+      B [label = 'Sampling']
+      C1 [label = 'Data1']
+      C2 [label = 'Data2']
+      C3 [label = 'Data3']
+      D1 [label = 'Tree1']
+      D2 [label = 'Tree2']
+      D3 [label = 'Tree3']
+      E [label = 'Aggregate']
+      A -> B -> C1,C2,C3
+      C1 -> D1
+      C2 -> D2
+      C3 -> D3
+      D1,D2,D3 -> E
+      }")
+```
+
+
+## 数値例
+
+```{r}
+EstTree <- function(i){
+  Fit <- rpart(Y ~ D + X,
+               SimData(i,100),
+               control = rpart.control(cp = 0,
+                                       minsplit = 2,
+                                       minbucket = 2)) |> 
+    predict(TestData)
+  TempResult <- tibble(Pred = Fit,
+                       ID = i,
+                       X = TestData$X,
+                       D = TestData$D,
+                       AverageY = TestData$AverageY)
+    return(TempResult)
+}
+
+Fig1 <- map_dfr(1:4,EstTree) |> 
+  mutate(ID = factor(ID),
+         D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Pred,
+             color = D)) +
+  geom_point(alpha = 0.2) +
+  geom_line(aes(y = AverageY)) +
+  facet_wrap(~ID) +
+  theme_bw() +
+  ylim(-5,11)
+
+Fig2 <- map_dfr(1:4,function(i){SimData(i,100) |> 
+    mutate(ID = i)}) |> 
+  mutate(ID = factor(ID),
+         D = factor(D)) |> 
+  ggplot(aes(x = X,
+             y = Y,
+             color = D)
+         ) +
+  geom_point() +
+  facet_wrap(~ID) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(-5,11)
+
+Fig2 + Fig1
+```
+
+## 実現可能なBagging
+
+- 母集団から複数のデータを再抽出することは、非現実的
+
+    - (Nonparametric) Bootstrapデータで代替
+
+1. Bootstrapで大量の"複製"データを生成 (2000個など)
+
+2. 各複製データについて、予測木を生成
+
+3. 各予測値を集計（平均値）
+
+## 補論: Bootstrap
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'OriginalData: ID 1;2;3']
+      B1 [label = 'ID 1;1;3']
+      B2 [label = 'ID 1;2;2']
+      B3 [label = 'ID 2;3;3']
+      C1 [label = 'Tree 1']
+      C2 [label = 'Tree 2']
+      C3 [label = 'Tree 3']
+      A -> B1,B2,B3
+      B1 -> C1
+      B2 -> C2
+      B3 -> C3
+      }")
+```
+
+
+## 数値例
+
+```{r}
+N <- 1000
+SimTree <- function(i){
+  TempPred <- rpart(Y ~ D + X,
+                    SimData(i,N),
+                    control = rpart.control(cp = 0,
+                                            minsplit = 1,
+                                            minbucket = 1)
+                    ) |> 
+    predict(tibble(X = 2,
+                   D = 1))
+  TempOLS <- lm(Y ~ D + X,
+                    SimData(i,N)
+                    ) |> 
+    predict(tibble(X = 2,
+                   D = 1))
+  TempBAA <- predict(ranger(Y ~ D + X,
+                           SimData(i,N),
+                           mtry = 2),
+                    tibble(X = 2,
+                   D = 1))$predictions
+  TempRF <- predict(ranger(Y ~ D + X,
+                           SimData(i,N),
+                           mtry = 1),
+                    tibble(X = 2,
+                   D = 1))$predictions
+  TempResult <- tibble(Pred = TempPred,
+                       ResearcherID = i,
+                       Method = "Tree with depth 30") |> 
+    bind_rows(tibble(Pred = TempOLS,
+                       ResearcherID = i,
+                       Method = "Linear Model")) |> 
+    bind_rows(tibble(Pred = TempBAA,
+                       ResearcherID = i,
+                       Method = "Bagging")) |> 
+    bind_rows(tibble(Pred = TempRF,
+                       ResearcherID = i,
+                       Method = "Random Forest"))
+  return(TempResult)
+}
+
+ResultComparison <- map_dfr(1:100,SimTree) 
+
+ResultComparison |> 
+  filter(Method != "Random Forest") |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID,
+             color = Method,
+             fill = Method)) +
+  geom_point() +
+  ggside::geom_xsidehistogram(alpha = 0.5) +
+  geom_vline(xintercept = 6) +
+  theme_bw() +
+  facet_wrap(~Method)
+```
+
+## Random Forest
+
+- データ分割に用いることができる変数群をランダムに選ぶ
+
+- 例：ある予測木の第n分割を行う際に
+
+    - Bagging: $\{$ 年齢、性別、学歴 $\}$ から選ぶ
+    
+    - Random Forest: $\{$ 年齢、性別 $\}$ から選ぶ
+
+- Baggingをさらに改善可能
+
+## 数値例
+
+```{r}
+ResultComparison |> 
+  ggplot(aes(x = Pred,
+             y = ResearcherID,
+             color = Method,
+             fill = Method)) +
+  geom_point() +
+  ggside::geom_xsidehistogram(alpha = 0.5) +
+  geom_vline(xintercept = 6) +
+  theme_bw() +
+  facet_wrap(~Method)
+```
+
+## 確率変数としての予測値
+
+- Dataが確率変数なので、そこから生成される予測値 $x_{b}$ も確率変数
+
+- 同じ分布から抽出される複数の予測値の平均として、新しい予測値を生成
+
+$$x_{ave}=\frac{\sum_{b}x_b}{B}$$
+
+## 分散削減
+
+- $B$ を無限に増やすと、分散は
+
+$$E[(x_{ave}-E(x_{ave}))^2]=\underbrace{\frac{var(x_b)}{B}}_{\rightarrow 0}$$
+
+$$+\underbrace{\frac{B-1}{B}\times corr(x_b,x_{b'})\times var(x_b)}_{\rightarrow corr(x_b,x_{b'})\times var(x_b)}$$
+
+## 相関削減
+
+- 理想のBagging (完全に独立したデータから予測値を作る)では、分散は $0$
+
+- Bootstrapデータから予測値を作ると、一般に $corr(x_b,x_{b'})>0$
+
+    - ”上振れした”データから生成したBootstrapデータは、上振れしやすい
+
+- 用いる変数もランダムに選ぶことで、 予測値 $x_b$ の相関を減らす
+
+    - 予測力をもつが（より強力な変数のせいで）未活用な変数も用いることができる
+
+## 例
+
+```{r}
+rpart(Y ~ D + X,
+      SimData(3,100),
+      control = rpart.control(cp = 0)) |> 
+  rpart.plot()
+```
+
+
+## 例
+
+```{r}
+rpart(Y ~ D,
+      SimData(3,100),
+      control = rpart.control(cp = 0)) |> 
+  rpart.plot()
+```
+
+## まとめ
+
+- モデル集計は非常に強力なアイディア
+
+    - Bootstrapによる平均化は、Treeモデルについて非常に有効
+    
+    - "OLS"には無意味
+
+- "わざと一部の変数を利用不能にする"ことで、より性能向上が可能
+
+    - 現実でも行われきた (縛りプレイなど）？
+
+- デメリット: 計算時間、モデルが"人間に理解できない"ほど複雑になる
+
+    - 経済学研究への応用では、”致命的”ではない？
+
+# Testデータ
+
+- SubSamplingを用いて、モデルの評価を行う
+
+## ２度付禁止!!!!
+
+![TwiceDip](TwiDip.png)
+
+## 評価指標
+
+- 理想の評価:
+
+$$E[(Y_i-f(X))^2]=E[(\mu_Y(X_i) + \underbrace{u_i - f(X_i)}_{Indepenent})^2]$$
+
+- 母集団上で定義されとおり、推定する必要がある
+
+## ２度づけによる評価
+
+- 予測モデルの推定に用いたデータで評価すると
+
+$$\sum(Y_i-f(X))^2=\sum(\mu_Y(X_i) + \underbrace{u_i - f(X_i)}_{Dependent})^2$$
+
+- 丸暗記モデルが常に望ましい
+
+    - $X$は完全一致するが、 $Y$ が異なる事例がなければ、0
+
+- **一般的な統計ソフトが自動的に報告するMSEやR2は、性能評価に用いるべきではない**
+
+## 評価指標の推定
+
+- ある予測モデルについて、評価指標を推定したい
+
+    - Training & Test データアプローチが有力
+    
+1. 元データをTraining | Testデータに、ランダム分割 (0.8:0.2, 0.95:0.05)
+
+2. Trainingデータのみを用いて、予測モデル構築
+
+3. Tsstデータで評価
+
+## 評価値
+
+$$\sum_{i\in TestData}(Y_i-f(X))^2=\sum_{i\in TestData}(\mu_Y(X_i) + \underbrace{u_i - f(X_i)}_{Independent})^2$$
+
+## RoadMap
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'PredictionTask']
+      B [label = 'OriginalData Sampling']
+      C1 [label = 'Data1']
+      C2 [label = 'Data2']
+      C3 [label = 'Data3']
+      D1 [label = 'TrainingData']
+      D2 [label = 'TestData']
+      E [label = 'PredictionModel']
+      A -> B -> C1,C2,C3
+      C1 -> D1,D2
+      D1 -> E [label = Estimation]
+      D2 -> E [label = Evaluation]
+      {rank = same; D2;E}
+      }")
+```
+
+## 解釈
+
+- 推定された(非確率的な)予測モデルの評価
+
+- テストデータについてのSamplingUncertainlyは、考慮可能
+
+    - テストデータ $\neq$ 母集団
+
+    - ただし通常の漸近理論に基づく信頼区間計算が可能
+
+## 不確実性の評価
+
+- ランダムサンプリングデータから、ランダム分割されたデータ $=$ 母集団からランダムサンプリング
+    
+$$\underbrace{(Y_i-\underbrace{f(X_i)}_{Fix})^2}_{IID\ Error}$$
+
+- 平均値について、漸近正規性が成り立つ
+
+## まとめ
+
+- 推定と評価を同じデータで行うことは、一般に不適切
+
+    - 学習に用いた過去問集について、完璧に答えられるようになったとて、、、
+
+- Train | Testデータへの分割は非常に一般的
+
+    - モデル推定 | 評価 に用いることができるサンプルサイズについて、トレードオフが発生
+    
+    - 目的に応じて交差検証を利用すべき (後日)
+
+
+
