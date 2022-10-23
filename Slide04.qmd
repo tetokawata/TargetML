@@ -1,0 +1,318 @@
+---
+title: "Penalized Empirical Risk Minimization and Cross Validation"
+subtitle: "機械学習の経済学への応用"
+author: "川田恵介"
+affiliation: "keisukekawata@iss.u-tokyo.ac.jp"
+format:
+  revealjs:
+    incremental: true
+execute: 
+  message: false
+  warning: false
+  echo: false
+  eval: true
+bibliography: references.bib
+---
+
+# Penalized Empirical Risk Minimization
+
+```{r SetUp}
+pacman::p_load(tidyverse,
+               ranger,
+               rpart,
+               rpart.plot,
+               DiagrammeR,
+               patchwork,
+               mlr3verse)
+
+set.seed(111)
+
+Data <- read_csv("ExampleData/Example.csv")
+```
+
+-   モデル集計と並ぶ人気戦略
+
+    -   モデル集計に比べて、理解しやすい予測モデルを得やすい
+
+-   経済学理論においても馴染みのある発想
+
+## 基本方針: 目的関数の修正
+
+-   目的: Population Risk Minimization
+
+-   Empirical Risk Minimizationで推定
+
+    -   悪くない発想
+
+-   "全てのパラメータ"を決定すると、しばしば深刻な過剰適合が発生
+
+-   対策: 目的関数を"修正"
+
+    -   モデルの複雑さにペナルティーを与える
+
+-   課題: ペナルティーをどう決める
+
+## 経済学版: 自家用車分配問題
+
+-   目的: Social Welfare Maximization
+
+-   (Individual) Utility Maximizationを目指した自家用車保有の意思決定
+
+    -   悪くはない
+
+-   過剰な負の外部性（渋滞、汚染、騒音など）が一般に発生
+
+-   目的関数を修正
+
+    -   自動車保有に"課税"
+
+-   "課税"をどう決める？
+
+    -   観察できる情報を用いて頑張る
+
+## Prune
+
+1.  Empirical Risk Minimizationの解として、深い予測木を推定
+
+2.  Penalized Empirical Risk Minimizationの解として、剪定 (サブグループを再結合)
+
+$$Empirical Risk + \underbrace{\alpha\times |Number\ of\ SubSample|}_{Penalty}$$
+
+-   Empirical Risk削減に貢献しない分割から、再結合される
+
+## 例: alpha = 0.01
+
+```{r}
+Fit <- rpart::rpart(Price ~.,
+                    Data,
+                    control = rpart::rpart.control(cp = 0))
+
+rpart::prune(Fit,cp = 0.01) |> 
+  rpart.plot::rpart.plot()
+```
+
+## 例: alpha = 0.011
+
+```{r}
+rpart::prune(Fit,cp = 0.011) |> 
+  rpart.plot::rpart.plot()
+```
+
+## 例: alpha = 0.02
+
+```{r}
+rpart::prune(Fit,cp = 0.02) |> 
+  rpart.plot::rpart.plot()
+```
+
+## 例: サブグループの数
+
+```{r}
+Fig1 <- Fit$cptable |> as_tibble() |> 
+  filter(CP <= 0.01) |> 
+  ggplot(aes(x = CP,
+             y = xerror)) +
+  geom_line() +
+  theme_bw() +
+  xlab("alpha") +
+  ylab("Risk")
+
+Fig2 <- Fit$cptable |> as_tibble() |> 
+  ggplot(aes(x = CP,
+             y = nsplit)) +
+  geom_line() +
+  theme_bw() +
+  xlab("alpha") +
+  ylab("Number of SubSample")
+
+Fig2
+```
+
+## $\alpha$ の決定問題
+
+-   複数のTuningParameter $\alpha$ を比較し、"最善の値"を決める
+
+    -   最善の値さえ決まれば、あとは全サンプルを用いて、モデルを推定
+
+## 既習の手法
+
+-   各 $\alpha$ について"ベンチマークモデル"を推定し、評価・比較する
+
+    -   ベンチマークモデルと同じデータで評価すると、大問題!!!
+
+-   ベンチマークモデル作成データと中間評価データに分割するのはOKだが
+
+    -   モデル作成/中間評価のトレオードオフが深刻化
+
+## 論点
+
+-   以下は予測モデルの評価の優れた推定値
+
+$$\sum (Y_i-f(X_i))^2=\sum (\mu(X)+\underbrace{u_i-f(X_i)}_{Independent})^2$$
+
+-   事例$i$に適用する予測モデルと"誤差項"が独立であればOK
+
+    -   Test/Trainingへの分割は一つの方法
+
+## まとめ
+
+-   Penalized Empirical Risk Minimizationは、直感的な手法
+
+    -   Approximaiton Errorを避けために非常に複雑なモデルからスタートし、複雑性への罰則を加えたEmpirical Risk Minimizationの解として単純化
+
+-   罰則の重さを決めるのが難しい
+
+# 交差推定
+
+-   予測のみならず、比較・因果推論への機械学習の応用においても、非常に重要なテクニック
+
+## 手順
+
+1.  (Training)データをランダムに分割 (2;5;10;20など)
+
+2.  第1サブグループ以外を用いてモデルを推定し、第1サブグループの事例について予測値を計算
+
+3.  全てのサブグループについて、繰り返す
+
+4.  *全事例*について、誤差項と独立な予測値を得る
+
+## Cross Validation
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A0 [label = TargetAlgorithmParameter]
+      A [label = Data]
+      B1 [label = SubSample1]
+      B2 [label = SaubSample2]
+      C1 [label = EmpiricalRisk1]
+      C2 [label = EmpiricalRisk2]
+      D [label = Evaluation]
+      B1 -> B2 [label = Predict]
+      B2 -> B1 [label = Predict]
+      B1 -> C1
+      B2 -> C2
+      A0 -> A -> B1,B2
+      C1,C2 -> D
+      {rank = same; B1;B2}
+      }")
+```
+
+## Cross-Validationの利点
+
+-   分割数を増やすと、推定に大量のデータを使える
+
+    -   訓練データ全てを用いたモデルに近づく
+
+-   個々の検証データは少数であり、不安定が大きい
+
+    -   複数の検証結果の平均をとるので、安定
+
+-   分割数を増やすと、計算負荷が劇的に上昇
+
+## 例: 交差検証
+
+```{r}
+Fig1
+```
+
+## RoadMap Pruning
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'Training Data']
+      B [label = 'Estimate function: f(alpha) = Tree']
+      C [label = 'CrossValidation']
+      C1 [label = 'Optimal alpha']
+      D [label = 'Estimate model with optimal alpha']
+      A -> C -> C1 -> D
+      A -> B -> D
+      {rank = same; B;C}
+      }")
+```
+
+## Example: Defaul
+
+```{r}
+#| output: false
+
+Task <- as_task_regr(Data,"Price")
+Tree <- lrn("regr.rpart")
+Measure <- msr("regr.rsq")
+
+Group <- partition(Task,ratio = 0.8)
+
+CV <- rsmp("cv", folds = 2)
+PramSpace <- ps(
+  cp = p_dbl(lower = 0.001, upper = 0.1)
+  )
+Tuner <- tnr("grid_search")
+Terminator <- trm("evals", n_evals = 100)
+
+AutoTree <- AutoTuner$new(
+  learner = Tree,
+  resampling = CV,
+  measure = Measure,
+  search_space = PramSpace,
+  tuner = Tuner,
+  terminator = Terminator
+)
+
+lgr::get_logger("mlr3")$set_threshold("info")
+
+AutoTree$train(Task, Group$train)
+Tree$train(Task, Group$train)
+```
+
+```{r}
+Tree$model |> 
+  rpart.plot()
+```
+
+## Example: Optimal
+
+```{r}
+AutoTree$model$learner$model |> 
+  rpart.plot()
+```
+
+## Algorithm Selection
+
+-   交差検証はアルゴリズム選択にも応用可能
+
+```{r}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = 'Training Data']
+      B1 [label = 'ValidateData1']
+      B2 [label = 'ValidateData2']
+      T1 [label = 'Tree1/RandomForest1']
+      T2 [label = 'Tree2/RandomForest2']
+      E [label = 'Best Algorithm']
+      A -> B1,B2
+      B1 -> T1 [label = 'Estimation']
+      B2 -> T2
+      T1 -> B2 [label = 'Evaluation']
+      T2 -> B1
+      T1,T2 -> E
+      {rank = same; B1;B2}
+      {rank = same; T1;T2}
+      }")
+```
+
+## まとめ
+
+-   交差推定を用いれば、個々の事例について、誤差項と独立した予測値を得られる
+
+    -   因果推論への応用にも重要
+
+-   評価への応用 (CrossValidation)
+
+    -   Algorithmの**比較** に有益
