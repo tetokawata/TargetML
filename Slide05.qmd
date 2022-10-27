@@ -1,0 +1,59 @@
+---
+title: "LinearModel"
+subtitle: "機械学習の経済学への応用"
+author: "川田恵介"
+affiliation: "keisukekawata@iss.u-tokyo.ac.jp"
+format:
+  revealjs:
+    incremental: true
+    self-contained-math: true
+execute: 
+  message: false
+  warning: false
+  echo: false
+  eval: true
+bibliography: references.bib
+---
+
+# LinearModel
+
+```{r SetUp}
+pacman::p_load(tidyverse,
+               DiagrammeR,
+               patchwork,
+               mlr3verse)
+
+set.seed(111)
+
+Data <- read_csv("ExampleData/Example.csv")
+```
+
+- 予想木と並ぶ人気モデル
+
+    - NonPenalized Empirical Risk Minimization (OLS): 漸近性質が"ほぼほぼ"解明されている
+    
+    - Penalized Empirical Risk Minimization (LASSOなどなど): そもそもの$X$が多いデータにおいて現実的な選択肢
+    
+## LinearModel
+
+$$f(X)=\beta_0 + \beta_1X_1 +..+\beta_LX_L$$
+
+## OLS
+
+- Empirical Risk Minimizationとして、線形モデルを推定
+
+$$\min\sum_{i} (Y_i-f(X_i))^2$$
+
+- 解釈:: 母集団におけるRisk(MSE)を最小化する線形近似 $f_P$ の"優れた"推定量
+
+$$\min_{\beta_0,..,\beta_L}E[(\mu_Y(X)-f_P(X))^2]$$
+
+## LASSO
+
+- 以下のPenalized Empirical Minimizationの解
+
+$$\min\sum_{i} (Y_i-f(X_i))^2 + \lambda |\beta_1+..+\beta_L|$$
+
+- 解釈: 以下の条件つき最適化の解
+
+$$\min\sum_{i} (Y_i-f(X_i))^2\ s.t.\ |\beta_1+..+\beta_L| \le A$$
