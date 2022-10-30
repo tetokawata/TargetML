@@ -16,33 +16,32 @@ bibliography: references.bib
 
 ## 事務連絡
 
-- 講義資料 (https://github.com/tetokawata/TargetML)
+-   講義資料 (https://github.com/tetokawata/TargetML)
 
-    - スライドのノート版、Example Code, Data, など
-    
-- 評価: レポート（3回予定）
+    -   スライドのノート版、Example Code, Data, など
 
-    - 手法の説明 & R (Pythonも可)での実装
+-   評価: レポート（3回予定）
+
+    -   手法の説明 & R (Pythonも可)での実装
 
 ## 本講義
-
 
 ```{r}
 pacman::p_load(tidyverse,
                DiagrammeR)
 ```
 
-- 教師付き学習の入門と応用
+-   教師付き学習の入門と応用
 
-    - 予測問題と母集団の”パラメタ”推定の入門
-    
-- 対象: 機械学習の初学者 &| 経済学 ($\simeq$ 社会科学; Biomedical Science) への応用に関心がある人
+    -   予測問題と母集団の"パラメタ"推定の入門
 
-- 便益: "統計モデルの定式化"依存を減らす
+-   対象: 機械学習の初学者 &\| 経済学 ($\simeq$ 社会科学; Biomedical Science) への応用に関心がある人
 
-    - ”機械学習", "データサイエンス"というキーワードの入った求人が大学内外から増えている
-    
-    - データ分析についての異なる”カルチャー”に馴染む
+-   便益: "統計モデルの定式化"依存を減らす
+
+    -   "機械学習", "データサイエンス"というキーワードの入った求人が大学内外から増えている
+
+    -   データ分析についての異なる"カルチャー"に馴染む
 
 ## Motivation
 
@@ -60,13 +59,13 @@ $$Y_i=\beta_0 +\beta_1X_{1i}+..+\beta_LX_{Li}+u_i,u_i\sim N(0,\sigma^2)$$
 
 ## 本講義の推奨
 
-- 分析のゴールを明確に定め、それに適した手法を用いる
+-   分析のゴールを明確に定め、それに適した手法を用いる
 
-    - 「とりあえず統計モデルを推定する」をやめる
+    -   「とりあえず統計モデルを推定する」をやめる
 
-- 予測問題: 教師付き学習 (DataAdaptiveな推定)
+-   予測問題: 教師付き学習 (DataAdaptiveな推定)
 
-- 母集団の推論: Semiparametric推定 with 教師付き学習
+-   母集団の推論: Semiparametric推定 with 教師付き学習
 
 ## 例: 中古マンション取引価格予測
 
@@ -90,7 +89,6 @@ read_csv("Result/ComparePredictModel.csv") |>
 ```{r}
 knitr::include_graphics("Figure/ComparePredictModel.png")
 ```
-
 
 # 教師付き学習概論
 
@@ -131,9 +129,9 @@ SimData <- function(i){
 
 -   おすすめ参考書
 
-    - [Introduction to Statistical Learning (with R code)](https://www.statlearning.com/)
-    
-    - [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/index.html)
+    -   [Introduction to Statistical Learning (with R code)](https://www.statlearning.com/)
+
+    -   [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/index.html)
 
 ## 教師付き学習
 
@@ -165,15 +163,15 @@ $$\min E[(\mu_Y(X)-f(X))^2]$$
 
 -   工夫すれば、母集団の特徴（要約）を適切に推定できる
 
-    - 伝統的なNonparametric推定と同様に、収束速度が遅く、信頼区間が近似計算できない
-    
-    - Semiparametric推定を応用
+    -   伝統的なNonparametric推定と同様に、収束速度が遅く、信頼区間が近似計算できない
+
+    -   Semiparametric推定を応用
 
 -   母分布そのものを"適切"に推定することは依然として困難
 
 # データ分析概論
 
-- 「分析のゴールの明確にし、推定手法をカスタマイズ」が**より**重要
+-   「分析のゴールの明確にし、推定手法をカスタマイズ」が**より**重要
 
 ## データ分析のゴール
 
@@ -201,27 +199,27 @@ grViz("digraph dot {
 
 ## データ分析への具体的な要求
 
-- 予測問題: $E[(\mu_Y(X_1,..,X_L)-f(X_1,..,X_L))^2]$ を最小化
+-   予測問題: $E[(\mu_Y(X_1,..,X_L)-f(X_1,..,X_L))^2]$ を最小化
 
-    - 2次的要求: 予測モデルの説明可能性、SamplingUncertainlyの定量化
-    
-- 母集団の特徴の推定: 明確に解釈 **された** 母集団の特徴について、意味のある信頼区間を形成
+    -   2次的要求: 予測モデルの説明可能性、SamplingUncertainlyの定量化
 
-    - $\sqrt{N}$ 正規性 (Asymptotic Normality)
-    
-    - 漸近効率性
+-   母集団の特徴の推定: 明確に解釈 **された** 母集団の特徴について、意味のある信頼区間を形成
+
+    -   $\sqrt{N}$ 正規性 (Asymptotic Normality)
+
+    -   漸近効率性
 
 ## 古典的推定
 
-- 母集団の推定は、古典的な推定手法においても、中心的課題
+-   母集団の推定は、古典的な推定手法においても、中心的課題
 
-    - "Parametricな統計モデルをデータを見る前に設定し、推定する"
+    -   "Parametricな統計モデルをデータを見る前に設定し、推定する"
 
 $$E[Y|X]=\beta_0 + \beta_1X_1+..+\beta_LX_L$$
 
-- **推定された統計モデルを用いて**、研究課題に答える
+-   **推定された統計モデルを用いて**、研究課題に答える
 
-- Estimandの定式化, 識別・推定上の仮定を**全て**統計モデル上で議論する
+-   Estimandの定式化, 識別・推定上の仮定を**全て**統計モデル上で議論する
 
 ## 理想の世界
 
@@ -246,8 +244,6 @@ $$\mu_Y(X_1,X_2)=\beta_0 + \beta_DD + \beta_1X + \beta_2X^2$$
     -   $\beta$ について信頼区間計算が可能 (パラメータ推定達成)
 
     -   そもそも単純なので、人間がそのまま理解できる (記述達成)
-
-
 
 ## 数値例: データ
 
@@ -305,11 +301,11 @@ map_dfr(1:100, function(i){
 
 ## Sampling Uncertainly
 
-- 確率的に選ばれた、母集団の一部を観察
+-   確率的に選ばれた、母集団の一部を観察
 
-    - 同じ手法・母集団・研究課題に挑む研究者であったとしても、異なる結論が出てくる
-    
-    - たくさんの工夫
+    -   同じ手法・母集団・研究課題に挑む研究者であったとしても、異なる結論が出てくる
+
+    -   たくさんの工夫
 
 ## 数値例: $beta_1$
 
@@ -333,15 +329,15 @@ map_dfr(1:100, function(i){
 
 ## 漸近性質の活用
 
-- ”サンプルサイズが大きくなれば、推定値は真の値の近くに分布する”性質を活用
+-   "サンプルサイズが大きくなれば、推定値は真の値の近くに分布する"性質を活用
 
-- 一致性: 無限大に大きくなれば、全員真の値に収束
+-   一致性: 無限大に大きくなれば、全員真の値に収束
 
-    - 経済学的では非実用的
-    
-- 漸近正規性: より早い速度で、正規分布に収束
+    -   経済学的では非実用的
 
-    - 信頼区間の計算が可能
+-   漸近正規性: より早い速度で、正規分布に収束
+
+    -   信頼区間の計算が可能
 
 ## 数値例: $beta_1$
 
@@ -370,11 +366,11 @@ map_dfr(1:100, function(i){
 
 ## 誤定式
 
-- 経済学のほぼ全ての応用で、正しいモデルを設定することは不可能
+-   経済学のほぼ全ての応用で、正しいモデルを設定することは不可能
 
-    - 任意の $\beta$ について、 $\mu_Y(X)\neq f(X) = \beta_0 + \beta_1X_1+\beta_2X_2$
+    -   任意の $\beta$ について、 $\mu_Y(X)\neq f(X) = \beta_0 + \beta_1X_1+\beta_2X_2$
 
-- 一般に予測性能が悪化し、母集団についての信頼区間が”信頼できなくなる”
+-   一般に予測性能が悪化し、母集団についての信頼区間が"信頼できなくなる"
 
 ## 数値例: $beta_1$
 
@@ -403,15 +399,15 @@ map_dfr(1:100, function(i){
 
 ## 誤定式化の避け方
 
-- モデルを柔軟にする (推定するパラメータを増やす) と誤定式のリスクは必ず減る
+-   モデルを柔軟にする (推定するパラメータを増やす) と誤定式のリスクは必ず減る
 
 $$Y_i=\beta_0 + \beta_DD_i+\beta_1X_i+..+\beta_LX_i^L+u_i$$
 
-- 過剰適合が生じ、 推定が"できなくなる"
+-   過剰適合が生じ、 推定が"できなくなる"
 
-- 教師付き学習の代表的アイディア: モデルを適切に単純化する
+-   教師付き学習の代表的アイディア: モデルを適切に単純化する
 
-    - 変数を"Shrink, Chop, and Throw out!!!"
+    -   変数を"Shrink, Chop, and Throw out!!!"
 
 ## 応用: 母集団の推定
 
@@ -455,9 +451,9 @@ map_dfr(1:100, function(i){
 
 $$0=E[m(Y_i,D_i,X_{i},g,\tau)]$$
 
-- $g$ : 未知のNuisance関数 (例: 条件付き母平均、 傾向スコア)
+-   $g$ : 未知のNuisance関数 (例: 条件付き母平均、 傾向スコア)
 
-- $m$ を $g$ の推定誤差についてRobustな関数として設定すれば、 $g$ の推定に機械学習を応用可能
+-   $m$ を $g$ の推定誤差についてRobustな関数として設定すれば、 $g$ の推定に機械学習を応用可能
 
 ## 数値例: Semipara
 
@@ -507,61 +503,61 @@ map_dfr(1:100, function(i){
 
 ## まとめ
 
-- 「事前に正しい統計モデルを設定する」推定法には、多くの問題点
+-   「事前に正しい統計モデルを設定する」推定法には、多くの問題点
 
-    - 仮定が見にくい
-    
-    - 細かい定式化に推定結果が依存
+    -   仮定が見にくい
 
-- 教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+    -   細かい定式化に推定結果が依存
 
-    - 予測問題: 多くの優れたアルゴリズム
-    
-    - 母集団の推論: セミラパ推定 + 既存アルゴリズム
-    
-- 因果効果の識別(事前解釈)は、別問題
+-   教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+
+    -   予測問題: 多くの優れたアルゴリズム
+
+    -   母集団の推論: セミラパ推定 + 既存アルゴリズム
+
+-   因果効果の識別(事前解釈)は、別問題
 
 ## まとめ
 
-- 「事前に正しい統計モデルを設定する」推定法には、多くの問題点
+-   「事前に正しい統計モデルを設定する」推定法には、多くの問題点
 
-    - 仮定が見にくい
-    
-    - 細かい定式化に推定結果が依存
+    -   仮定が見にくい
 
-- 教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+    -   細かい定式化に推定結果が依存
 
-    - 予測問題: 多くの優れたアルゴリズム
-    
-    - 母集団の推論: セミラパ推定 + 既存アルゴリズム
-    
-- 因果効果の識別(事前解釈)は、別問題
+-   教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+
+    -   予測問題: 多くの優れたアルゴリズム
+
+    -   母集団の推論: セミラパ推定 + 既存アルゴリズム
+
+-   因果効果の識別(事前解釈)は、別問題
 
 ## 混乱した議論
 
-- 機械学習 | 傾向スコアを使えば、因果効果を**識別**できる
+-   機械学習 \| 傾向スコアを使えば、因果効果を**識別**できる
 
-- 機械学習を使っても因果効果は**識別**できないので、因果効果の**推定**には役に立たない
+-   機械学習を使っても因果効果は**識別**できないので、因果効果の**推定**には役に立たない
 
 ## RoadMap
 
-- 代表的教師付き学習アルゴリズムの紹介: 
+-   代表的教師付き学習アルゴリズムの紹介:
 
-    - Tree/LinearModel系
-    
-    - Stacking (実用上の推奨)
-    
-- 条件付き平均差の推定
+    -   Tree/LinearModel系
 
-    - [Double/DebiasedMachineLearning](https://arxiv.org/abs/1608.00060)
-    
-- 他の応用
+    -   Stacking (実用上の推奨)
 
-    - [GeneralizedPartialLinearModel](https://arxiv.org/abs/2006.08402)
+-   条件付き平均差の推定
 
-    - [SensitivityAnalysis](https://www.nber.org/papers/w30302)
-    
-    - [NonParametricPrediction](https://arxiv.org/abs/1610.01271https://arxiv.org/abs/1610.01271)
+    -   [Double/DebiasedMachineLearning](https://arxiv.org/abs/1608.00060)
+
+-   他の応用
+
+    -   [GeneralizedPartialLinearModel](https://arxiv.org/abs/2006.08402)
+
+    -   [SensitivityAnalysis](https://www.nber.org/papers/w30302)
+
+    -   [NonParametricPrediction](https://arxiv.org/abs/1610.01271https://arxiv.org/abs/1610.01271)
 
 ## Core Packages: Semipara + ML
 
@@ -597,17 +593,16 @@ grViz("digraph dot {
 
 ## 次回に向けた準備
 
-- RとRStudioとパッケージのインストール
+-   RとRStudioとパッケージのインストール
 
-    - [RとRstudioのインストール](https://youtu.be/fDlXx8e5W78)
-    
-    - [Packagesのインストール](https://youtu.be/2fmThveX7_s)
-    
-    - [ProjectFolderの作成](https://youtu.be/rqQP4jsF0oQ)
-    
-    - [Dataのアップロード](https://youtu.be/f2EU44WFyQM)
+    -   [RとRstudioのインストール](https://youtu.be/fDlXx8e5W78)
 
-- 必要パッケージ: mlr3verse; tidyverse; rpart.plot
+    -   [Packagesのインストール](https://youtu.be/2fmThveX7_s)
 
+    -   [ProjectFolderの作成](https://youtu.be/rqQP4jsF0oQ)
+
+    -   [Dataのアップロード](https://youtu.be/f2EU44WFyQM)
+
+-   必要パッケージ: mlr3verse; tidyverse; rpart.plot
 
 ## Reference
