@@ -30,3 +30,5 @@ format: beamer
 - Submit script-file (Code for Question 1, and comment for Question 2) on ITC-LMS
 
 - DeadLine: 11/13
+
+- Tutorial https://github.com/tetokawata/BookEmiricalSocialML
