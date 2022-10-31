@@ -1,5 +1,5 @@
 ---
-title: "MostSimple Prediction Task with mlr3"
+title: "A bit Advanced Prediction Task with mlr3"
 author: "川田恵介"
 format:
   revealjs:
@@ -14,31 +14,35 @@ bibliography: references.bib
 
 ## Purpose
 
-- 予測問題についての包括的な作業工程を例示
+-   予測問題についての包括的な作業工程を例示
 
-    - ただしStackingは除く
-    
-- TuningParameterの推定と本推定を同時に行うAutoTunerを活用
+    -   ただしStackingは除く
 
-- モデル比較を簡便かつ柔軟に行えるbenchmarkを活用
-    
+-   TuningParameterの推定と本推定を同時に行うAutoTunerを活用
+
+-   モデル比較を簡便かつ柔軟に行えるbenchmarkを活用
+
 ## RoadMap
 
-1. Define Learner, Measurement, ReSampling, TerminalCondition
+```{mermaid}
+flowchart LR
+  B[もろもろ定義] --> C1[推定アルゴリズムの定義]
+  B --> C2[+ パラメータTuning]
+  C1 --> D[Trainデータを用いたベンチマーク]
+  C2 --> D
+  D --> E[最終推計]
+  E --> F[Testデータによる評価]
+```
 
-2. Define Learner with Parameter Turning
-
-3. Split sample into Training and Test
-
-4. Choose Best Model by CrossValidation
-
-5. Construct Final Model
 
 ## SetUp
 
 ```{r}
 library(mlr3verse)
 library(tidyverse)
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+future::plan("multisession") # 並列処理
 
 set.seed(1)
 
@@ -53,92 +57,83 @@ R2 <- msr("regr.rsq") # Define Evaluation with R2
 
 Mean <- lrn("regr.featureless") # Define SimpleMean
 OLS <- lrn("regr.lm") # Define OLS
-Tree <- lrn("regr.rpart") # Define AdaptiveTree
 RandomForest <- lrn("regr.ranger") # Define Random Forest
-LASSO <- lrn("regr.cv_glmnet") # Define LASSO
-
 ```
 
-## Tuning 
+## Tuning
 
-- TuningParameterの推定を行うアルゴリズムを定義
+-   TuningParameterの推定を行うアルゴリズムを定義
 
 ```{r}
 CV <- rsmp("cv",folds = 2) # Define CrossValidation with 2 folds
 
-Tuner <- tnr("grid_search") # Define search method
+Tuner <- tnr("random_search") # Define search method
 
 Terminator <- trm("evals", n_evals = 100) # Define Terminal condition
 ```
 
-## PruneTree
+## Pruned Tree
 
-- Prune Treeの推定
+-   Prune Treeの推定
+
+-   lts関数 (mlr3tuningpsaceパッケージ)が提供するおすすめ範囲内で探索 [@bischl]
 
 ```{r}
-AutoTree <- AutoTuner$new(
+Tree <- lrn("regr.rpart") |> lts() # Define AdaptiveTree
+
+Tree <- AutoTuner$new(
   learner = Tree,
   resampling = CV,
   measure = R2,
-  search_space =  ps(
-  cp = p_dbl(lower = 0, upper = 0.1),
-  minsplit = p_int(lower = 5,upper = 20)
-  ), # Define hyperparameter space
   tuner = Tuner,
   terminator = Terminator,
   store_models = TRUE
 )
 
-AutoTree$id <- "regr.PruneTree"
+Tree$id <- "Tree"
 ```
 
 ## ElasticNet
 
-- ElasticNetを推定
+-   ElasticNetを推定
+
+-   lts関数 (mlr3tuningpsaceパッケージ)が提供するおすすめ範囲内で探索 [@bischl]
 
 ```{r}
-ElasNet <- AutoTuner$new(
-  learner = lrn("regr.glmnet"),
+LASSO <- lrn("regr.glmnet") |> lts() # Define LASSO
+
+LASSO <- AutoTuner$new(
+  learner = LASSO,
   resampling = CV,
   measure = R2,
-  search_space =  ps(
-  lambda = p_dbl(lower = 0, upper = 1),
-  alpha = p_dbl(lower = 0 , upper = 1)
-  ), # Define hyperparameter space
   tuner = Tuner,
   terminator = Terminator,
   store_models = TRUE
 )
 
-ElasNet$id <- "regr.ElasticNet"
+
+LASSO$id <- "LASSO"
 ```
 
 ## BenchMaking
 
-- 訓練データのみを用いて、アルゴリズムを比較 (TrainingData内のCrossValidation)
+-   訓練データのみを用いて、アルゴリズムを比較 (TrainingData内のCrossValidation)
 
 ```{r}
-#| output: false
 Design <- benchmark_grid(
-  tasks = Task$clone(deep=TRUE)$filter(Subgroup$train),
-  learners = list(OLS,Tree,RandomForest,AutoTree,Mean,LASSO,ElasNet),
+  tasks = Task$clone()$filter(Subgroup$train),
+  learners = list(OLS,Tree,RandomForest,Tree,Mean,LASSO),
   resamplings = CV
 )
 
 Result <- benchmark(Design)
+
+Result$aggregate(R2)
 ```
-
-## 可視化
-
-```{r}
-autoplot(Result,
-         measure = R2)
-```
-
 
 ## Final Model
 
-- 最善のアルゴリムであったRandomForest、及び全訓練データを用いて最終予測モデルを推定
+-   最善のアルゴリムであったRandomForest、及び全訓練データを用いて最終予測モデルを推定
 
 ```{r}
 RandomForest$train(Task,Subgroup$train)
@@ -146,3 +141,4 @@ RandomForest$train(Task,Subgroup$train)
 RandomForest$predict(Task,Subgroup$test)$score(R2) # Peformance in TestData
 ```
 
+## Reference

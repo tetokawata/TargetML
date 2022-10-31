@@ -1,0 +1,228 @@
+---
+title: "Advanced R: (Reference) method, name, value, and copy"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: true
+bibliography: references.bib
+---
+
+## おすすめ参考書
+
+- [Advanced R](https://adv-r.hadley.nz/index.html)
+
+    - [R for Data Science](https://r4ds.had.co.nz/)
+
+# R6
+
+- [Advanced R](https://adv-r.hadley.nz/index.html)
+
+    - [R for Data Science](https://r4ds.had.co.nz/)
+
+## 基本文法
+
+- データ(Object)をFunctionに入力し、 Objectを出力する
+
+```{r}
+A <- c(1,2,3)
+
+B <- sum(A)
+
+sqrt(B)
+```
+
+## 流れ作業の書き方: Pipe
+
+- 現代的な文法 (関数ベース)
+
+    - |> ないし %>%
+
+```{r}
+c(1,2,3) |> 
+  sum() |> 
+  sqrt()
+```
+
+## R6 object class
+
+- Object自体の構造にも種類が存在: S4,S3,R6...
+
+- R6: Pythonライク, Reference semantics, Method (Chane)
+
+    - DoubleML や sl3 などが採用
+
+```{r}
+library(R6)
+
+ExampleR6 <- R6Class("Example", 
+                     public = list(
+  value = 0,
+  define = function(x) {
+    self$value <- self$value + x 
+    invisible(self)
+  },
+  sum = function() {
+    self$value <- sum(self$value)
+    invisible(self)
+  },
+  sqrt = function() {
+    self$value <- sqrt(self$value)
+    invisible(self)
+  }
+  )
+)
+```
+
+## Method
+
+- Objectから関数を呼び出し、同じObject内のvalueを加工
+
+```{r}
+A <- ExampleR6$new()
+
+A$define(c(1,2,3))
+A$value
+
+A$sum()
+A$value
+```
+
+## Method chain
+
+- Objectから関数を呼び出し、同じObject内のvalueを加工
+
+```{r}
+A <- ExampleR6$new()
+
+A$define(c(1,2,3))$sum()$sqrt()$value
+```
+
+# Name and Value
+
+-  name と values を区別することは有益
+
+    - R6 class や多くのPython Libraryのような Reference Semantics が採用されている場合必須
+
+    - 致命的なミスを犯す恐れ
+    
+## Name
+
+- "データ"は、PCチップ上のどこかに保存
+
+    - 真の住所が存在
+
+    - ただの記号の羅列で覚えられない
+
+- Name(参照名）をつけて活用
+
+```{r}
+library(lobstr) # 真の住所を取得
+
+ReferenceName <- 1 # データを作り、Nameを作る
+
+obj_addr(ReferenceName) # 真の住所
+```
+
+- 日常例: 住所(GPS座標) 35.71037511368804, 139.76139216569044
+
+    - 参照名: 東大経済学研究棟
+
+## list
+
+- Objectには型 (Class) が設定されている (Matrix, vectorなど)
+
+- データや推定結果の保存に最もよく用いられるClass
+
+    - 参照名の集合体
+    
+    - $で参照名を取り出す
+
+## コピー
+
+```{r}
+a <- 1
+
+b <- 1
+
+c <- a
+```
+
+
+- bとcの違いは？
+
+    - cはaのソフトコピー: 住所は同じ
+    
+## 確認
+
+```{r}
+obj_addr(a)
+
+obj_addr(b)
+
+obj_addr(c)
+```
+
+## Copy-on-modify
+
+- 以下を行うと何が起きる？
+
+```{r}
+c <- c + 1
+```
+
+- Objectを加工する際に、実際のコピーが行われる
+
+```{r}
+obj_addr(a)
+obj_addr(c)
+```
+
+- 意図せぬミスを避ける保守的な設定
+
+    - しばしば不要なコピーを誘発し、計算速度が遅くなる
+
+## R6
+
+- Copy-on-modifyを採用していない
+
+    - 勝手に設定が変更されてしまう可能性！！！
+
+- コピー元を変更したくなければ、意図的に設定する必要がある
+
+    - clone() 関数の利用
+    
+    - 安全のためにDeep = TRUEを設定
+
+## No Copy-on-modify
+
+```{r}
+library(mlr3verse)
+
+LASSO <- lrn("regr.glmnet")
+
+Ridge <- LASSO
+
+Ridge$param_set$values$alpha = 0
+
+LASSO$param_set
+```
+
+## Copy-on-modify
+
+```{r}
+library(mlr3verse)
+
+LASSO <- lrn("regr.glmnet")
+
+Ridge <- LASSO$clone(deep = TRUE)
+
+Ridge$param_set$values$alpha = 0
+
+LASSO$param_set
+```
+
