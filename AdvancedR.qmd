@@ -1,9 +1,9 @@
 ---
 title: "Advanced R: (Reference) method, name, value, and copy"
 author: "川田恵介"
-format:
-  revealjs:
-    incremental: true
+format: pdf
+pdf-engine: lualatex
+documentclass: ltjsarticle 
 execute: 
   warning: false
   message: false
@@ -11,6 +11,63 @@ execute:
   echo: true
 bibliography: references.bib
 ---
+
+# 関数とObject
+
+## 基本文法
+
+- データ(Object)をFunctionに入力し、 Objectを出力する
+
+```{r}
+A <- c(1,2,3)
+
+B <- sum(A)
+
+sqrt(B)
+```
+
+## Class
+
+- あるObjectに関数を適用できるかどうかは、ObjectのClassで判別される
+
+    - Class: Objectの"型" (消費財、資本、中間投入物などなど)
+
+- class関数で確認できる
+
+```{r}
+class(B)
+```
+
+## list
+
+- 最も多く採用されているclass
+
+    -　多様な情報を入れ子構造で含めることができる
+    
+    - $で要素を抜き出せる
+    
+    - "Data"もリストの一種
+    
+```{r}
+C <- list(a = c("A","B"), b = 1)
+
+class(C)
+
+C$a
+```
+
+## list
+
+- 無限に入れ子にできる
+    
+```{r}
+C <- list(a = c("A","B"), b = 1)
+
+D <- list(C = C,
+          D = 1)
+
+D$C$a
+```
 
 ## おすすめ参考書
 
@@ -24,17 +81,7 @@ bibliography: references.bib
 
     - [R for Data Science](https://r4ds.had.co.nz/)
 
-## 基本文法
 
-- データ(Object)をFunctionに入力し、 Objectを出力する
-
-```{r}
-A <- c(1,2,3)
-
-B <- sum(A)
-
-sqrt(B)
-```
 
 ## 流れ作業の書き方: Pipe
 
@@ -134,13 +181,9 @@ obj_addr(ReferenceName) # 真の住所
 
 ## list
 
-- Objectには型 (Class) が設定されている (Matrix, vectorなど)
+- 参照名の集合体
 
-- データや推定結果の保存に最もよく用いられるClass
-
-    - 参照名の集合体
-    
-    - $で参照名を取り出す
+    - 巨大なリストを作ったとしても、それ自体はメモリを圧迫しない
 
 ## コピー
 
@@ -182,11 +225,11 @@ obj_addr(a)
 obj_addr(c)
 ```
 
-- 意図せぬミスを避ける保守的な設定
+- "データ分析者"が意図せぬミスを避ける保守的な設定
 
     - しばしば不要なコピーを誘発し、計算速度が遅くなる
 
-## R6
+## R6の注意点
 
 - Copy-on-modifyを採用していない
 

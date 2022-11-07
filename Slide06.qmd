@@ -254,6 +254,14 @@ TestData |>
 
 ## PreProcess
 
+-   人間が背景知識を用いて、手助けできる
+
+-   線形モデルにおいては、母平均のkinkを上手く近似できない
+
+    - 背景知識からkinkが生じるポイントが予想できる場合も
+
+## PreProcess
+
 -   機械学習を用いるとしても、データクリーニングは重要
 
 -   経済データではしばしば大量のカテゴリーがある変数が存在 (例: 所在地、テキスト、出身大学+学部)
@@ -302,11 +310,11 @@ TestData |>
 
 -   X,Dを用いる
 
--   Partial Dependent Plot: $f^{PDP}(X_{l})=\int_{X_{-l}} f(X_l,X_{-l})dF(X_{-l})$
+-   Partial Dependent Plot: $E_{X{-l}}[f(X_l,X_{-l})]$
 
     -   モデル全体の特徴を説明する
 
--   Break down profile
+-   Shapley values: $E_{X}[f(X)|X_1,..,X_{l}]-E_{X}[f(X)|X_1,..,X_{-l}]$
 
     -   個別事例に対する予測結果を説明する
 
@@ -342,14 +350,14 @@ plot(model_profile(mlr_expleiner,
                    variable = "X", type = "partial"))
 ```
 
-## Break down profile
+## Shapley Values
 
 ```{r}
 TempData <- TestData |> select(D,X)
 TestSample <- TempData[1,]
 
 plot(predict_parts(mlr_expleiner,
-                   new_observation = TestSample, type = "break_down_interactions"))
+                   new_observation = TestSample, type = "shap"))
 ```
 
 ## Reference
