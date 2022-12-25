@@ -1,0 +1,499 @@
+---
+title: "Approximation of Conditional Average Difference"
+subtitle: "機械学習の経済学への応用"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true
+    self-contained-math: true
+    slide-number: true
+execute: 
+  message: false
+  warning: false
+  echo: false
+  eval: true
+bibliography: references.bib
+---
+
+```{r SetUp}
+pacman::p_load(
+  mlr3verse,
+  tidyverse,
+  DoubleML,
+  DiagrammeR,
+  estimatr,
+  patchwork
+)
+
+```
+
+# 冬休みのおすすめ
+
+- [Modern Business Analytics](https://www.mheducation.com/highered/product/modern-business-analytics-taddy-hendrix/M9781264071678.html)
+
+    - 学部初級/中級?
+    
+    - Rのコード付き
+    
+    - データ分析最初の一冊としてもOK
+
+    - 社研の図書館に一冊あります
+
+# ここまでの復習
+
+## よくある書き方
+
+- いきなり統計モデルの定式化から議論が始まる
+
+- 例
+
+$$Y_i=\beta_0 + \beta_D D_i+\beta_1X_i + u_i$$
+
+- $u_i\sim N(0,\delta)$
+
+- 全ての仮定 (識別の仮定、推定の仮定、**要約(parsimonious)ための仮定**)が、ごちゃごちゃに定式化
+
+    - 仮定 $\rightarrow$ 結論が見えにくい
+
+## おすすめ: RoadMap
+
+- 経済学と同様に、必要な仮定を少しづつ設定する
+
+- RoadMap: [Chapter 4 in Target Learning in R](https://tlverse.org/tlverse-handbook/)
+
+## 簡易版
+
+```{r RoadMap}
+grViz("digraph dot {
+      graph [rankdir = UB,color = crimson]
+      edge [color=black]
+      node [shape = rectangle, color = darkslategray]
+      A [label = '研究課題の設定: 何を推定したいのか?']
+      B [label = '識別: どのような母集団の値を推定すれば良いのか？']
+      B1 [label = '要約のための定式化: T(P)', color = red]
+      C [label = '推定: 具体的な推定方法(統計モデル)の設定']
+      D [label = 'データ収集 & コード書き']
+      a [label = '背景・実務・（経済）理論的知識', color = red]
+      b [label = '狭義の因果推論', color = red]
+      c [label = '狭義の統計・機械学習', color = red]
+      d [label = '調整力, R|Python|Juliaの知識', color = red]
+      A -> B -> B1 -> C -> D
+      a -> A
+      b -> B
+      c -> C
+      d -> D
+      {rank = same; a; A}
+      {rank = same; b; B}
+      {rank = same; c; C}
+      {rank = same; d; D}
+      }")
+```
+
+## Conditional Average Difference
+
+- 母集団における $f_{\tau}(x)=f(Y|D=d,X=x)-f(Y|D=d',X=X)$ について議論できれば、研究課題に答えられる
+
+- 一般に $f_{\tau}(x)$ を直接推定することは難しい（次元の呪い、密度の推定)、推定結果が人間の認知能力を超える (解釈できない)
+
+    - 社会を理解する上で too muchな目標かもしれない
+
+- 要約のための定式化: Partialling-Out | AIPW: $T(\tau(d,d',x))=\int \bigr[\tau(x)\times weight(x)\bigr]dx$ where $\tau(X)=\int Yf_{\tau}(X)dX$ スカラー（平均差）
+
+    - かなり節約的な目標: 推定容易
+
+- 推定のための仮定: Nuisance functionの推定値が $n^{1/4}$ 以上の速度で収束
+
+## 異質性
+
+- $X$ と $f_{\tau}(X)$ の間にどのような関係性があるのか?
+
+    - 非常に重要
+    
+- 実務的含意: どの様な層に効果的なのか、負の効果が生じる層はないのか、"格差”はどの様な層で深刻なのか？
+
+- 理論的含意: 理論への反証力を高める
+
+## 丸暗記モデル
+
+- 節約のための仮定: $\tau(X)=\int Yf_{\tau}(X)dX$ を推定
+
+- 各サブグループ $X$ について個別にPartiallingout、AIPW推定
+
+    - $X$ が多次元のケースでは、サンプルサイズが減りすぎる
+    
+    - 計算負荷が大きい
+
+## 節約のための定式化
+
+- 節約のための仮定: $\tau(X)\sim \beta_0+\beta_1Z_1+..+\beta_LZ_L$
+
+    - $Z_1,..,Z_L = X$ の一部: 研究課題に応じて指定
+
+- 複数の推定アルゴリズム
+
+    - 極力推定のための仮定を減らしたい
+
+## 伝統的交差項
+
+- 線形近似モデルを推定
+
+$$E[Y|D=d,X=x]=\tau_D\times D + \tau_1\times D\times \bar Z_1+..+\tau_L\times D\times \bar Z_L$$
+
+$$ + \underbrace{f(X)}_{LinearModel}$$
+
+- $f(X)$ の定式化の影響が大きい
+
+## 補論: Centering
+
+- $\beta_0 =$ 全ての$X$が0
+
+  - 経済学への応用において、 $X=0$ がナンセンスなケースは多い（年齢、身長、就学年数など）
+
+  - 近似する上で無視される
+
+- 簡単な解決策は、変数の加工
+
+  - Centering された $X$ $\tilde X=(X-mean(X))$ の利用
+  
+  - $E[\tau(\tilde X)|\tilde X=0]$ : ”平均的サンプル”における平均効果の予測値
+
+  - 経済学での応用では、”平均”周りにはサンプルが多いことが多いので、高い近似精度が期待できる
+
+## Parital Linear Model with interaction
+
+1. $E[Y|X],E[D|X]$ を推定
+
+2. 以下のモデルに代入し、OLS推定
+
+$$Y-E[Y|X]\sim D-E[D|X]+\bar Z_1\times (D-E[D|X])+..+\bar Z_L\times(D-E[D|X])$$
+
+- Neyman's ohthogonalityを満たし、 $E[Y|X],E[D|X]$ の推定誤差を漸近的に無視できる
+
+## BLP on Conditional Average Difference
+
+- @semenova2021
+
+1. $E[Y|D,X],E[D|X]$ を推定
+
+2. AIPWスコアに代入し、Psude-Outcome $Y_{AIPW}$ を計算
+
+3. 以下のモデルに代入し、OLS推定
+
+$$Y_{AIPW}\sim \tau_1\bar Z_1 + ..+ \tau_L\bar Z_L$$
+
+## Implementation
+
+- とりあえずDoubleMLで平均差を推定すると、必要なNuisance推定値も提供してくれる
+
+    - 非常に少ない労力で追加的な含意を得られる!!!
+    
+- ただし真面目に論じる場合は多重検定の補正が必要
+
+- **いろんなモデルを推定し、都合のいい結果だけを報告する**ことだけは**厳禁**
+
+    - 推定したパラメータは全て報告!!!
+
+# 信頼区間の補正
+
+- 複数のパラメータについて、信頼区間や統計的検定を行いたい
+
+    - 注意しないと大きくミスリードしてしまう
+    
+- 多重検定用の修正方法が多く提案されている
+
+    - 優れた入門: [Introduction to Statistical Learning: Chapter 13](https://www.statlearning.com/)
+
+## 復習: Point-wise Confidence Interval
+
+-   信頼区間: "同じデータ活用・サンプリング法を用いる研究者"の $1 -\alpha %$ が正しい値を含む信頼区間を獲得できる
+
+    -   "間違った"区間を観察する研究者割合 (確率) $\alpha$ をコントロール
+
+-   **特定の** (Point-wise)推定値について"信頼できる"信頼区間
+
+    -   大量の推定値について適用できるか？
+
+## 例: 適切
+
+-   Research question: 「サイコロの出目をコントロールできるか？」
+
+    -   サイコロの出目の平均値を操作できるか？
+
+-   各研究者が一人のディーラーからのみデータを収集するのであれば、問題ない
+
+    - 母集団 $=$ ”仕掛け”はない
+    
+    - 1人につき30回サイコロを振らせる
+
+## 適切: 1 player
+
+```{r, dev='ragg_png'}
+Researcher <- 9
+Player <- 1
+Try <- 30
+
+ResearcherName <- str_c("Researcher",c(1:Researcher))
+
+SimNoAdjust <- function(Researcher){
+  set.seed(Researcher)
+  TempResult <- map_dfr(1:Player,function(i){
+  Dice <- sample(1:6,Try,replace = TRUE)
+  Temp <- lm_robust(Dice ~ 1)
+  TempResult <- tibble(Point = Temp$coefficients,
+                   Lower = Temp$conf.low,
+                   Upper = Temp$conf.high,
+                   Player = "1",
+                   Researcher = ResearcherName[Researcher],
+                   Method = "No adjustment")
+  return(TempResult)
+  })
+  return(TempResult)
+}
+
+map_dfr(1:Researcher,SimNoAdjust) |> 
+  mutate(Error = if_else(Lower > 3.5 |
+                           Upper < 3.5,
+                         "Error",
+                         "No")) |> 
+  ggplot(aes(y = Player,
+             x = Point,
+             xmin = Lower,
+             xmax = Upper,
+             color = Error)) +
+  geom_point() +
+  geom_vline(xintercept = 3.5) +
+  theme_bw() +
+  facet_wrap(~Researcher) +
+  xlim(1,6)
+```
+
+## 適切: 1 Player
+
+```{r}
+map_dfr(1:Researcher,SimNoAdjust) |> 
+  mutate(Error = if_else(Lower > 3.5 |
+                           Upper < 3.5,
+                         "Error",
+                         "No")) |> 
+  ggplot(aes(y = Player,
+             x = Point,
+             xmin = Lower,
+             xmax = Upper,
+             color = Error)) +
+  geom_pointrange() +
+  geom_vline(xintercept = 3.5) +
+  theme_bw() +
+  facet_wrap(~Researcher) +
+  xlim(1,6)
+```
+
+## 例: 不適切
+
+-   各研究者が、「100名のディーラーから、操作できるディーラーを見つけられるか？」であれば、不適切
+
+- 他の不適切な例
+
+    - 影響を受ける指標 (所得、健康状態、主観的幸福の中から探索)はあるか？
+    
+    - 影響を与える特定のグループがあるか？
+
+## 不適切: Small sample
+
+```{r,dev='ragg_png'}
+Researcher <- 6
+Player <- 100
+Try <- 30
+ResearchName <- str_c("研究者",c(1:6))
+
+SimNoAdjust <- function(Researcher){
+  set.seed(Researcher)
+  TempResult <- map_dfr(1:Player,function(i){
+  Dice <- sample(1:6,Try,replace = TRUE)
+  Temp <- lm_robust(Dice ~ 1)
+  TempResult <- tibble(Point = Temp$coefficients,
+                   Lower = Temp$conf.low,
+                   Upper = Temp$conf.high,
+                   Player = i,
+                   Researcher = ResearchName[Researcher],
+                   Method = "No adjustment")
+  return(TempResult)
+  })
+  return(TempResult)
+}
+
+map_dfr(1:Researcher,SimNoAdjust) |> 
+  mutate(Error = if_else(Lower > 3.5 |
+                           Upper < 3.5,
+                         "Error",
+                         "No")) |> 
+  ggplot(aes(y = Player,
+             x = Point,
+             xmin = Lower,
+             xmax = Upper,
+             color = Error)) +
+  geom_pointrange() +
+  geom_vline(xintercept = 3.5) +
+  theme_bw() +
+  facet_wrap(~Researcher) +
+  xlim(1,6)
+```
+
+## 不適切: Larger sample
+
+```{r,dev='ragg_png'}
+Researcher <- 6
+Player <- 100
+Try <- 1000
+ResearchName <- str_c("研究者",c(1:6))
+
+
+SimNoAdjust <- function(Researcher){
+  set.seed(Researcher)
+  TempResult <- map_dfr(1:Player,function(i){
+  Dice <- sample(1:6,Try,replace = TRUE)
+  Temp <- lm_robust(Dice ~ 1)
+  TempResult <- tibble(Point = Temp$coefficients,
+                   Lower = Temp$conf.low,
+                   Upper = Temp$conf.high,
+                   Player = i,
+                   Researcher = ResearchName[Researcher],
+                   Method = "No adjustment")
+  return(TempResult)
+  })
+  return(TempResult)
+}
+
+map_dfr(1:Researcher,SimNoAdjust) |> 
+  mutate(Error = if_else(Lower > 3.5 |
+                           Upper < 3.5,
+                         "Error",
+                         "No")) |> 
+  ggplot(aes(y = Player,
+             x = Point,
+             xmin = Lower,
+             xmax = Upper,
+             color = Error)) +
+  geom_pointrange() +
+  geom_vline(xintercept = 3.5) +
+  theme_bw() +
+  facet_wrap(~Researcher) +
+  xlim(1,6)
+```
+
+## 問題点
+
+-   「本来はほとんど差がないのに、サンプルが偶然偏った結果、大きな差が推定されてしまう」
+
+    - 注目を浴びたい研究者にとっての当たりくじ
+
+-   「どんなに当たり確率が低いくじであったとしても、無限回引けば"絶対" に当たる」
+
+    -   あやまって有意
+
+
+## 基本戦略
+
+- あやまって「サイコロを操作するディーラー」を発見する研究者の割合をコントロールするには、
+
+- 信頼区間を適切に”広げる”
+
+## 同時(Family-wise)信頼区間
+
+-   同時信頼区間: 複数の推定値が前提
+
+    -   **一つ以上**の信頼区間が真の値を含まない確率を $\alpha_{Family}$ 以内に抑える
+    
+-   複数の提案がある
+
+-   Bonferroni法: $\alpha_{Family} = \alpha_{Point}/推定値数$
+
+    - 最もシンプルかつ仮定が少ない
+    
+    - 保守的な結果
+
+## 発展: Bonferroni法の根拠
+
+-   以下の一般原則を利用
+
+$一つ以上の区間について間違いが起こる確率\ (=\alpha_{Family})$
+
+$\le 区間1について間違いが起きる確率$
+
+$+...+区間Lについて間違いが起きる確率\ (=L\times \alpha_{Point})$
+
+## 適切: Larger sample with adjustment
+
+```{r, dev='ragg_png'}
+Researcher <- 6
+Player <- 100
+Try <- 30
+ResearchName <- str_c("研究者",c(1:6))
+
+
+SimNoAdjust <- function(Researcher){
+  set.seed(Researcher)
+  TempResult <- map_dfr(1:Player,function(i){
+  Dice <- sample(1:6,Try,replace = TRUE)
+  Temp <- lm_robust(Dice ~ 1,
+                    alpha = 0.05/100)
+  TempResult <- tibble(Point = Temp$coefficients,
+                   Lower = Temp$conf.low,
+                   Upper = Temp$conf.high,
+                   Player = i,
+                   Researcher = ResearchName[Researcher],
+                   Method = "No adjustment")
+  return(TempResult)
+  })
+  return(TempResult)
+}
+
+map_dfr(1:Researcher,SimNoAdjust) |> 
+  mutate(Error = if_else(Lower > 3.5 |
+                           Upper < 3.5,
+                         "Error",
+                         "No")) |> 
+  ggplot(aes(y = Player,
+             x = Point,
+             xmin = Lower,
+             xmax = Upper,
+             color = Error)) +
+  geom_pointrange() +
+  geom_vline(xintercept = 3.5) +
+  theme_bw() +
+  facet_wrap(~Researcher) +
+  xlim(1,6)
+```
+
+## 発展: 他の手法
+
+-   検定したいパラメータが多くなると、 信頼区間が非常に広くなる
+
+-   多くの改善提案
+
+    -   False Discovery Rate, Uniform inferenceなどなど
+    
+    -   DoubleMLはUniform Inferenceも実装 [(DoubleML: Chapter 6)](https://docs.doubleml.org/stable/index.html)
+
+## 実践への含意
+
+- 避けるべきは、「明確な差が出ないので、大量の推定を行い、偶然の差を強引に見つけた」と**疑われなこと**
+
+- 事前の分析計画が重要
+
+    - 推定量を極力絞る!!!
+
+    - 分析のPriorityを明示する
+
+## まとめ
+
+- なんの考慮・対処をせずに多重検定を行なっている事例は極めて多い
+
+    - いくらでもいかさま師を"発見できる"
+
+- 事前の分析計画の作成と共有が重要
+
+- 大規模データである程度の同時推定・検定は実用的
+
+
+## Reference
+
