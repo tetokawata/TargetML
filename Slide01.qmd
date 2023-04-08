@@ -1,608 +1,1509 @@
 ---
-title: "教師付き学習の概要と位置付け"
-subtitle: "機械学習の経済学への応用"
+title: "Introduction: イメージの共有"
+subtitle: "経済学のための機械学習入門"
 author: "川田恵介"
-affiliation: "keisukekawata@iss.u-tokyo.ac.jp"
-format:
+format: 
   revealjs:
-    incremental: true
+    html-math-method: katex
+    css: styles.css
+self-contained: true
+self-contained-math: true
+bibliography: ref.bib
 execute: 
-  message: false
   warning: false
-  echo: false
+  message: false
   eval: true
-bibliography: references.bib
+  echo: false
 ---
 
-## 事務連絡
-
--   講義資料 (https://github.com/tetokawata/TargetML)
-
-    -   スライドのノート版、Example Code, Data, など
-
--   評価: レポート（3回予定）
-
-    -   手法の説明 & R (Pythonも可)での実装
-
-## 本講義
+# 講義コンセプト
 
 ```{r}
-pacman::p_load(tidyverse,
-               DiagrammeR)
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3pipelines,
+  recipes,
+  DALEX
+)
+
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+
+Data <- read_csv("Public/Example.csv")
+
+Group <- sample(
+  1:3,
+  nrow(Data),
+  replace = TRUE
+  )
+
+X <- Data |> 
+  select(
+    -After,
+    -Price
+  )
+
+Y <- Data$Price|> log()
+
+D <- Data$After
+
+RegLM <- lrn(
+  "regr.lm",
+  id = "RegLM"
+  )
+
+RegRF <- lrn(
+  "regr.ranger",
+  id = "RefRF"
+  )
+
+RegStack <- pipeline_stacking(
+  list(
+    RegRF,
+    RegLM
+  ), 
+  lrn(
+    "regr.lm",
+    id = "SuperLearner"
+  ),
+  use_features = FALSE,
+  folds = 2) |> 
+  as_learner()
 ```
 
--   教師付き学習の入門と応用
 
-    -   予測問題と母集団の"パラメタ"推定の入門
+## 目標
 
--   対象: 機械学習の初学者 &\| 経済学 ($\simeq$ 社会科学; Biomedical Science) への応用に関心がある人
+- 統計コンセプト（平均、OLS）について、初歩的な理解を持ち、 R (ないしPython)に触れたことがある院生/学部生が執筆する論文のQuality Up
 
--   便益: "統計モデルの定式化"依存を減らす
+    - 各自のResearch Questionについて、より頑強、
+    現実的な計算時間かつ多様な推定量を紹介
 
-    -   "機械学習", "データサイエンス"というキーワードの入った求人が大学内外から増えている
+    - キャッチアップする意欲がる完全初学者も歓迎
+    
+    - 経済学以外の背景 (他の社会科学や医学、工学など) の受講生も歓迎
 
-    -   データ分析についての異なる"カルチャー"に馴染む
+## 実習
 
-## Motivation
+- 講義 $+$ Live coding $+$ 実習
 
--   伝統的アプローチ: データを見る前に設定したParametricな統計モデルの推定: 例
+- 実習ではRをサポート
 
-$$Y_i=\beta_0 +\beta_1X_{1i}+..+\beta_LX_{Li}+u_i,u_i\sim N(0,\sigma^2)$$
+    - Main Package: [mlr3verse](https://mlr3verse.mlr-org.com/), [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines), [DoubleML](), [grf](https://grf-labs.github.io/grf/)
 
--   定式化依存問題
+- 課題はpythonでもOK
 
-    -   [Statistics as a Science](https://magazine.amstat.org/blog/2015/02/01/statscience_feb2015/)
+## 関連講義
 
-    -   Let's Take the Con Out [@leamer1983]
+- 関連性が高くおすすめの科目: 坂口さんの提供する
 
-    -   Two culutures [@breiman2001] ([10年経って](https://muse.jhu.edu/issue/45147))
+    - Machine Learning for Economics
 
-## 本講義の推奨
+    - 経済学とコンピューターサイエンスⅠ/II
 
--   分析のゴールを明確に定め、それに適した手法を用いる
+- 本講義の比較優位: 言語が日本語!?, セミパラ推定への応用においてTreatment Effect Risk [@Kallus2022TreatmentER] やSensitivity [@chernozhukov2022long] を紹介
 
-    -   「とりあえず統計モデルを推定する」をやめる
+## スケジュール
 
--   予測問題: 教師付き学習 (DataAdaptiveな推定)
+- S1/S2
 
--   母集団の推論: Semiparametric推定 with 教師付き学習
+1. 教師付き学習 (Stacking with OLS and RandomForest)
 
-## 例: 中古マンション取引価格予測
+2. セミパラ推定への応用 ((Population) Parameter Estimation with mixed-bias property [@rotnitzky2021characterization])
+
+3. 時間があれば他のアルゴリズム紹介 (LASSO/Boosting/BARTなど)
+
+- 3回程度課題を設定
+
+## 具体的イメージ
+
+- "more flexible and more principled"に課題解決
+
+- 定式化問題
+
+    - 予測モデルを作れと言われたが、どのような**式**を推定すれば良いのかわからない
+
+    - コントロール変数を加えた分析をしたいが、どのように定**式**化すれば良いのかわからない
+
+    - 効果の異質性を検証したいが、どのように定**式**化すれば良いのかわからない
+
+- **どのように研究課題をデータ分析に落とし込めばいいのか、わからない**
+
+## 次回までに
+
+- 講義中にRで作業できる環境整備
+
+- おすすめは
+
+    - Localに [R+ Rstudio](https://posit.co/download/rstudio-desktop/)をインストール
+    
+    - [Posit cloud (旧R cloud)](https://posit.cloud/) に登録
+
+- 講義資料とExampleDataを[講義レポジトリ](https://github.com/tetokawata/TargetML) からダンロード
+
+# 教師付き学習
 
 ```{r}
-read_csv("Result/ComparePredictModel.csv") |> 
-  mutate(learner_id = if_else(learner_id == "OLS.RandomForest.nop.featureunion.SuperLearner",
-                              "SuperLearner",
-                              learner_id)
-         ) |> 
-  ggplot(aes(y = learner_id,
-             x = regr.rsq)) +
-  geom_point() +
-  xlim(0,1) +
-  theme_bw() +
-  ylab("") +
-  xlab("Out-of-sample R^2")
+pacman::p_load(
+  tidyverse,
+  patchwork,
+  mlr3verse,
+  mlr3pipelines
+)
+
+lgr::get_logger("mlr3")$set_threshold("error")
+lgr::get_logger("bbotk")$set_threshold("error")
 ```
 
-## 例: 中古マンション取引価格予測
 
-```{r}
-knitr::include_graphics("Figure/ComparePredictModel.png")
-```
+## 機械学習
 
-# 教師付き学習概論
+- 統計学、 計量〇〇とは異なるルーツを持つデータ分析方法
 
-```{r}
-pacman::p_load(DiagrammeR,
-               tidyverse,
-               ggside,
-               estimatr)
+    - AIの開発
+    
+- 学術・実務研究において、幅広く活用されている手法群を提供
 
-N <- 500
-b <- 1000
-ExampleSeed <- 1
+    - Estimandは明確に定義できるが、変数間の具体的関係性はBlackBoxな応用 (経済学!!!)において高い比較優位
 
-ParamShape <- 20
-ParamUnbalance <- 0.9
-ParamNose <- 3
+    - 計算機〇〇において、高い期待?
 
-SimData <- function(i){
-  set.seed(i)
-  tibble(X = runif(N,0,1),
-       D = sample(0:1,N,replace = TRUE,prob = c(1 - ParamUnbalance,ParamUnbalance)) * if_else(X >= 0.3 & X <= 0.6,1,0) +
-         sample(0:1,N,replace = TRUE,prob = c(ParamUnbalance,1 - ParamUnbalance)) * if_else(X < 0.3 | X > 0.6,1,0),
-       Y = D - ParamShape*X + ParamShape*I(X^2) + rnorm(N,0,ParamNose),
-       TrueY = D - ParamShape*X + ParamShape*I(X^2)
-       ) |> 
-    mutate(D = factor(D))
-}
+## 分野
 
-```
+- **教師付き学習**
 
-## 機械学習 (MachineLearning)
+    - **予測研究**のみならず、記述・比較・因果研究においても応用法が"確立"されている
+    
+    - Semiparametric 推定の議論 (Neway, Ichimura, Robinson, Robins...)を活用
 
--   "統計学"とは異なるルーツを持つ手法群: 大きく
-
-    -   教師付き学習 (SupervisedLearning); 教師なし学習 (UnSupervisedLearning); 強化学習 (ReinforcementLearning)
-
--   本講義では教師付き学習とその応用を紹介
-
--   おすすめ参考書
-
-    -   [Introduction to Statistical Learning (with R code)](https://www.statlearning.com/)
-
-    -   [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/index.html)
+- 教師なし学習, 強化学習, 等々
 
 ## 教師付き学習
 
--   データ $Y,X=[X_1,..,X_L]$ から, 条件付き母分布の関数に最もfitする関数 $f(X)$ を推定(学習、Fitting、近似)
+- $\{Y,X\}$ が観察できるデータ（事例集）を用いて、 $\{Y,X\}$の**一般的**な関係性を要約する関数を推定する
 
--   典型的には母平均にfitする関数の学習を目指す
+    - 予測や社会の推論に有益
 
-$$\min E[(\mu_Y(X)-f(X))^2]$$
+- 一般的とは?
 
--   $\mu_Y(X)=E[Y|X]$
 
--   注: 最も一般的な課題設定はDensityFunction $(Pr[y\le Y|X])$ へのFitだが、依然として難しい
+## 根本問題
 
-## ポイント: 教師付き学習
+- 研究のゴール: "合意可能"かつ"有益な"結論を得る
 
--   条件付き平均関数を推定する"伝統的手法"は多数存在
+- 同じ事例集であれば、同じ結論を得ることは難しくない
 
-    -   Parametric推定 (OLS、最尤法、ベイズ): 母集団を有限個のパラメータで**正しく記述できるとして**、推定
+- **同じ社会を対象として同じ方法で事例収集しても、研究者によって事例が異なり、厳密な合意はできない**
 
-    -   伝統的Nonparametric推定 (KernelRegression): 大量の変数を取り扱えない
+- 母集団を用いて論点整理
 
--   教師付き学習の利点: 大量の変数を扱う応用についても、統計モデルの定式化に強く依存せずに、母分布を近似可能
+    - 伝統的統計学と同じ!!!
 
-    -   Data-adaptiveにモデルを設定・推定
+## 繰り返しサンプリング
 
-## ポイント: 教師付き学習の応用
+- サンプリング & 母集団
 
--   予測問題には、極めて有効
+- 母集団から、データが**発生** (サンプリング) する
 
--   工夫すれば、母集団の特徴（要約）を適切に推定できる
+    - ゴール $=$ 母集団の性質理解
 
-    -   伝統的なNonparametric推定と同様に、収束速度が遅く、信頼区間が近似計算できない
+- データは研究者によって異なるが、母集団は共通("一般的")
 
-    -   Semiparametric推定を応用
+    - 母集団上では、"共通"のゴールを定義できる
 
--   母分布そのものを"適切"に推定することは依然として困難
+## 母集団
 
-# データ分析概論
+- "無限大のサンプルサイズを持つデータ"
 
--   「分析のゴールの明確にし、推定手法をカスタマイズ」が**より**重要
+- 同時分布 $f_P(Y,X)$ を用いて、記述
 
-## データ分析のゴール
+    - $\{Y,X\}$ の母集団における割合 (密度)
 
-```{r}
-grViz("digraph dot {
-      graph [rankdir = UB,color = crimson]
-      edge [color=black]
-      node [shape = rectangle, color = darkslategray]
-      A0 [label = 'Population, RandomSampled Data, and Clear Target (Estimand)']
-      A [label = 'EstimationTask']
-      B1 [label = 'Predict NewObservation']
-      B2 [label = 'Infer PopulationDistribution']
-      C1 [label = 'PredictionModel (with uncertainly)']
-      C2 [label = 'CIs of (Projection)Parameters (with PointEstimaters)']
-      Z [label = 'SupervisedLearning']
-      A0 -> A -> B1,B2
-      B1 -> C1
-      B2 -> C2
-      Z -> C1 [label = 'Direct Application']
-      Z -> C2 [label = 'With SemiparametricTheory']
-      {rank = same; B1;B2}
-      {rank = max; Z}
-      }")
-```
+- 直接観察(正確に推定)されることは**"あり得ない"**
 
-## データ分析への具体的な要求
+## 典型的ゴール
 
--   予測問題: $E[(\mu_Y(X_1,..,X_L)-f(X_1,..,X_L))^2]$ を最小化
+- $f_P(Y,X)$ を全て推定することは極めて困難
 
-    -   2次的要求: 予測モデルの説明可能性、SamplingUncertainlyの定量化
+    - "十分に単純"で"正しい"モデルを推定する必要がある
 
--   母集団の特徴の推定: 明確に解釈 **された** 母集団の特徴について、意味のある信頼区間を形成
+- 応用上、有益な一側面 (Estimand) を推定
 
-    -   $\sqrt{N}$ 正規性 (Asymptotic Normality)
+    - 原則、Estimandは母集団上で定義
 
-    -   漸近効率性
+- OLSと"同じ"!!!
 
-## 古典的推定
+## 母平均関数
 
--   母集団の推定は、古典的な推定手法においても、中心的課題
+- 典型的なEstimand: 条件付き母平均関数
 
-    -   "Parametricな統計モデルをデータを見る前に設定し、推定する"
+$$E_P[Y|X]:=\int Yf_P(Y|X)dY$$
 
-$$E[Y|X]=\beta_0 + \beta_1X_1+..+\beta_LX_L$$
+- $f_P(Y|X)$ を正確に推定できれば、$E_P[Y|X]$ は正確に計算できるが、逆はそうとは限らない
 
--   **推定された統計モデルを用いて**、研究課題に答える
+## サンプリング
 
--   Estimandの定式化, 識別・推定上の仮定を**全て**統計モデル上で議論する
+- 母集団から生成された、有限の事例数(データ)のみ活用可能とする
 
-## 理想の世界
+    - 母集団を完全に観察することはできない
+    
+- 生成は確率的に行われる
 
--   母集団を、単純なモデルで記述でき、かつ大部分は既知
+## 仮定
 
--   例: 母平均 $\mu_Y(D,X)$ は以下に従うことを知っている
+- データのみから、母集団について得られる含意はほとんどない ("世の中いろんな人がいる"どまり)
 
-$$\mu_Y(X_1,X_2)=\beta_0 + \beta_DD + \beta_1X + \beta_2X^2$$
+- 仮定を追加し、推論を進める
 
--   $\beta$ の値は未知
+- ランダムサンプリングの仮定: 事例は母集団から、ランダムサンプリングされる
 
-## 理想の世界
+    - 何を主張しているのか分かりやすく、データ収集のデザインによって保証可能
 
--   十分なサンプルサイズがあり、**モデルがただしければ**、 OLSで $\mu_Y(D,X)$ を**高い**精度で推定できる
+- "不透明"な仮定は極力減らす
 
-    -   誤差項にParametricAssumptionを追加できれば、最尤法\|ベイズ推定も可能
-
--   推定された関数 $f(D,X)$ は、
-
-    -   $E[(\mu_Y(D,X)-f(D,X))^2]$ を実用可能な水準まで削減 (予測達成)
-
-    -   $\beta$ について信頼区間計算が可能 (パラメータ推定達成)
-
-    -   そもそも単純なので、人間がそのまま理解できる (記述達成)
-
-## 数値例: データ
+## 数値例
 
 ```{r}
+Noise <- 20
+FigLower <- -20
+FigUpper <- 60
 
-SimData(1) |> 
-  mutate(D = if_else(D == 1,
-                      "1",
-                      "0")) |> 
-  ggplot(aes(x = X,
-             y = Y,
-             color = D)
-         ) +
-  geom_point(alpha = 0.3) +
-  theme_bw()
-```
-
-## 数値例: 母平均
-
-```{r}
-SimData(1) |> 
-  mutate(D = if_else(D == 1,
-                      "Y = -20*X + 20*X^2",
-                      "Y = 1 -20*X + 20*X^2")) |> 
-  ggplot(aes(x = X,
-             y = Y,
-             color = D)
-         ) +
-  geom_point(alpha = 0.3) +
-  geom_line(aes(y = TrueY)) +
-  theme_bw()
-```
-
-## 数値例: 予測
-
-```{r}
-map_dfr(1:100, function(i){
-  TempPred <- lm(Y ~ D + X + I(X^2),
-                SimData(i)
-                ) |> 
-   predict(tibble(D = factor(1),
-                  X = 0.75))
- return(tibble(Pred = TempPred,
-               ResearcherID = i,
-               True = 1 - 20*0.75 + 20*(0.75^2)))
-}) |> 
-  ggplot(aes(x = Pred,
-             y = ResearcherID)) +
-  geom_point() +
-  geom_xsidehistogram() +
-  geom_point(aes(x = True)) +
-  xlab("f(D == 1,X == 0.75)") +
-  theme_bw()
-```
-
-## Sampling Uncertainly
-
--   確率的に選ばれた、母集団の一部を観察
-
-    -   同じ手法・母集団・研究課題に挑む研究者であったとしても、異なる結論が出てくる
-
-    -   たくさんの工夫
-
-## 数値例: $beta_1$
-
-```{r}
-map_dfr(1:100, function(i){
-  TempPred <- lm_robust(Y ~ D + X + I(X^2),
-                SimData(i)
-                )
- return(tibble(Pred = TempPred$coefficients[2],
-               ResearcherID = i))
-}) |> 
-  ggplot(aes(x = Pred,
-             y = ResearcherID)) +
-  geom_point() +
-  geom_xsidehistogram() +
-  geom_vline(xintercept = 1) +
-  xlab("beta_D") +
-  xlim(-1,3) +
-  theme_bw()
-```
-
-## 漸近性質の活用
-
--   "サンプルサイズが大きくなれば、推定値は真の値の近くに分布する"性質を活用
-
--   一致性: 無限大に大きくなれば、全員真の値に収束
-
-    -   経済学的では非実用的
-
--   漸近正規性: より早い速度で、正規分布に収束
-
-    -   信頼区間の計算が可能
-
-## 数値例: $beta_1$
-
-```{r}
-map_dfr(1:100, function(i){
-  TempPred <- lm_robust(Y ~ D + X + I(X^2),
-                SimData(i)
+SimData <- function(i,n){
+  set.seed(i)
+  TempData <- tibble(
+    X = runif(n,-4,4),
+    TrueY = 0.5*(X^2) + 
+      if_else(X <= -2,
+              10,
+              0) + 
+      if_else(X <= 0,
+              10,
+              0) + 
+      if_else(X <= 2,
+              10,
+              0),
+    Y = TrueY + runif(n,-Noise,Noise)
   )
- return(tibble(Pred = TempPred$coefficients[2],
-               ResearcherID = i,
-               True = 1 + 1 + 0.3*(1^2),
-               Low = TempPred$conf.low[2],
-               High = TempPred$conf.high[2]))
-}) |> 
-  ggplot(aes(x = Pred,
-             y = ResearcherID,
-             xmin = Low,
-             xmax = High)) +
-  geom_pointrange() +
-  geom_xsidehistogram() +
-  geom_vline(xintercept = 1) +
-  xlab("beta_D") +
-  xlim(-1,3) +
-  theme_bw()
-```
+  return(TempData)
+}
 
-## 誤定式
-
--   経済学のほぼ全ての応用で、正しいモデルを設定することは不可能
-
-    -   任意の $\beta$ について、 $\mu_Y(X)\neq f(X) = \beta_0 + \beta_1X_1+\beta_2X_2$
-
--   一般に予測性能が悪化し、母集団についての信頼区間が"信頼できなくなる"
-
-## 数値例: $beta_1$
-
-```{r}
-map_dfr(1:100, function(i){
-  TempPred <- lm_robust(Y ~ D + X,
-                SimData(i)
-  )
- return(tibble(Pred = TempPred$coefficients[2],
-               ResearcherID = i,
-               True = 1 + 1 + 0.3*(1^2),
-               Low = TempPred$conf.low[2],
-               High = TempPred$conf.high[2]))
-}) |> 
-  ggplot(aes(x = Pred,
-             y = ResearcherID,
-             xmin = Low,
-             xmax = High)) +
-  geom_pointrange() +
-  geom_xsidehistogram() +
-  geom_vline(xintercept = 1) +
-  xlab("beta_D") +
-  xlim(-3,3) +
-  theme_bw()
-```
-
-## 誤定式化の避け方
-
--   モデルを柔軟にする (推定するパラメータを増やす) と誤定式のリスクは必ず減る
-
-$$Y_i=\beta_0 + \beta_DD_i+\beta_1X_i+..+\beta_LX_i^L+u_i$$
-
--   過剰適合が生じ、 推定が"できなくなる"
-
--   教師付き学習の代表的アイディア: モデルを適切に単純化する
-
-    -   変数を"Shrink, Chop, and Throw out!!!"
-
-## 応用: 母集団の推定
-
--   母集団の推定にも応用可能だが、工夫が必要
-
--   例えば、 $\tau＝E[\mu_Y(1,X)-\mu_Y(0,X)]$ を
-
-$$=f(D=1,X)-f(D=0,X)$$
-
-として推定
-
--   収束度が遅く、信頼区間の近似計算ができない
-
-    -   Varianceを低下させるために、Biasを導入しているため
-
-## 数値例: Naive Method
-
-```{r}
-map_dfr(1:100, function(i){
-  Z <- model.matrix(~ 0 + D + X + I(X^2),
-                  SimData(i))
-  Y <- SimData(i)$Y
-  Fit <- gamlr::gamlr(x = Z,
-                      y = Y)
- return(tibble(Pred = coef(Fit)[2],
-               ResearcherID = i))
-}) |> 
-  ggplot(aes(x = Pred,
-             y = ResearcherID)) +
+Est <- function(i,n,Label){
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
   geom_point() +
-  geom_xsidehistogram() +
-  geom_vline(xintercept = 1) +
-  theme_bw()
+  ylab(Label) +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
+
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
+
+Fig1 + 
+  (Est(1,200,"Researcher 1") + 
+     Est(2,200,"Researcher 2")
+   )/(Est(3,200,"Researcher 3") + 
+        Est(4,200,"Researcher 4"))
 ```
 
-## 応用: SemiParametric推定
+## 典型的教師付き学習
 
--   SemiParametric推定の手法を応用することで、収束の遅さを保管する (TargetedLearning \| DebiasedMachineLearning) 。
+- $E_P[Y|X]$ を近似する関数 $g_Y(X)$ を推定する
+    
+    - 以下の削減を頑張る
+    
+$$E_P\bigr[(E_P[Y|X]-g_Y(X))^2\bigr]$$
 
--   Scoreの設定: $m$ の設定;
+- 伝統的推定と"同じ"!!!
 
-$$0=E[m(Y_i,D_i,X_{i},g,\tau)]$$
+    - 伝統的推定: 推定するモデルの"複雑さ"を研究者が事前に指定 $\rightarrow$ 複雑すぎたり、**単純すぎたり**
 
--   $g$ : 未知のNuisance関数 (例: 条件付き母平均、 傾向スコア)
+    - 機械学習: モデルの複雑さもデータが決定
+    
 
--   $m$ を $g$ の推定誤差についてRobustな関数として設定すれば、 $g$ の推定に機械学習を応用可能
+## 数値例
 
-## 数値例: Semipara
+- ShortOLS: $g_Y(X) = \beta_0 + \beta_1X$ と"決め打ち"し、$\beta$ をデータにもっとも適合するように推定
+
+- LongOLS: $g_Y(X) = \beta_0 + \beta_1X+..+\beta_{20}X^{20}$ と"決め打ち"し推定
+
+- Stacking: OLSとRandomForestの加重平均
+
+## 数値例: ShortOLS with N=200
 
 ```{r}
-map_dfr(1:100, function(i){
-  Z <- model.matrix(~ 0 + X + I(X^2),
-                  SimData(i))
-  D <- if_else(SimData(i)$D == "1",1,0)
-  Y <- SimData(i)$Y |> as.numeric()
-  Fit <- gamlr::doubleML(x = Z,
-                         d = D,
-                         y = Y,
-                         nfold = 20)
- return(tibble(Pred = coef(Fit),
-               SD = tidy(summary(Fit))$std.error,
-               ResearcherID = i))
-}) |> 
-  ggplot(aes(x = Pred,
-             xmin = Pred - 1.96*SD,
-             xmax = Pred + 1.96*SD,
-             y = ResearcherID)) +
-  geom_pointrange() +
-  geom_xsidehistogram() +
-  geom_vline(xintercept = 1) +
-  theme_bw()
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
+
+Est <- function(i,n,Label){
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_point(alpha = 0.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  ylab(Label) +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
+
+Fig1 + 
+  (Est(1,200,"Researcher 1") + 
+     Est(2,200,"Researcher 2")
+   )/(Est(3,200,"Researcher 3") + 
+        Est(4,200,"Researcher 4"))
 ```
 
-## 応用: 経済学
 
--   経済学における"典型的"な実証課題は、 **特定の解釈ができる**母集団の特徴を推定する
+## 数値例: LongOLS with N=200
 
-    -   識別: 特定の解釈ができるかどうかを議論
+```{r}
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
 
-    -   データのみから判断不可能\|困難
+Est <- function(i,n,Label){
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_point(alpha = 0.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x,20)
+  ) +
+  ylab(Label)  +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
 
-## 応用: 差別
+Fig1 + 
+  (Est(1,200,"Researcher 1") + 
+     Est(2,200,"Researcher 2")
+   )/(Est(3,200,"Researcher 3") + 
+        Est(4,200,"Researcher 4"))
+```
 
--   例: 母集団における「WindowsOS UserとMac\|LinuxOS Userとの間での賃金差」は、両OS Users間での差別と解釈できるか？
 
-    -   差別 $=$ 規範的判断を、データのみからは判断不可能\|困難 (ヒュームの法則)
+## 数値例: SL with N=200
 
-## 応用: 因果効果
+```{r}
+OLS <- lrn(
+  "regr.lm",
+  id = "OLS"
+)
 
--   例: 母集団における「WindowsOS UserとMac\|LinuxOS Userとの間での賃金差」は、使用するOSからの因果効果と言えるか？
+RF <- lrn(
+  "regr.ranger",
+  id = "RF")
 
-    -   OS間での観察できない要因も揃えた上で比較したい
+Learner <- pipeline_stacking(
+  list(
+    OLS,
+    RF
+  ), 
+  lrn(
+    "regr.lm",
+    id = "RegAggregate"
+  ),
+  use_features = FALSE,
+  folds = 2) |> 
+  as_learner()
+
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
+
+Est <- function(i,n,Label){
+  Task <- SimData(i,n) |> 
+    select(-TrueY) |> 
+    as_task_regr(
+      target = "Y",
+      id = "Example"
+    )
+  Fit <- Learner$clone()$train(Task)$predict(Task)
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_point(alpha = 0.5) +
+  geom_smooth(
+    aes(
+      y = Fit$response
+    ),
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x,20)
+  ) +
+  ylab(Label)  +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
+
+Fig1 + 
+  (Est(1,200,"Researcher 1") + 
+     Est(2,200,"Researcher 2")
+   )/(Est(3,200,"Researcher 3") + 
+        Est(4,200,"Researcher 4"))
+```
+
+
+## 数値例: ShortOLS with N=5000
+
+```{r}
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
+
+Est <- function(i,n,Label){
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  ylab(Label) +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
+
+Fig1 + 
+  (Est(1,5000,"Researcher 1") + 
+     Est(2,5000,"Researcher 2")
+   )/(Est(3,5000,"Researcher 3") + 
+        Est(4,5000,"Researcher 4"))
+```
+
+
+## 数値例: LongOLS with N=5000
+
+```{r}
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
+
+Est <- function(i,n,Label){
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x,20)
+  ) +
+  ylab(Label)  +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
+
+Fig1 + 
+  (Est(1,5000,"Researcher 1") + 
+     Est(2,5000,"Researcher 2")
+   )/(Est(3,5000,"Researcher 3") + 
+        Est(4,5000,"Researcher 4"))
+```
+
+
+## 数値例: SL with N=5000
+
+```{r}
+OLS <- lrn(
+  "regr.lm",
+  id = "OLS"
+)
+
+RF <- lrn(
+  "regr.ranger",
+  id = "RF")
+
+Learner <- pipeline_stacking(
+  list(
+    OLS,
+    RF
+  ), 
+  lrn(
+    "regr.lm",
+    id = "RegAggregate"
+  ),
+  use_features = FALSE,
+  folds = 2) |> 
+  as_learner()
+
+Fig1 <- SimData(1,1000) |> 
+  mutate(
+    Lower = TrueY - Noise,
+    Upper = TrueY + Noise
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    aes(
+      ymin = Lower,
+      ymax = Upper
+    ),
+    alpha = 0.5
+  ) +
+  ylab("Population") +
+  ylim(FigLower,FigUpper)
+
+Est <- function(i,n,Label){
+  Task <- SimData(i,n) |> 
+    select(-TrueY) |> 
+    as_task_regr(
+      target = "Y",
+      id = "Example"
+    )
+  Fit <- Learner$clone()$train(Task)$predict(Task)
+  Fig <- SimData(i,n) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    aes(
+      y = Fit$response
+    ),
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x,20)
+  ) +
+  ylab(Label)  +
+  ylim(FigLower,FigUpper)
+  return(Fig)
+}
+
+Fig1 + 
+  (Est(1,5000,"Researcher 1") + 
+     Est(2,5000,"Researcher 2")
+   )/(Est(3,5000,"Researcher 3") + 
+        Est(4,5000,"Researcher 4"))
+```
+
+## 予測研究
+
+- 新しい事例について、$X$ から $Y$ を予測できるか？
+
+    - 同じ母集団の事例であれば、 $E_P[Y|X]$ は理想的な予測モデル
+    
+    - 教師付き学習で生成される $g_Y(X)$ は、実用的な予測モデル
+
+- 教師付き学習のそもそもの動機
+
+    - 実務(政策)研究において、極めて重要
+    
+    - 経済学研究としては、動機付けに工夫が必要!!!
+
+## 実例: @einav2018predictive
+
+- 1年後生存 $(=Y)$ を、個人属性(病歴含む) $(=X)$ から予測
+
+- 研究動機: 終末期医療問題への基礎研究
+
+    - 倫理的議論が目立つが、技術的に予測できるのか？
+    
+- 結論: できない
+
+    - "死ぬ"とわかっている人に多くの医療資源を注ぎ込んでいるわけではない    
+
+## Model Interpretation
+
+- 一般に機械学習は、"複雑な"予測モデルを生み出し、そのモデル自体の理解も難しい
+
+    - 単純なOLSのように式で示されても????
+    
+- モデルの可視化 (Interpretation):  [@molnar2022interpretable](molnar2022interpretable)
+
+- 注意: "モデル"の"可視化"であって、（経済学的な意味での)解釈でも、母集団の可視化でもない
+
+## Individual Conditional Expectation
+
+- 注目する$X$ を一つPick Upし、 予測値との関係性を図示
+
+- 他の属性の値はどのように設定？
+
+    - 他の属性は、データの値をそのまま使用
+
+- 各事例について、部屋の広さ(Size)のみを仮想的に変化させた場合の予測値の推移
+
+## 練習例
+
+- 国交省が提供する [不動産取引価格情報](https://www.land.mlit.go.jp/webland/servlet/MainServlet) から東京２３区の2017/22年に取引された中古マンション取引事例を取得
+
+- 中古マンションの取引価格、取引時期を予測
+
+    - $Y =$ 取引価格(100万円), 取引年 ($=1$ 2021, $=0$ 2019)
+    
+    - $X =$ 立地, 駅からの距離（分）、部屋の広さ、構造など
+
+## 練習例: 推定方法
+
+- OLS: $g_Y(X) = \beta_0 + \beta_1X_1 + .. + \beta_L X_L$
+
+- Stacking: OLSとRandomForestの加重平均
+
+## 練習例: 価格予測(OLS)
+
+```{r}
+FitStackY <- RegStack$clone()$train(
+  as_task_regr(
+    X |> 
+      mutate(Y = Y),
+    target = "Y")
+  )
+
+FitLinearY <- RegLM$clone()$train(
+  as_task_regr(
+    X |> 
+      mutate(Y = Y),
+    target = "Y")
+  )
+
+FitLinearY |> 
+  explain(
+    data = X,
+    y = Y,
+    label = "",
+    colorize = FALSE,
+    verbose = FALSE
+    ) |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("OLS")
+```
+
+## 練習例: 価格予測(Stakcing)
+
+```{r}
+ FitStackY |> 
+  explain(
+    data = X,
+    y = Y,
+    label = "",
+    colorize = FALSE,
+    verbose = FALSE
+    ) |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("Stacking")
+```
+
+
+## 練習例: 取引年予測(OLS)
+
+```{r}
+FitStackY <- RegStack$clone()$train(
+  as_task_regr(
+    X |> 
+      mutate(Y = D),
+    target = "Y")
+  )
+
+FitLinearY <- RegLM$clone()$train(
+  as_task_regr(
+    X |> 
+      mutate(Y = D),
+    target = "Y")
+  )
+
+FitLinearY |> 
+  explain(
+    data = X,
+    y = D,
+    label = "",
+    colorize = FALSE,
+    verbose = FALSE
+    ) |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("OLS")
+```
+
+## 練習例: 取引年予測(Stakcing)
+
+```{r}
+ FitStackY |> 
+  explain(
+    data = X,
+    y = D,
+    label = "",
+    colorize = FALSE,
+    verbose = FALSE
+    ) |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("Stacking")
+```
+
 
 ## まとめ
 
--   「事前に正しい統計モデルを設定する」推定法には、多くの問題点
+- 母集団の複雑さを捉える VS 有限のデータから推定する
 
-    -   仮定が見にくい
+    - 伝統的アプローチ: 研究者が経験 (ヤマカン)で設定
+    
+    - 教師付き学習: よりデータ主導
 
-    -   細かい定式化に推定結果が依存
+- 注意: 良い予測モデル $\neq$ 母集団の特徴理解に有益なモデル
 
--   教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+# 母集団推定の応用
 
-    -   予測問題: 多くの優れたアルゴリズム
+## 混乱
 
-    -   母集団の推論: セミラパ推定 + 既存アルゴリズム
+- 機械学習を何に応用できるか?
 
--   因果効果の識別(事前解釈)は、別問題
+- 統計学の伝統的な用語(最尤法、ベイズ推定など)、"因果推論の用語" (RCT, マッチングなど)などともに、応用上の混乱がみられる
+
+    - できること/できないことが、不正確に喧伝される
+    
+        - 予測しかできない VS　なんでもできる
+
+    - 過剰なナワバリ、縦割り的理解が散見される
+
+## 記述/比較/因果研究
+
+- 経済学における典型的な研究課題
+
+    - 一般に社会の"重要"な特徴の"推論"を目指す
+
+- Descriptive Comparison: (例) 同一学歴内男女間平均賃金格差
+
+- Causal Inference: (例) 最低賃金の増加が雇用に与える平均効果
+
+    - 研究プロジェクトのRoadMapの一部に貢献
+
+## 実証分析のRoadMap
+
+```{r}
+library(DiagrammeR)
+
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  rq [label = '知りたい社会の特徴 (観察できない変数を含んでも良い: 効用、イデオロギー、階層、潜在結果など)']
+  id [label = '観察できる変数のみで書き直す']
+  su [label = '推定可能(信頼区間が計算できるなど) & 理解可能な程度に単純化する']
+  es [label = '有限事例から推定する']
+  ML [label = '教師付き学習']
+  RQ -> Id
+  Id -> Su
+  Su -> Id
+  Su -> Es [label = 'Estimand']
+  rq -> RQ
+  id -> Id
+  su -> Su
+  es -> Es
+  ML -> Es
+  {rank = same; rq; RQ}
+  {rank = same; id; Id}
+  {rank = same; su; Su}
+  {rank = same; es; Es; ML}
+  }"
+  )
+```
+
+## 練習例: Research Question
+
+- 2019-2021年にかけて、中古マンションの市場価格はどのように変化したのか？
+
+    - 市場とは? (一物一価を用いて**定義**)
+    
+    - マンションの属性ごとに細分化されている
+
+- 全く同じ属性の物件間で2019/2021年比較したい
+
+    - $Y=$ 取引価格, $D=$ 取引時点, $X=$ 物件属性
+
+- 教師付き学習の出番なし?
+
+    - 出番があったら怖い? [@ludwig2023machine]
+    
+## 練習例: Naiveなアプローチ
+
+- "以下のモデルを推定します"
+
+$$Y_i=\beta_0 + \tau\times D_i +\beta_1X_{1i} +..+ \underbrace{u_i}_{Normal}$$
+
+- 何が仮定されているのか、不明確
+
+## 練習例: Identification
+
+- データから観察できる属性 $\neq$ 物件の全属性
+
+- 例えば以下が仮定できればOK
+
+$$f_P(Y_i|D,X,\underbrace{U}_{観察不可能})=f_P(Y_i|D,X)$$
+
+- 背景（実験デザインなど）知識を用いて、より説得的な議論が可能な場合も
+
+## 機械学習の応用?
+
+- データは、データにない変数について何か語れるか？
+
+- 例えば $X$ の選択 [@gupta2023local]
+
+## 練習例: Summary
+
+- $f_P(Y|D,X)$ の推定は難しい
+
+- 重要な特徴を捉え、人間が認知でき、推定できる程度に単純化
+
+- 例
+
+    - $\tau_P(X)=E_P[Y|2021,X]-E_P[Y|2019,X]$ : 条件付き平均差
+    
+    - $\tau_{P,Average} = \int_{X}\omega(X)\times\tau_P(X)dX$ : 周辺化条件付き平均差 ($\omega(X)$ : 加重)
+
+## 機械学習の応用?
+
+- データ主導で認知可能なモデリングは可能だが (LASSOなど)、推定誤差の評価が難しい 
+
+    - @Kuchibhotla2021PostselectionI
+
+## 練習例: Estimation
+
+- 教師付き学習の有力な応用先
+
+    - 伝統的な推定方法が持つ、モデルに強く推定結果が依存してしまう性質を緩和
+
+- Naiveな応用は、教師付き学習の推定結果がもつ悪い性質 (収束が遅い) の影響をまともに受ける
+
+- 教師付き学習をNonparametric推定に応用: 
+
+    - Data adaptiveな推定法一般が持つ、 収束速度が遅い性質を緩和
+    
+## 練習例: Partialling-out推定 
+
+1. $E_P[Y|X],E_P[D|X]$ を機械学習などで推定 $\rightarrow g_Y(X),g_D(X)$ を得る
+
+2. $Y-g_Y(X)$ を $D-g_D(X)$ でOLS回帰
+
+3. 回帰係数を、$\tau_{P,Average}$ の推定値として使用
+
+- @chernozhukov2018double
+
+## 練習例: Partialling-out推定 
+
+- $E_P[Y|X],E_P[D|X]$ の推定誤差の影響を、緩和できる
+
+- OLS推定: $E_P[Y|X],E_P[D|X]$ を同じ線形モデルで回帰
+
+    - 一般に一致推定量にならない
+
+## 練習例
+
+```{r}
+Task <- DoubleML::double_ml_data_from_matrix(
+  X = X,
+  y = Y,
+  d = D
+  )
+
+FitPLR <- DoubleML::DoubleMLPLR$new(
+  Task,
+  RegStack,
+  RegStack,
+  n_folds = 2
+)
+
+FitPLR$fit()$summary()
+```
+
+
+## 練習例: Naive plugin-in推定
+
+- $E_P[Y|D,X]$ を最尤法, ベイズ, 機械学習などで推定
+
+- 推定値を $E_P[Y|D,X]$ に代入して、Estimandを計算
+
+- $E_P[Y|D,X]$ の推定精度に決定的に依存する
+
+    - 教師付き学習は収束が遅く、信頼区間も計算できない
+
+## 応用例
+
+- Partialling-outは一般化できる
+
+    - Efficient influence functionを用いた収束速度の改善 [@hines2022demystifying; @ichimura2022influence]
+
+- AIPW推定, Conditional Average Treatment Effect推定 [@semenova2021debiased; @Kallus2022TreatmentER; @wager2018estimation] , Mediation Analysis [@farbmacher2022causal; @diaz2021nonparametric] , Sensitivity Analysis [@chernozhukov2022long] などなど
+
+- Estimationが改善したことで、活用できるIdentification, Summaryが増える!!!
+
+## Treatment Effect Risk [@Kallus2022TreatmentER]
+
+```{r}
+TempData <- tibble(
+  `Tau(X)` = rnorm(1000,4,10)
+  ) 
+
+TempData |> 
+  ggplot(
+    aes(
+      x = `Tau(X)`
+    )
+  ) +
+  theme_bw() +
+  geom_density() +
+  geom_vline(
+    aes(
+      color = "20%",
+      xintercept = quantile(`Tau(X)`,0.2)
+    )
+  ) +
+  geom_vline(
+    aes(
+      color = "60%",
+      xintercept = quantile(`Tau(X)`,0.6)
+    )
+  ) +
+  geom_vline(
+    aes(
+      color = "100%",
+      xintercept = quantile(`Tau(X)`,1)
+    )
+  )
+```
+
+## 練習例
+
+```{r}
+Q <- qnorm(1-(0.05/(2*9)))
+
+TempTask <- as_task_regr(
+  X[Group == 1 & D == 1,] |> 
+    mutate(Y = Y[Group == 1 & D == 1]),
+  target = "Y"
+  )
+
+FitY1 <- RegStack$
+  clone()$
+  train(TempTask)
+
+TempTask <- as_task_regr(
+  X[Group == 1 & D == 0,] |> 
+    mutate(Y = Y[Group == 1 & D == 0]),
+  target = "Y"
+  )
+
+FitY0 <- RegStack$
+  clone()$
+  train(TempTask)
+
+
+TempTask <- as_task_regr(
+  X[Group == 1,] |> 
+    mutate(D = D[Group == 1]),
+  target = "D"
+  )
+
+FitD <- RegStack$
+  clone()$
+  train(TempTask)
+
+TempTask <- as_task_regr(
+  X |> 
+    mutate(Y = Y),
+  target = "Y"
+  )
+
+PredY1 <- FitY1$predict(TempTask)
+PredY0 <- FitY0$predict(TempTask)
+
+TempTask <- as_task_regr(
+  X |> 
+    mutate(D = D),
+  target = "D"
+  )
+
+PredD <- FitD$predict(TempTask)
+
+ScoreY1 <- PredY1$response + 
+  (D/PredD$response)*
+  (Y - PredY1$response)
+
+ScoreY0 <- PredY0$response + 
+  ((1-D)/(1-PredD$response))*
+  (Y - PredY0$response)
+
+ScoreAIPW <- 
+  ScoreY1 -
+  ScoreY0
+
+TempTask <-
+  as_task_regr(
+    X[Group == 2,] |> 
+      mutate(Y = ScoreAIPW[Group == 2]),
+    target = "Y"
+  )
+
+
+FitAIPW <- RegStack$
+  clone()$
+  train(TempTask)
+
+TempTask <-
+  as_task_regr(
+    X |> 
+      mutate(Y = ScoreAIPW),
+    target = "Y"
+  )
+
+PredAIPW <- FitAIPW$predict(TempTask)
+
+Est <- function(q){
+  Q_AIPW <- quantile(
+    PredAIPW$response[Group == 3], 
+    probs = q)
+  TempAIPW <- Q_AIPW + 
+    (1/q)*if_else(
+      PredAIPW$response[Group == 3] <= Q_AIPW,
+      ScoreAIPW[Group == 3]- Q_AIPW,
+      0
+      )
+  TempResult <- estimatr::lm_robust(
+    TempAIPW ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "AIPW with SL"
+      )
+  return(TempResult)
+}
+
+map_dfr(seq(0.1,1,0.1),Est) |> 
+  ggplot(
+    aes(
+      x = Quantile,
+      y = estimate,
+      ymin = estimate - Q*std.error,
+      ymax = estimate + Q*std.error
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(alpha = 0.3) +
+  geom_ribbon(
+    aes(
+      ymin = estimate - 1.96*std.error,
+      ymax = estimate + 1.96*std.error
+    ),
+    alpha = 0.5
+  )
+```
+
+
+## RoadMap: 手法
+
+```{r}
+library(DiagrammeR)
+
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  ML [label = 'Machine Learning']
+  Ma [label = 'Matching法']
+  Re [label = 'OLS,最尤法,ベイズ']
+  CI [label = '狭義のCausal Inference']
+  De [label = '記述統計量']
+  RQ -> Id [label = '(Theretical Estimands)']
+  Id -> Su
+  Su -> Id
+  Su -> Es [label = 'Estimand']
+  CI -> Id
+  De -> Su
+  Re,ML,Ma -> Es
+  {rank = same; CI; Id}
+  {rank = same; De; Su}
+  {rank = same; ML; Es; Ma;Re}
+  }"
+  )
+```
+
+
+## RoadMap: 論文の章立て
+
+```{r}
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  rq [label = '実務的動機/理論仮説']
+  id [label = '識別戦略']
+  su [label = '定式化']
+  es [label = '推定戦略']
+  Confuse [label = 'かつては(今でも?)混同']
+  RQ -> Id [label = '(Theretical Estimands)']
+  Id -> Su
+  Su -> Id
+  Su -> Es [label = 'Estimand']
+  rq -> RQ
+  id -> Id
+  su -> Su
+  es -> Es
+  Confuse -> id,su,es
+  {rank = same; rq; RQ}
+  {rank = same; id; Id}
+  {rank = same; su; Su; Confuse}
+  {rank = same; es; Es}
+  }"
+  )
+```
+
+
+## 余談: 教科書
+
+```{r}
+library(DiagrammeR)
+
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  Ma [label = '因果推論入門']
+  CI [label = '伝統的な統計学、計量経済学']
+  Econ [label = '経済学']
+  RQ -> Id
+  Id -> Su
+  Su -> Id
+  Su -> Es [label = 'Estimand']
+  CI -> Su, Es
+  Ma -> Id
+  Econ -> RQ, Id
+  {rank = same; CI; Su}
+  {rank = same; Ma; Id}
+  {rank = same; Econ; RQ}
+  }"
+  )
+```
+
 
 ## まとめ
 
--   「事前に正しい統計モデルを設定する」推定法には、多くの問題点
+- 応用上は、以下の二つをしっかり区別することが重要
 
-    -   仮定が見にくい
+1. $\mathbb{E}[(\mathbb{E}[Y|X]-f(X))^2]$ を可能な限り削減する関数 $f(X)$ の推定
 
-    -   細かい定式化に推定結果が依存
+    - 予測問題と親和的
 
--   教師付き学習の活用: 推定目標を明示的に定めれば、非常に有益
+2. $\mathbb{E}[Y|D,Z]$ を特徴づける**研究者により事前に定義された**有限個のパラメータの推論
 
-    -   予測問題: 多くの優れたアルゴリズム
+    - 信頼区間も得たい
 
-    -   母集団の推論: セミラパ推定 + 既存アルゴリズム
 
--   因果効果の識別(事前解釈)は、別問題
+## 予習
 
-## 混乱した議論
+- Short Introduction: [@daoud2020statistical](https://hdsr.mitpress.mit.edu/pub/uo4hjcx6/release/1?readingCollection=49a3a635)
 
--   機械学習 \| 傾向スコアを使えば、因果効果を**識別**できる
+- TextBook:
 
--   機械学習を使っても因果効果は**識別**できないので、因果効果の**推定**には役に立たない
+    - [Modern Business Analytics](https://www.amazon.co.jp/gp/product/1264071655/ref=dbs_a_def_rwt_bibl_vppi_i2)
 
-## RoadMap
+    - [Introduction to Statistical Learning](https://www.statlearning.com/)
 
--   代表的教師付き学習アルゴリズムの紹介:
+- Article
 
-    -   Tree/LinearModel系
+    - @brand2022recent, @athey2019machine, @grimmer2021machine, @Harding2021SmallSW
 
-    -   Stacking (実用上の推奨)
+    - @leist2022mapping
 
--   条件付き平均差の推定
 
-    -   [Double/DebiasedMachineLearning](https://arxiv.org/abs/1608.00060)
+# 実例
 
--   他の応用
+## @dube2020monopsony
 
-    -   [GeneralizedPartialLinearModel](https://arxiv.org/abs/2006.08402)
+- Estimand: $E[NumApplicamt|PostWage,JobDescription]$
+    
+    - Identification: 価格モデルを前提とした場合、オンライン労働市場における供給独占(Monopsony)を測定可能
+    
+    - Summary: 平均差に注目
+    
+- Estimation上の問題: Web Scrapingで収集した実際の求人データ
+    
+    - Job Descriptionが非常に多次元(テキスト情報も含む)
 
-    -   [SensitivityAnalysis](https://www.nber.org/papers/w30302)
-
-    -   [NonParametricPrediction](https://arxiv.org/abs/1610.01271https://arxiv.org/abs/1610.01271)
-
-## Core Packages: Semipara + ML
+## RoadMap: @dube2020monopsony
 
 ```{r}
-grViz("digraph dot {
-      graph [rankdir = UB,color = crimson]
-      edge [color=black]
-      node [shape = rectangle, color = darkslategray]
-      A [label = 'caret']
-      a [label = 'tidymodels']
-      B [label = 'mlr']
-      b [label = 'mlr3']
-      b1 [label = 'DoubleML']
-      C [label = 'SuperLearner']
-      c [label = 'sl3']
-      c1 [label = 'AIPW']
-      c2 [label = 'tlverse']
-      d [label = 'grf']
-      e [label = 'sckit-learn (python)']
-      e1 [label = 'EconML (python)']
-      A -> a [label = 'Update']
-      B -> b [label = 'Update']
-      C -> c [label = 'Update']
-      b -> b1
-      c -> c1,c2
-      e -> b1
-      e -> e1
-      {rank = same;A;B;C}
-      {rank = same;b1;c1;c2;d}
-      {rank = max; e; e1}
-      }")
+library(DiagrammeR)
+
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  FinRQ [label = 'オンライン労働市場において、供給独占は生じているか?']
+  FinId [label = '賃金を下げれば、どの程度応募者が減るのか？']
+  FinSu [label = 'E[NumApplicamt|PostWage,JobDescription]']
+  FinEs [label = 'DoubleMachineLearning']
+  RQ -> Id
+  Id -> Su
+  Su -> Es
+  FinRQ -> RQ
+  FinId -> Id
+  FinSu -> Su
+  FinEs -> Es
+  {rank = same; FinRQ; RQ}
+  {rank = same; FinId; Id}
+  {rank = same; FinSu; Su}
+  {rank = same; FinEs; Es}
+  }"
+  )
 ```
 
-## 次回に向けた準備
+## @behaghel2014private
 
--   RとRStudioとパッケージのインストール
+- 研究課題: 民間が行う新職業訓練 VS 政府が行う新職業訓練の因果効果
 
-    -   [RとRstudioのインストール](https://youtu.be/fDlXx8e5W78)
+- Estimand: $E[6ヶ月以内再就職|職業訓練の種類]$
+    
+    - Identification: RCT
+    
+    - Summary: 平均差に注目
+    
+- Estimation上の問題: ほぼない(平均差の推定でOK)!!!
 
-    -   [Packagesのインストール](https://youtu.be/2fmThveX7_s)
+## @Kallus2022TreatmentER
 
-    -   [ProjectFolderの作成](https://youtu.be/rqQP4jsF0oQ)
+- Estimand: $E_P[\tau_P(X)|\tau_P(X)\le Q(\tau_P(X),q)]$
 
-    -   [Dataのアップロード](https://youtu.be/f2EU44WFyQM)
+    - $\tau_P(X)=E_P[Y|D=2021,X]-E_P[Y|D=2019,X]$
+    
+    - $Q(\tau_P(X),q)=$ qth quantile
 
--   必要パッケージ: mlr3verse; tidyverse; rpart.plot
+- 因果効果が低い（マイナス）のサブグループにおける平均効果
+
+    - ”全体"では正だとしても、負の影響を受けるグループがいるかもしれない
+
+## RoadMap: @Kallus2022TreatmentER
+
+
+```{r}
+library(DiagrammeR)
+
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  FinRQ [label = '職業訓練主体の変更により、不利益を被る失業者はいるか?']
+  FinId [label = 'RCT + 個人効果のBounds']
+  FinSu [label = 'E[Tau(X)|Tau(X) < Q(Tau(X))] (Tau(X):X内での平均効果)']
+  FinEs [label = 'TripleMachineLearning']
+  RQ -> Id
+  Id -> Su
+  Su -> Es
+  FinRQ -> RQ
+  FinId -> Id
+  FinSu -> Su
+  FinEs -> Es
+  {rank = same; FinRQ; RQ}
+  {rank = same; FinId; Id}
+  {rank = same; FinSu; Su}
+  {rank = same; FinEs; Es}
+  }"
+  )
+```
+
+
+## RoadMap: @einav2018predictive
+
+```{r}
+library(DiagrammeR)
+
+grViz("digraph flowchart {
+  node [fontname = Helvetica, shape = rectangle, fixedsize = false, width = 1] 
+  RQ [label = 'Research Question']
+  Id [label = 'Identification']
+  Su [label = 'Summary']
+  Es [label = 'Estimation']
+  FinRQ [label = '現状、寿命は予測できるのか']
+  FinSu [label = '予測誤差']
+  FinEs [label = 'Stacking + SampleSplit']
+  RQ -> Id
+  Id -> Su
+  Su -> Es
+  FinRQ -> RQ
+  FinSu -> Su
+  FinEs -> Es
+  {rank = same; FinRQ; RQ}
+  {rank = same; FinSu; Su}
+  {rank = same; FinEs; Es}
+  }"
+  )
+```
+
 
 ## Reference
+
