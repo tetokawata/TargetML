@@ -130,6 +130,10 @@ RegStack <- pipeline_stacking(
 
 - **どのように研究課題をデータ分析に落とし込めばいいのか、わからない**
 
+## やらないこと
+
+- [Deep Learning](https://www.aeaweb.org/conference/cont-ed), Generative Model [@koenecke2020synthetic; @kaji2020adversarial], Text Analysis [@gentzkow2019text], Causal Discovery [@nogueira2022methods], Reinforcement learning [@iskhakov2020machine]
+
 ## 次回までに
 
 - 講義中にRで作業できる環境整備
@@ -159,7 +163,7 @@ lgr::get_logger("bbotk")$set_threshold("error")
 
 ## 機械学習
 
-- 統計学、 計量〇〇とは異なるルーツを持つデータ分析方法
+- 統計学とは異なるルーツを持つデータ分析方法
 
     - AIの開発
     
@@ -167,7 +171,9 @@ lgr::get_logger("bbotk")$set_threshold("error")
 
     - Estimandは明確に定義できるが、変数間の具体的関係性はBlackBoxな応用 (経済学!!!)において高い比較優位
 
-    - 計算機〇〇において、高い期待?
+    - 計量〇〇において、母関数への"Fitting"を行うツールとして広く利用される
+
+    - 計算機〇〇において、さらに高い期待?
 
 ## 分野
 
@@ -177,7 +183,7 @@ lgr::get_logger("bbotk")$set_threshold("error")
     
     - Semiparametric 推定の議論 (Neway, Ichimura, Robinson, Robins...)を活用
 
-- 教師なし学習, 強化学習, 等々
+- 教師なし学習, 強化学習, 敵対学習等々
 
 ## 教師付き学習
 
@@ -1043,11 +1049,13 @@ $$f_P(Y_i|D,X,\underbrace{U}_{観察不可能})=f_P(Y_i|D,X)$$
 
 - @chernozhukov2018double
 
-## 練習例: Partialling-out推定 
+## Partialling-out推定の利点
 
 - $E_P[Y|X],E_P[D|X]$ の推定誤差の影響を、緩和できる
 
-- OLS推定: $E_P[Y|X],E_P[D|X]$ を同じ線形モデルで回帰
+- OLS推定の一般化
+
+    - $E_P[Y|X],E_P[D|X]$ を同じ線形モデルで回帰すればOLS
 
     - 一般に一致推定量にならない
 
@@ -1081,15 +1089,25 @@ FitPLR$fit()$summary()
 
     - 教師付き学習は収束が遅く、信頼区間も計算できない
 
+    - Parametric Modelは、一般に収束しない(一致性がない)
+
 ## 応用例
 
 - Partialling-outは一般化できる
 
     - Efficient influence functionを用いた収束速度の改善 [@hines2022demystifying; @ichimura2022influence]
 
-- AIPW推定, Conditional Average Treatment Effect推定 [@semenova2021debiased; @Kallus2022TreatmentER; @wager2018estimation] , Mediation Analysis [@farbmacher2022causal; @diaz2021nonparametric] , Sensitivity Analysis [@chernozhukov2022long] などなど
+- ATE推定, Conditional Average Treatment Effect推定 [@semenova2021debiased; @Kallus2022TreatmentER; @wager2018estimation] , Mediation Analysis [@farbmacher2022causal; @diaz2021nonparametric] , Sensitivity Analysis [@chernozhukov2022long] などなど
 
 - Estimationが改善したことで、活用できるIdentification, Summaryが増える!!!
+
+## 因果研究 VS 比較研究
+
+- 識別の議論は決定的に異なる: 観察できない変数への仮定、 Interferenceへの仮定
+
+- Summary, Estimationは多くの場合よく似ている
+
+    - サンプリングに伴う不確実性を考慮する場合は、 "同じ手法"を用いて、 $\tau_{P,Average},\tau_P(X)$ の推定を目指す。
 
 ## Treatment Effect Risk [@Kallus2022TreatmentER]
 
