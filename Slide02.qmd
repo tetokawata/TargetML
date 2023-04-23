@@ -6,6 +6,7 @@ format:
   revealjs:
     html-math-method: katex
     css: styles.css
+    slide-number: true
 self-contained: true
 self-contained-math: true
 bibliography: ref.bib

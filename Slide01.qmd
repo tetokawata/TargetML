@@ -90,7 +90,7 @@ RegStack <- pipeline_stacking(
 
 - 実習ではRをサポート
 
-    - Main Package: [mlr3verse](https://mlr3verse.mlr-org.com/), [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines), [DoubleML](), [grf](https://grf-labs.github.io/grf/)
+    - Main Package: [mlr3verse](https://mlr3verse.mlr-org.com/), [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines), [DoubleML](https://docs.doubleml.org/stable/index.html), [grf](https://grf-labs.github.io/grf/)
 
 - 課題はpythonでもOK
 
@@ -134,6 +134,8 @@ RegStack <- pipeline_stacking(
 
 - [Deep Learning](https://www.aeaweb.org/conference/cont-ed), Generative Model [@koenecke2020synthetic; @kaji2020adversarial], Text Analysis [@gentzkow2019text], Causal Discovery [@nogueira2022methods], Reinforcement learning [@iskhakov2020machine]
 
+- Economics of Machine Learning [@asker2022artificial; @farboodi2022data; @acemoglu2021harms]
+
 ## 次回までに
 
 - 講義中にRで作業できる環境整備
@@ -142,7 +144,11 @@ RegStack <- pipeline_stacking(
 
     - Localに [R+ Rstudio](https://posit.co/download/rstudio-desktop/)をインストール
     
+        - [参考動画](https://youtu.be/fDlXx8e5W78)
+    
     - [Posit cloud (旧R cloud)](https://posit.cloud/) に登録
+    
+        - [参考動画](https://youtu.be/yF6NxxvpzjE)
 
 - 講義資料とExampleDataを[講義レポジトリ](https://github.com/tetokawata/TargetML) からダンロード
 
