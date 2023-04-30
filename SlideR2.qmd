@@ -1,12 +1,12 @@
 ---
-title: "SlideR01"
+title: "複製についての厳重注意"
+subtitle: "経済学のための機械学習入門"
+author: "川田恵介"
 format: 
   revealjs:
     html-math-method: katex
     css: styles.css
-    slide-number: true
-self-contained: true
-self-contained-math: true
+    incremental: true
 bibliography: ref.bib
 execute: 
   warning: false
@@ -29,26 +29,25 @@ execute:
 
 ## 例題
 
+- objectの複製を活用し、 defaulと浅い木を推定したい
+
 ```{r}
 library(mlr3verse)
 
 Tree <- lrn("regr.rpart")
 
-ShallowTree <- Tree # <1>
+ShallowTree <- Tree
 
-ShallowTree$param_set$values$maxdepth <- 2 # <1>
+ShallowTree$param_set$values$maxdepth <- 2
 ```
-
-1. objectを複製し、 浅い木も推定したい、、が
-
 
 ## 例題
 
 ```{r}
-Tree # <1>
+Tree
 ```
 
-1. "勝手に変わった!!!"
+- "勝手に変わった!!!"
 
 ## Rの基本文法
 
@@ -74,22 +73,21 @@ a <- 1 # <1>
 a <- 1
 
 b <- a # <1>
+
+lobstr::obj_addr(a) # <2>
+
+lobstr::obj_addr(b)
 ```
 
 1. aを複製?
 
-```{r}
-lobstr::obj_addr(a) # <2>
-
-lobstr::obj_addr(b) # <3>
-```
+- 同じobjectに、異なる参照名 (a,b) を付与している"だけ"
 
 2. lobstrパッケージを局所的にロード
 
-3. 同じobjectに、異なる参照名 (a,b) を付与している"だけ"
-
 ## Copy on modification
 
+- objectに操作を加えると、objectそのものが異なるlocationにコピーされる
 
 ```{r}
 a <- 1
@@ -103,8 +101,7 @@ lobstr::obj_addr(a)
 lobstr::obj_addr(b)
 ```
 
-1. objectに操作を加えると、objectそのものが異なるlocationにコピーされる
-
+1. deep copy
 
 ## まとめ
 
@@ -147,7 +144,7 @@ Tree$param_set$values$maxdepth
 Tree1$param_set$values$maxdepth
 ```
 
-1. object自体は複製されない!!!
+1. ハードコピーが行われない!!!
 
 ## mlr3 objects
 
@@ -171,7 +168,7 @@ lobstr::obj_addr(Tree)
 lobstr::obj_addr(Tree1)
 ```
 
-1. deep-copy
+1. ハードコピー
 
 ## Method chain
 
@@ -201,7 +198,6 @@ Task <- as_task_regr(
   "Price"
 )
 
-EstTree <- Tree$clone()$train(Task)$model # <1>
+EstTree <- Tree$clone()$train(Task)$model # 複製/推定ずみ決定木を保存
 ```
 
-1. 複製/推定ずみ決定木を保存
