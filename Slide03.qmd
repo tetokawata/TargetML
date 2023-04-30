@@ -356,15 +356,7 @@ rpart::rpart(
 
 ## Setp 2. 剪定
 
-- 以下を最小化するようにサブグループを再結合
-
-$$EmpiricalRisk(MeanSquiaredError) + \lambda \times \bigr|T\bigr|$$
-
-- $\lambda$ : Hyper Parameter (rpart関数では cp)
-
-    - 交差推定で選択
-
-- 分割しても平均二乗誤差があまり減らないサブグループから結合していく
+- 分割しても平均二乗誤差があまり減らないサブグループから再結合していく
 
 ## 例: 剪定
 
@@ -398,6 +390,48 @@ rpart::rpart(
   ) |> 
   rpart.plot::rpart.plot()
 ```
+
+## Step 2. 剪定
+
+- どこまで剪定する?
+
+- 理想は Population Risk $E_P[(Y - g(X))^2]$ 最小化
+
+    - できない
+
+- Empirical Risk $E[(Y_i - g(X_i))^2]$ はナンセンス
+
+    - 練習問題: なぜ?
+
+## Setp 2. 剪定: 罰則付き最適化
+
+- 以下を最小化するようにサブグループを再結合
+
+$$EmpiricalRisk + \underbrace{\lambda \times \bigr|T\bigr|}_{罰則項}$$
+
+- $\lambda$ : Hyper Parameter (rpart関数では cp)
+
+    - 交差推定で選択
+
+## 余談: "経済理論で学ぶ機械学習"
+
+- 経済理論の典型的問題設定: 社会厚生"関数"を明示
+
+    - エージェントの意思決定と社会厚生との齟齬を解消
+
+    - エージェントの意思決定を利得最大化問題として記述
+
+- 典型的アイディア: エージェントの最大化問題の修正 (課税/補助金/所得移転)
+
+    - エージェントの意思決定を活用しつつ、社会厚生との齟齬解消
+
+## 余談: "経済理論で学ぶ機械学習"
+
+- Population Risk $=$ 社会厚生
+
+- Empirical Risk $=$ 利得
+
+- 罰則項 $=$ 複雑さへの税金
 
 ## Tuning space
 
