@@ -8,8 +8,6 @@ format:
 self-contained: true
 self-contained-math: true
 bibliography: ref.bib
-toc: true
-toc-depth: 2
 execute: 
   warning: false
   message: false
@@ -31,33 +29,34 @@ execute:
 
 ## 例題
 
-- objectの複製を活用し、 defaulと浅い木を推定したい
-
 ```{r}
 library(mlr3verse)
 
 Tree <- lrn("regr.rpart")
 
-ShallowTree <- Tree
+ShallowTree <- Tree # <1>
 
-ShallowTree$param_set$values$maxdepth <- 2
+ShallowTree$param_set$values$maxdepth <- 2 # <1>
 ```
+
+1. objectを複製し、 浅い木も推定したい、、が
+
 
 ## 例題
 
 ```{r}
-Tree
+Tree # <1>
 ```
 
-- "勝手に変わった!!!"
+1. "勝手に変わった!!!"
 
 ## Rの基本文法
 
 ```{r}
-a <- 1
+a <- 1 # <1>
 ```
 
-- "1をaという名前で保存"
+1. "1をaという名前で保存"
 
 - 正確には、 "メモリ-上のどこか(Location)に保存された1を、aというReference(参照名)で保存"
 
@@ -74,30 +73,37 @@ a <- 1
 ```{r}
 a <- 1
 
-b <- a # aを複製?
-
-lobstr::obj_addr(a) # lobstrパッケージを局所的にロード
-
-lobstr::obj_addr(b)
+b <- a # <1>
 ```
 
-- 同じobjectに、異なる参照名 (a,b) を付与している"だけ"
+1. aを複製?
+
+```{r}
+lobstr::obj_addr(a) # <2>
+
+lobstr::obj_addr(b) # <3>
+```
+
+2. lobstrパッケージを局所的にロード
+
+3. 同じobjectに、異なる参照名 (a,b) を付与している"だけ"
 
 ## Copy on modification
 
-- objectに操作を加えると、objectそのものが異なるlocationにコピーされる
 
 ```{r}
 a <- 1
 
 b <- a
 
-b <- b + 1
+b <- b + 1 # <1>
 
 lobstr::obj_addr(a)
 
 lobstr::obj_addr(b)
 ```
+
+1. objectに操作を加えると、objectそのものが異なるlocationにコピーされる
 
 
 ## まとめ
@@ -110,7 +116,7 @@ lobstr::obj_addr(b)
 
     - 不要なdeep copyが行われてしまい、計算速度が犠牲になる場合も、、、
 
-- [R6 class](https://r6.r-lib.org/articles/Introduction.html)を最小しているpackage(mlr3など) は例外
+- [R6 class](https://r6.r-lib.org/articles/Introduction.html)を採用しているpackage(mlr3など) は例外
 
 ## mlr3 objects
 
@@ -134,12 +140,14 @@ Tree <- lrn("regr.rpart")
 
 Tree1 <- Tree
 
-Tree1$param_set$values$maxdepth <- 2
+Tree1$param_set$values$maxdepth <- 2 # <1>
 
 Tree$param_set$values$maxdepth
 
 Tree1$param_set$values$maxdepth
 ```
+
+1. object自体は複製されない!!!
 
 ## mlr3 objects
 
@@ -156,13 +164,14 @@ lobstr::obj_addr(Tree1)
 ```{r}
 Tree <- lrn("regr.rpart")
 
-Tree1 <- Tree$clone()
+Tree1 <- Tree$clone() # <1>
 
 lobstr::obj_addr(Tree)
 
 lobstr::obj_addr(Tree1)
 ```
 
+1. deep-copy
 
 ## Method chain
 
@@ -192,6 +201,7 @@ Task <- as_task_regr(
   "Price"
 )
 
-EstTree <- Tree$clone()$train(Task)$model # 複製/推定ずみ決定木を保存
+EstTree <- Tree$clone()$train(Task)$model # <1>
 ```
 
+1. 複製/推定ずみ決定木を保存
