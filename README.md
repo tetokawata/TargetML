@@ -14,3 +14,9 @@ Public folderから、講義資料と実習用データをダウンロードで�
     - [Autotunerを活用したモデル推定](https://youtu.be/M4_5E8w4JaI)
 
     - [RandomForestの実装](https://youtu.be/V7zrUBqOub8)
+    
+    - [OLSの実装](https://youtu.be/k2NM5jWrNks)
+    
+    - [Stackingの実装](https://youtu.be/CCEmCvdYwis)
+    
+    - [benchmark_girdを活用した性能評価(stackingを含む)](https://youtu.be/R-VEEZnrUJM)
