@@ -20,3 +20,7 @@ Public folderから、講義資料と実習用データをダウンロードで�
     - [Stackingの実装](https://youtu.be/CCEmCvdYwis)
     
     - [benchmark_girdを活用した性能評価(stackingを含む)](https://youtu.be/R-VEEZnrUJM)
+    
+    - [PartiallingOutの実装](https://youtu.be/W8LoEIPkZV4)
+    
+    - [DoubleMLを活用したPartiallingOutの実装](https://youtu.be/Ou6KzmYgLNA)
