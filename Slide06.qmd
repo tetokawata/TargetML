@@ -1,0 +1,203 @@
+---
+title: "予測研究: まとめ"
+subtitle: "経済学のための機械学習入門"
+author: "川田恵介"
+format: 
+  revealjs:
+    html-math-method: katex
+    css: styles.css
+    slide-number: true
+self-contained: true
+self-contained-math: true
+bibliography: ref.bib
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+---
+
+# 応用事例
+
+- "経済モデル"を予測性能の観点から評価
+
+    - 伝統的なアプローチだが、しばしば"Naive"にやられてきた
+
+- [@fudenberg2019predicting] : ゲーム理論(同時手番２Player)への応用
+
+- @Sahoo2022LearningFA , @Andrews2022TheTP
+
+## 同時手番 ２Player ゲーム
+
+- 二人のプレイヤーが同時に"戦略 $\{1,2,3\}$"を選ぶ
+
+- 戦略の組み合わせによって、利得を得る
+
+    - 利得票
+
+```{r}
+PA <- sample(1:6,9,replace = TRUE)
+PB <- sample(1:6,9,replace = TRUE)
+P <- stringr::str_c(PA,PB,sep = ",")
+M <- matrix(P,3,3)
+colnames(M) <- stringr::str_c("b",1:3)
+rownames(M) <- stringr::str_c("a",1:3)
+M
+```
+
+- 利得 $(=X)$ から、選択される戦略 $(=Y)$ を予測できるか?
+
+## ゲーム理論 VS　教室つき学習
+
+- ゲーム理論は、さまざまな均衡予測を提供
+
+    - 予測 $+$ その理由(解釈)を提供
+    
+    - 同じゲームを繰り返すと、理論予測に収束する場合も多い
+    
+    - 最初にプレイされるゲームの戦略は予測が難しい
+
+- 純粋に予測のみを目的とした教師付き学習の予測にどこまで(どうすれば)迫れるか？
+
+    - そもそも予測が不可能な状況を"排除"できる
+
+## 結果
+
+- 実験室実験のデータについて予測を行うと
+
+    - 伝統的な均衡概念 (Uniform Nash, Level-1)は、 Baggingによる予測に負ける
+    
+    - Level-1は、Nash均衡に比べて、かなりBaggingに迫る予測を得られる
+
+# 総まとめ
+
+- 計量経済学入門: 「Well-specified Modelを推定」が前提
+
+- Miss-specified Modelの可能性を考慮すると？
+
+    - 経済学の応用において極めて重要な論点 [@gelman2021most]
+
+- 教師付き学習: 十分に複雑なモデルからスタートすることで、 Miss-specificationの可能性緩和
+
+## Well-specified Linear Model
+
+- $\beta$ を適切に選べば、 $E_P[Y|X]=g(X)$
+
+- 一致性、普遍性を満たす
+
+    - 中心極限定理より、 ある程度の事例数があれば、推定値は正規分布で近似できる(漸近正規性)
+
+- 手近な学部中級以上のテキストで確認可能
+
+## 予測誤差の分解
+
+$$Y-g(X)=\underbrace{Y-E_P[Y|X]}_{Irreducible}$$
+
+$$+\underbrace{E_P[Y|X]-g_{\infty}(X)}_{ApproximationError}$$
+
+$$+\underbrace{g_{\infty}(X)  - g(X)}_{EstimationError}$$
+
+## 教科書的な性質
+
+$$Y-g(X)=Y-E_P[Y|X]$$
+
+$$+\underbrace{E_P[Y|X]-g_{\infty}(X)}_{=0\ :\ Consistency}$$
+
+$$+\underbrace{g_{\infty}(X)  - g(X)}_{\sim N(0,\sigma^2)\ :\ AsymptoticNormality}$$
+
+## Bias-Variance decomposition
+
+$$Y-g(X)=Y-E_P[Y|X]$$
+
+$$+\underbrace{E_P[Y|X]-g_{\infty}(X)}_{=0 \:\ Consistency}$$
+
+$$+\underbrace{g_{\infty}(X) - E[g(X)]}_{=0\ :\ Bias}$$
+
+$$\underbrace{E[g(X)] - g(X)}_{\sim N(0,\sigma^2)\ :\ Variance}$$
+
+## Miss-specified Linear Model
+
+- $\beta$ をどう選んでも、 $E_P[Y|X]\neq g(X)$
+
+- $g_{\infty}(X)=?$ (何を推定しているのか？)
+
+    - 母集団上で定義できる(研究者間で合意可能な)推定ゴールは存在するのか？
+
+## Best Linear Projection
+
+$$g_\infty(X)=g^{BLP}(X):=\beta_0^{BLP}+..+\beta_L^{BLP}X_L$$
+
+- ただし
+
+$$\min_{\beta_0^{BLP},..,\beta_L^{BLP}} E_P[(Y-g^{BLP}(X))^2]$$
+
+- 母集団上での仮想的な回帰結果
+
+    - 上級レベルの計量経済学テキスト (HayashiやWooldreigeなど)では紹介
+
+## 母集団上での記述統計量の推定
+
+- OLS $=$ 母集団の記述統計であるBLPの推定と解釈
+
+    - 研究者が設定したモデルに依存するが、母集団上で定義可能
+
+    - 母分布 $f_P(Y,X)$ の部分的に要約する
+
+    - 母平均 $E_P[Y]$ : BLPの特殊ケース $g_{BLP}(X)=\beta_0^{BLP}$
+
+- 予測研究への応用: 母集団の記述統計量を推定する手法を流用
+
+## Miss-specified Linear Model
+
+$$Y-g(X)=Y-E_P[Y|X]$$
+
+$$+\underbrace{E_P[Y|X]-g_{BLP}(X)(:=g_{\infty}(X))}_{\neq 0}$$
+
+$$+\underbrace{g_{BLP}(X)  - E[g(X)]}_{=0}$$
+
+$$+\underbrace{E[g(X)]-g(X)}_{\sim N(0,\sigma^2)}$$
+
+## More complicated Model
+
+$$Y-g(X)=Y-E_P[Y|X]$$
+
+$$+\underbrace{E_P[Y|X]-g_{BLP}(X)}_{\neq 0}$$
+
+$$+\underbrace{g_{BLP}(X)  - E[g(X)]}_{=0}$$
+
+$$+\underbrace{E[g(X)]-g(X)}_{増加}$$
+
+## 伝統的なトレードオフ
+
+- Approximation Error VS Variance
+
+- 教師付き学習の多くの手法とは異なる
+
+    - 緩やかな条件で一致性が成り立つ (RandomForest/決定木については、@chi2022asymptotic とその引用文献などを参照)
+
+    - Bias VS Variance
+    
+- 十分に複雑なモデルから始めると、 Approximation Error $\sim 0$
+
+## Pruned Tree/Random Forest
+
+$$Y-g(X)=Y-E_P[Y|X]$$
+
+$$+\underbrace{E_P[Y|X]-g_{\infty}(X)}_{\sim 0 }$$
+
+$$+\underbrace{g_{\infty}(X)  - E[g(X)]}_{\neq 0}$$
+
+$$+\underbrace{E[g(X)]-g(X)}_{減少}$$
+
+## まとめ
+
+- OLS推定の解釈は、母集団の"記述統計量 BLP"を推定していると一般化可能
+
+    -「Well-specificationである」という特殊ケースにおいて、条件付き平均値を推定している
+
+- 最悪でも"BLP"という母集団で定義可能かつ "解釈可能"な値を推定しているので、今でもよく使われる
+
+- 最尤法についてもよく似た解釈は可能だが、ベイズは？ [@buja2019modelsA;@buja2019modelsB]
+
+## Reference
+

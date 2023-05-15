@@ -1,12 +1,14 @@
 ---
-title: "決定木アルゴリズム: モデル集計"
+title: "決定木アルゴリズム: 発展"
 subtitle: "経済学のための機械学習入門"
 author: "川田恵介"
 format: 
   revealjs:
     html-math-method: katex
     css: styles.css
-    incremental: true
+    slide-number: true
+self-contained: true
+self-contained-math: true
 bibliography: ref.bib
 execute: 
   warning: false
@@ -15,538 +17,518 @@ execute:
   echo: false
 ---
 
-# Model aggregation
+# 交差推定
 
-```{r}
+```{r SetUp}
 pacman::p_load(
   tidyverse,
-  arrow,
   mlr3verse,
-  simpr,
+  mlr3pipelines,
+  recipes,
+  DALEX,
+  patchwork,
+  magrittr,
   DiagrammeR
 )
 
-lgr::get_logger("mlr3")$set_threshold("error")
-lgr::get_logger("bbotk")$set_threshold("error")
 
-Data <- read_parquet(
-  "Public/Example.parquet"
-)
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
 
-Noise <- 50
-FigLower <- -20
-FigUpper <- 60
+Data <- arrow::read_parquet("Public/Example.parquet")
 
-N <- 100
-
-SimData <- function(i,n){
-  set.seed(i)
-  TempData <- tibble(
-    X = runif(n,-4,4),
-    TrueY = 0.5*(X^2) + 
-      if_else(X <= -2,
-              10,
-              0) + 
-      if_else(X <= 0,
-              10,
-              0) + 
-      if_else(X <= 2,
-              10,
-              0),
-    Y = TrueY + runif(n,-Noise,Noise)
-  )
-  return(TempData)
-}
-
-TestData <- SimData(100,10000)
-
-EstDeepTree <- function(i,n){
-  TempData <- SimData(i,n)
-  TempPred <- rpart::rpart(
-    Y ~ X,
-    TempData,
-    control = rpart::rpart.control(
-      cp = 0,
-      maxdepth = 30,
-      minsplit = 50,
-      minbucket = 50
-    )
-  ) |> 
-    predict(TestData)
-  TempResult <- TestData |> 
-    mutate(
-    Pred = TempPred,
-    ID = i |> factor()
-  )
-  return(TempResult)
-}
-
-TempResult <- EstDeepTree(1,1000) |> 
-  bind_rows(
-    EstDeepTree(2,1000)
-  ) |> 
-  bind_rows(
-    EstDeepTree(3,1000)
-  ) |> 
-  bind_rows(
-    EstDeepTree(4,1000)
-  ) |> 
-  mutate(
-    Aggregate = mean(Pred),
-    .by = "X")
-```
-
-## 比喩: 予測屋会議
-
-- 複数の"専門家"の予測を集計して最終予測モデルとする
-
-    - "エコノミスト"の見通しの平均値
-    
-    - 専門家委員会
-
-- 一人の予測に頼るよりも、ましでは？
-
-    - 教師付き学習にも応用可能な発想
-
-## 数値例
-
-- 独立してサンプリングしたデータについて、深い予測木 (剪定なし) を推定
-
-- 各予測値と、予測値の平均を比較
-
-## Estimation Error
-
-```{r, dev='ragg_png'}
-TempResult |> 
-  ggplot(
-    aes(
-      x = X,
-      y = Pred,
-      color = ID
-    )
-  ) +
-  theme_bw() +
-  geom_point() +
-  geom_smooth(
-    aes(
-      y = TrueY,
-      color = "Population"
-    ),
-    method = "lm",
-    formula = y ~ 0 + I(x^2) + I(if_else(x <= -2,1,0))
-    + I(if_else(x <= 0,1,0))
-    + I(if_else(x <= 2,1,0))
-    ) +
-  facet_wrap(
-    ~ ID
-  ) +
-  ylim(FigLower,FigUpper) +
-  ylab("E[Y|X]")
-```
-
-## Aggregation
-
-```{r, dev='ragg_png'}
-TempResult |> 
-  ggplot(
-    aes(
-      x = X,
-      y = Pred,
-      color = ID
-    )
-  ) +
-  theme_bw() +
-  geom_point(
-    size = 0.3
-    ) +
-  geom_point(
-    aes(
-      y = Aggregate,
-      color = "平均"
-    )
-  ) +
-  geom_smooth(
-    aes(
-      y = TrueY,
-      color = "Population"
-    ),
-    method = "lm",
-    formula = y ~ 0 + I(x^2) + I(if_else(x <= -2,1,0))
-    + I(if_else(x <= 0,1,0))
-    + I(if_else(x <= 2,1,0))
-  ) +
-  ylim(FigLower,FigUpper) +
-  ylab("E[Y|X]")
-```
-
-## チャレンジ
-
-- 「独立して抽出された」有限個データから生成された予測モデル
-
-- 「独立して抽出した複数のデータから得た」予測モデルの集計は通常不可能
-
-    - 推定に使ったサンプルサイズが実質的に増えているので、性能改善は"当たり前"
-
-- 近似的に行う
-
-    - (Nonparametric) bootstrapの活用
-
-# Bootstrap Aggregating
-
-- Bagging
-
-## 決定木の不安定性
-
-- 多くの実践で、決定木推定の不安定性( $=$ データ依存, 大きなEstimation error)は、Reguliazationを行っても十分に緩和できない
-
-    - 変数や分割回数の決定など、 Discrete choiceが避けられないことが理由の一つ
-
-- 伝統的なアプローチ (研究者がモデルを設定するOLS, サブグループ分析) では、無意味な方法が有効
-
-    - Bootstrapでデータを複製して、モデル集計
-
-## 理想のBagging
-
-
-```{mermaid}
-flowchart TB
-  A[Prediction Task] --> B{Random Sampling}
-  B --> C[Data 1]
-  B --> D[Data 2]
-  B --> E[Data 3]
-  C --> F[Tree 1]
-  D --> G[Tree 2]
-  E --> H[Tree 3]
-  F --> J[Aggregate]
-  G --> J
-  H --> J
-```
-
-
-## アルゴリズム
-
-1. Nonparametric bootstrapで、データの複製を行う (500,1000,2000など)
-
-2. 各複製データについて、"深い"決定木を推定
-
-3. 各 $X$ についての予測値の平均を最終予測値とする
-
-
-## 補論: Bootstrap
-
-
-```{mermaid}
-flowchart TB
-  B{Original Data ID 1,2,3} --> C[ID 1,2,2]
-  B --> D[ID 2,3,1]
-  B --> E[ID 3,3,2]
-  C --> F[Tree 1]
-  D --> G[Tree 2]
-  E --> H[Tree 3]
-  F --> J[Aggregate]
-  G --> J
-  H --> J
-```
-
-
-## Baggingの発想
-
-- $g_b(X)$ 複製データ $b$ から生成されたモデルの $X$ についての予測値
-
-    - $g_b(X)$ : 確率変数
-    
-- 確率変数は、一般に、
-
-$$g_{ave}(X):=\frac{\sum_b g_b(X)}{B}$$
-
-## Baggingの発想
-
-- 基本アイディア: 非常に深い木 $g_b(X)$ を生成すれば、Approximation errorは減少する一方で、Estimation errorが大きくなる
-
-- 確率変数の平均値は一般に分散が削減できる
-
-    - 独立・無相関であれば、 無限個の**複製データ**から予測モデルを作れば、分散を0にできる (一致性)
-    
-    - 今のPCであれば、大量の予測モデルの生成は可能
-
-## Baggingの限界
-    
-- Bootstrapから計算した統計量は、一般に相関するので
-
-$$\lim_{B\rightarrow\infty}E[(g_{ave}(X)-E[g_{ave}(X)])^2]=\underbrace{\frac{var(g_b(X))}{B}}_{\rightarrow 0}$$
-
-$$+\underbrace{\frac{B-1}{B}\times corr(g_b(X),g_{b'}(X))\times var(g_b(X))}_{\nrightarrow 0}$$
-
-## RandomForest
-
-- データ分割に用いることができる変数群をランダムに選ぶ
-
-- 例：ある予測木の第n分割を行う際に
-
-    - Bagging: $\{$ 年齢、性別、学歴 $\}$ から選ぶ
-    
-    - Random Forest: $\{$ 年齢、性別 $\}$ から選ぶ
-    
-        - 第 $n+1$ 分割を行う際には、 $\{$ 学歴、性別 $\}$
-
-- 動機: 予測値同士の相関を弱める
-
-    - 相関を強める要因(データが多少変わっても、同じような変数を活用する)を排除
-
-    - そこそこの予測力を持つ変数が、強力な予測力を持つ変数の陰に隠れてしまうことを避けられる
-
-## 数値例
-
-```{r}
-Noise <- 10
-SimData <- function(i,n){
-  set.seed(i)
-  TempData <- tibble(
-    X = runif(n,-4,4),
-    D = if_else(X >= 0, 
-                sample(0:1,n,replace = TRUE, prob = c(95/100,5/100)),
-                sample(0:1,n,replace = TRUE, prob = c(5/100,95/100))
-                ),
-    TrueY = X + 0.5*D,
-    Y = TrueY + runif(n,-Noise,Noise)
-  ) |> 
-    mutate(D = factor(D))
-  return(TempData)
-}
-
-TestData <- SimData(100,10000)
-
-TestData |> 
-  ggplot(
-    aes(
-      x = X,
-      y = TrueY,
-      color = D
-    )
-  ) +
-  theme_bw() +
-  geom_line()
-```
-
-## 数値例
-
-```{r}
-Fit <- ranger::ranger(
-  Y ~ D + X,
-  SimData(1,3000),
-  mtry = 2,
-  max.depth = 3
+X <- Data |> 
+  select(
+    -After,
+    -Price
   )
 
-Pred <- predict(
-  Fit,
-  TestData,
-  predict.all = TRUE
-)
+Y <- Data$Price
 
-TestData |> 
-  mutate(
-    Pred = Pred$predictions[,1],
-    ID = 1
-  ) |> 
-  bind_rows(
-    TestData |> 
-      mutate(
-        Pred = Pred$predictions[,2],
-        ID = 2
-        )
-    ) |> 
-  bind_rows(
-    TestData |> 
-      mutate(
-        Pred = Pred$predictions[,3],
-        ID = 3
-        )
-    ) |> 
-  bind_rows(
-    TestData |> 
-      mutate(
-        Pred = Pred$predictions[,4],
-        ID = 4
-        )
-    ) |> 
-  ggplot(
-    aes(
-      x = X,
-      y = Pred,
-      color = D
-    )
-  ) +
-  theme_bw() +
-  geom_line(
-    aes(
-      y = TrueY,
-      color = D
-    )
-  ) +
-  geom_line() +
-  facet_wrap(
-    ~ ID
-  ) +
-  ylab("E[Y|X]")
-```
+D <- Data$After
 
-## 数値例
-
-```{r}
-Fit <- ranger::ranger(
-  Y ~ D + X,
-  SimData(1,3000),
-  mtry = 1,
-  max.depth = 3
-  )
-
-Pred <- predict(
-  Fit,
-  TestData,
-  predict.all = TRUE
-)
-
-TestData |> 
-  mutate(
-    Pred = Pred$predictions[,1],
-    ID = 1
-  ) |> 
-  bind_rows(
-    TestData |> 
-      mutate(
-        Pred = Pred$predictions[,2],
-        ID = 2
-        )
-    ) |> 
-  bind_rows(
-    TestData |> 
-      mutate(
-        Pred = Pred$predictions[,3],
-        ID = 3
-        )
-    ) |> 
-  bind_rows(
-    TestData |> 
-      mutate(
-        Pred = Pred$predictions[,4],
-        ID = 4
-        )
-    ) |> 
-  ggplot(
-    aes(
-      x = X,
-      y = Pred,
-      color = D
-    )
-  ) +
-  theme_bw() +
-  geom_line(
-    aes(
-      y = TrueY,
-      color = D
-    )
-  ) +
-  geom_line() +
-  facet_wrap(
-    ~ ID
-  ) +
-  ylab("E[Y|X]")
-```
-
-## Hyper prameter tuning
-
-- 多くの実戦で、 パッケージが提供するdefault valuesをそのまま使っている
-
-- Hyper parameterのチューニングについて、議論は存在し、実装されているパッケージもある
-
-    - mlr3tuningspaces
-    
-    - grf
-
-- 明確なのは、ブートストラップの回数は多ければ、多いほどよい
-
-## 実例
-
-```{r}
-#| eval: true
-
-Task <- as_task_regr(
-  Data,
-  "Price"
-)
-
-OLS <- lrn(
-  "regr.lm",
-  id = "OLS")
-
-Tree <- lrn(
+RegTree <- lrn(
   "regr.rpart"
   ) |> 
   lts()
 
-Tree <- AutoTuner$new(
-  learner = Tree,
-  tuner = tnr("random_search"),
-  resampling = rsmp("holdout"),
-  terminator = trm(
-    "evals",
-    n_evals = 20)
-)
+RegTree <- AutoTuner$new(
+  learner = RegTree,
+  resampling = rsmp("cv"),
+  terminator = trm("evals", n_evals = 20),
+  tuner = tnr("random_search")
+  )
+```
 
-Tree$id <- "OptimalTree"
+- Cross fitting
 
-RF <- lrn(
-  "regr.ranger"
-  ) |> 
-  lts()
+- "サンプル分割によるサブサンプルサイズ減少"を緩和
 
-RF <- AutoTuner$new(
-  learner = RF,
-  tuner = tnr("random_search"),
-  resampling = rsmp("holdout"),
-  terminator = trm(
-    "evals",
-    n_evals = 20)
-)
+    - そこそこのサンプルサイズ $n \le 50000$ で通常推奨される [@Bischl2021HyperparameterOF]
 
-RF$id <- "OptimalRF"
+- 格差/因果推論への応用においても重要
 
-OriginalRF <- lrn("regr.ranger")
-OriginalRF$id <- "RF"
+    - "すべての"機械学習 (+ 因果/格差推定)の包括パッケージで実装されている
 
-Design <- benchmark_grid(
-  tasks = Task,
-  learners = list(
-    OLS,
-    Tree,
-    OriginalRF,
-    RF
-    ),
-  resamplings = rsmp("holdout") 
+## ポイント
+
+- 誤差項 $u:= Y - E_P[Y|X]$ 分布 ("データ固有") が、推定されたモデルにも、評価用事例にも入り込む
+
+    - 相関が生じ、正しく評価できない
+
+- 誤差項分布が、Training/Validation データで無相関であればOK
+
+    - 「役割の固定」は本質的ではない
+
+## 交差推定
+
+1. データをいくつか (2,5,10,20など)に分割
+
+2. 第1サブデータ **以外** を用いて予測モデルを試作
+
+3. 第1サブデータに予測値を適用
+
+4. 全てのサブデータに2,3を繰り返す
+
+## 交差検証
+
+- Cross validation
+
+5. 交差推定で導出した予測値と実現値について、予測誤差を推定
+
+
+## 数値例: 単純平均 VS 決定木(深さ2)
+
+```{r}
+set.seed(111)
+SimpleData <- tibble(
+  Group = c(rep(1,2),rep(2,2),rep(3,2)),
+  Y = runif(6,0,10) |> round(0),
+  X = sample(c(1,2,3),6,replace = TRUE)
   )
 
-BenchMark <- benchmark(Design)
-
-BenchMark$aggregate(msr("regr.rsq"))
+SimpleData
 ```
 
-# まとめ
+## 数値例: 単純平均 VS 決定木(深さ2)
 
-- Resamplingは現代のデータ分析において、強力な手法
+```{r}
+Target <- 1
 
-    - モデル評価 (Cross fitting)だけでなく、 決定木の予測性能改善 (Bagging/RandomForest)にも有効
+NewMeanPred <- mean(
+  SimpleData$Y[SimpleData$Group != Target])
+
+NewTreePred <- rpart::rpart(
+  Y ~ X,
+  SimpleData[SimpleData$Group != Target,],
+  control = rpart::rpart.control(
+    maxdepth = 2,
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1
+  )
+  ) |> 
+  predict(
+    SimpleData
+  )
+
+SimpleData <- SimpleData |> 
+  mutate(
+    PredMean = if_else(
+      Group == Target,
+      NewMeanPred,
+      NA
+      ),
+    PredTree = if_else(
+      Group == Target,
+      NewTreePred,
+      NA
+      )
+    )
+
+SimpleData
+```
+
+## 数値例: 単純平均
+
+```{r}
+Target <- 2
+
+NewMeanPred <- mean(
+  SimpleData$Y[SimpleData$Group != Target])
+
+NewTreePred <- rpart::rpart(
+  Y ~ X,
+  SimpleData[SimpleData$Group != Target,],
+  control = rpart::rpart.control(
+    maxdepth = 2,
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1
+  )
+  ) |> 
+  predict(
+    SimpleData
+  )
+
+SimpleData <- SimpleData |> 
+  mutate(
+    PredMean = if_else(
+      Group == Target,
+      NewMeanPred,
+      PredMean
+      ),
+    PredTree = if_else(
+      Group == Target,
+      NewTreePred,
+      PredTree
+      )
+    )
+
+SimpleData
+```
+
+
+## 数値例: 単純平均
+
+```{r}
+Target <- 3
+
+NewMeanPred <- mean(
+  SimpleData$Y[SimpleData$Group != Target])
+
+NewTreePred <- rpart::rpart(
+  Y ~ X,
+  SimpleData[SimpleData$Group != Target,],
+  control = rpart::rpart.control(
+    maxdepth = 2,
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1
+  )
+  ) |> 
+  predict(
+    SimpleData
+  )
+
+SimpleData <- SimpleData |> 
+  mutate(
+    PredMean = if_else(
+      Group == Target,
+      NewMeanPred,
+      PredMean
+      ),
+    PredTree = if_else(
+      Group == Target,
+      NewTreePred,
+      PredTree
+      )
+    )
+
+SimpleData
+```
+
+
+## 数値例: 単純平均
+
+```{r}
+SimpleData <- SimpleData |> 
+  mutate(
+    ErrorMean = (Y - PredMean)^2,
+    ErrorTree = (Y - PredTree)^2
+    )
+
+SimpleData
+```
+
+- 平均二乗誤差(Mean) `r mean(SimpleData$ErrorMean) |> round(2)`
+
+- 平均二乗誤差(Tree) `r mean(SimpleData$ErrorTree)`
+
+## トレードオフの緩和
+
+- サンプル分割法では、 Training データに多くの事例を割くと、 Validation データに割ける事例が減り、評価の精度が下がる (推計誤差の拡大 $\iff$ Validationデータへの依存)
+
+- 交差検証では、すべての事例について予測値を計算し、その平均を取るので、評価の精度を確保できる
+
+- 理論的検討: アルゴリズムの相対比較について有効 [@Wager2019CrossValidationRE]
+
+    - 最終的な予測モデルの性能検証には使えない
+
+## 予測研究の典型的ワーク
+
+```{r PredictionWorkFlow}
+grViz("digraph dot{
+      graph [rankdir = TB]
+      node []
+      A [label = 'データ & アルゴリズム群']
+      Tr [label = 'Trainingデータ']
+      Te [label = 'Testデータ']
+      C [label = 'CrossValidation']
+      Es [label = '全Trainingデータを用いて推定']
+      Mo [label = '予測モデル']
+      A -> Tr,Te
+      Tr -> C
+      C -> Es [label = 'アルゴリズム と Hyperparameter']
+      Es -> Mo
+      Te -> Mo [label = '評価']
+      {rank = same; Te;Mo}
+      }")
+```
+
+
+# 正則化
+
+- Hyperparameters $\simeq$ EmpricialRisk最小化では決定できないパラメータ
+
+- 決定木については、 木の深さ、 最小サンプルサイズ、 "剪定度合い" などなど
+
+## 剪定
+
+- 最大分割回数は、自然なHyper parameterだが、、、
+
+- 浅い木は、将来の重要な分割を見逃してしまう可能性がある
+
+- 剪定: 一旦非常に深い木を推定 (Approximation errorを減らす) した後に、単純化 (正則化) を行う
+
+    - 重要ではないサブグループについて、再結合
     
-    - 伝統的なInferenceへのBootstrapの応用も、もちろん重要
+## Step 1. 深い木の推定
 
-## Resampling 法の整理
+- 停止条件を緩めると、一般にどこまでもサブサンプル分割が行われる
 
-```{mermaid}
-flowchart TB
-  B{Original Data} --> C[Bootstrap]
-  B --> D[SubSampling]
-  C --> E[ModelAveraging]
-  C --> F[Inference]
-  D --> G[CrossFit/Validation]
-  D --> H[Training/Test]
+    - 平均値が異なるサブグループが見つかる限り止まらない
+    
+## 数値例: サイコロゲーム
+
+- ディーラーは、サイコロを5つふり、4つ $(X_1,..,X_4)$ プレイヤーに見せる
+
+    - プレイヤーは残り一つの出目 $Y$ を予測
+    
+- サイコロの出目は、uniform分布 (完全無相関)に決定
+
+    - 理想の予測モデル $g(X_1,..,X_4)$
+
+- "見"を200回行いデータ収集
+
+## 例
+
+```{r}
+set.seed(1)
+
+TempData <- tibble(
+  X1 = sample(1:6, 200, replace = TRUE),
+  X2 = sample(1:6, 200, replace = TRUE),
+  X3 = sample(1:6, 200, replace = TRUE),
+  X4 = sample(1:6, 200, replace = TRUE),
+  Y = sample(1:6, 200, replace = TRUE)
+  )
+
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 1
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
 ```
+
+
+## 例
+
+```{r}
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 4
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+## Setp 2. 剪定
+
+- 分割しても平均二乗誤差があまり減らないサブグループから再結合していく
+
+## 例: 剪定
+
+```{r}
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0.001,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 4
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 例: 剪定
+
+```{r}
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0.0076,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 4
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+## Step 2. 剪定
+
+- どこまで剪定する?
+
+- 理想は Population Risk $E_P[(Y - g(X))^2]$ 最小化
+
+    - できない
+
+- Empirical Risk $E[(Y_i - g(X_i))^2]$ はナンセンス
+
+    - 練習問題: なぜ?
+
+## Setp 2. 剪定: 罰則付き最適化
+
+- 以下を最小化するようにサブグループを再結合
+
+$$EmpiricalRisk + \underbrace{\lambda \times \bigr|T\bigr|}_{罰則項}$$
+
+- $\lambda$ : Hyper Parameter (rpart関数では cp)
+
+    - 交差推定で選択
+
+## 余談: "経済理論で学ぶ機械学習"
+
+- 経済理論の典型的問題設定: 社会厚生"関数"を明示
+
+    - エージェントの意思決定と社会厚生との齟齬を解消
+
+    - エージェントの意思決定を利得最大化問題として記述
+
+- 典型的アイディア: エージェントの最大化問題の修正 (課税/補助金/所得移転)
+
+    - エージェントの意思決定を活用しつつ、社会厚生との齟齬解消
+
+## 余談: "経済理論で学ぶ機械学習"
+
+- Population Risk $=$ 社会厚生
+
+- Empirical Risk $=$ 利得
+
+- 罰則項 $=$ 複雑さへの税金
+
+## Tuning space
+
+- 多くのアルゴリズムは、複数のHyper paramterを持つ
+
+    - 有界の範囲から探す必要がある
+
+    - どの範囲で探すか?
+
+- [mlr3tuningspaces](https://github.com/mlr-org/mlr3tuningspaces)
+
+    - $\lambda$ (cp) , 最小サンプルサイズ (minsplit), 分割を試みる最小サンプルサイズ (minbucket) を交差推定で最適化
+
+## 例: 交差推定で生成される決定木
+
+```{r}
+RegTree$train(
+  as_task_regr(
+    TempData,
+    "Y"
+  )
+)
+
+RegTree$model$learner$model |> 
+  rpart.plot::rpart.plot()
+```
+
+## 実例: 2000事例で取引年予測 (シード値1)
+
+```{r}
+set.seed(1)
+TempData <- X |> mutate(Y = D)
+
+RegTree$train(
+  as_task_regr(
+    TempData[sample(1:nrow(TempData),2000),],
+    "Y"
+  )
+)
+
+Fig <- RegTree$model$learner$model |> 
+  rpart.plot::rpart.plot()
+```
+
+## まとめ
+
+- Approximation errorの削減は、現代的なPC + アルゴリズムであれば容易
+
+    - 複雑にすればいいだけ!!!
+
+- モデルを適切に単純化 (HyperParameterを適切に選択)することで、Estimation errorを削減する(正則化)に工夫が必要
+
+- 正則化を行ったとしても、一般に決定木のEstimationErrorは大きい
+
+    - 対策: モデル集計 (RandomForest)
+
+## 実例: 2000事例で取引年予測 (シード値2)
+
+```{r}
+set.seed(2)
+TempData <- X |> 
+  mutate(Y = D)
+
+RegTree$train(
+  as_task_regr(
+    TempData[sample(1:nrow(TempData),2000),],
+    "Y"
+  )
+)
+
+RegTree$model$learner$model |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 補論: 最適化
+
+- 本講義では、 Random Search を使用
+
+    - 複雑なシステムについての最適化は、長年の研究課題
+
+    - mlr3tuning (mlr3verseに同梱) では、 Grid Searchや Iterated Racing なども実装
+    
+    - より発展的なアルゴリズムも mlr3mbo (baysian optimization) や mlr3hyperband (hyperband) で実装
+    
+    - Hyper parameterのスペースの具体例は、 mlr3tuningspace (mlr3verseに同梱) で提案
+
+- サーベイ: @Bischl2021HyperparameterOF (mlr3verseのauthorも含む)
+
+## 余談: 良性の過剰適合
+
+- 剪定などによる推定パラメタの削減は、教師付き学習の伝統的戦略 
+
+    - 伝統的な実証研究でも、研究者が頑張ってやっていた
+    
+- パラメタを大幅に増やす (サンプルサイズを超える)と、過剰適合が"減り!!!"、予測性能が改善する場合がある　[@bartlett2020benign; @hastie2022surprises]
+
+    - Benign overfitting 
+
+## Reference
