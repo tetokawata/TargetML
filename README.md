@@ -24,3 +24,5 @@ Public folderから、講義資料と実習用データをダウンロードで�
     - [PartiallingOutの実装](https://youtu.be/W8LoEIPkZV4)
     
     - [DoubleMLを活用したPartiallingOutの実装](https://youtu.be/Ou6KzmYgLNA)
+    
+    - [DoubleMLを活用したPartiallingOutの実装:詳細](https://youtu.be/EIgkJtRBlAs)
