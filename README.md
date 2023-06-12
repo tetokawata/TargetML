@@ -28,3 +28,7 @@ Public folderから、講義資料と実習用データをダウンロードで�
     - [DoubleMLを活用したPartiallingOutの実装:詳細](https://youtu.be/EIgkJtRBlAs)
 
     - [DoubleMLを活用したAIPWの実装](https://youtu.be/5b1sfBDK5QM)
+    
+    - [DoubleMLを活用したBLP推定の実装](https://youtu.be/88g7yScY-_A)
+    
+    - [補論: 信頼区間の可視化](https://youtu.be/-3J64WSc8VQ)
