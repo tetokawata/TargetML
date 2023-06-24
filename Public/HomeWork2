@@ -1,7 +1,7 @@
 
 - 講義の内容を踏まえて、以下に回答せよ
 
-1. Homework1.parquet または Homework1.csv を用いて、改築(Reform)後/前で平均的な取引価格(Price)がどの程度異なるのか、信頼区間とともに推定せよ
+1. Homework2.parquet または Homework2.csv を用いて、改築(Reform)後/前で平均的な取引価格(Price)がどの程度異なるのか、信頼区間とともに推定せよ
 
     - 平均差とコントロール変数についてのBLPを、信頼区間とともに報告
     
