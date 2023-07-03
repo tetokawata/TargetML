@@ -89,3 +89,32 @@ TestM <- as_task_regr(
 PredM <- FitM$predict(TestM)
 
 hist(PredM$response)
+
+# TreatmentEffectRisk
+
+q <- 0.5
+
+EstRisk <- function(q){
+  Q <- quantile(PredM$response[Group == 2], q)
+  RiskM <- Q + if_else(PredM$response[Group == 3] <= Q,
+                       M[Group == 3] - Q,
+                       0)/q
+  Fit <- estimatr::lm_robust(RiskM ~ 1)
+  Result <- estimatr::tidy(Fit)
+  Result$q <- q
+  return(Result)
+}
+
+Result <- map_dfr(seq(0.1,1,0.1), EstRisk)
+
+ggplot(
+  Result,
+  aes(
+    x = q,
+    y = estimate,
+    ymin = conf.low,
+    ymax = conf.high
+  )
+) +
+  geom_line() +
+  geom_pointrange()
