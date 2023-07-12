@@ -34,3 +34,7 @@ Public folderから、講義資料と実習用データをダウンロードで�
     - [grfを利用したBLPの推定](https://youtu.be/-CeaWL8WNYQ)
     
     - [補論: 信頼区間の可視化](https://youtu.be/-3J64WSc8VQ)
+    
+    - [DR Learnerの推定](https://youtu.be/U9dHU43SPs4)
+    
+    - [Treatment Effect Riskの推定](https://youtu.be/XLx6vNae4Lk)
