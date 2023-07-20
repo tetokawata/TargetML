@@ -36,4 +36,5 @@ Public folderから、講義資料と実習用データをダウンロードで�
     - [DR Learnerの推定](https://youtu.be/U9dHU43SPs4)
     
     - [Treatment Effect Riskの推定](https://youtu.be/XLx6vNae4Lk)
-
+    
+    - [grfを用いた条件付き平均差のNonparametric推定](https://youtu.be/4bTILS9YuwA)
