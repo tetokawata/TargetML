@@ -31,8 +31,6 @@ Public folderから、講義資料と実習用データをダウンロードで�
     
     - [DoubleMLを活用したBLP推定の実装](https://youtu.be/88g7yScY-_A)
     
-    - [grfを利用したBLPの推定](https://youtu.be/PMFnVQwF5jo)
-    
     - [補論: 信頼区間の可視化](https://youtu.be/-3J64WSc8VQ)
     
     - [DR Learnerの推定](https://youtu.be/U9dHU43SPs4)
