@@ -1,0 +1,77 @@
+---
+title: "R_ConvergeCI"
+format: html
+---
+
+# SetUp
+
+```{r SetUp}
+pacman::p_load(
+  tidyverse,
+  estimatr
+)
+
+SimBinary <- function(i,n){
+  set.seed(i)
+  Temp <- tibble(
+    Y = sample(c(-1,1),n,replace = TRUE)
+  )
+  return(Temp)
+}
+```
+
+# Convergence
+
+```{r}
+i <- 1
+n <- 100
+
+SimMean(1,1000)
+
+SimMean <- function(i,n){
+  TempData <- SimUniform(i,n)
+  TempEst <- lm_robust(
+    Y ~ 1,
+    TempData)
+  TempResult <- tibble(
+    Lower = TempEst$coefficients - 1.96*TempEst$std.error,
+    Upper = TempEst$coefficients + 1.96*TempEst$std.error
+  ) |> 
+    mutate(
+      Converge = if_else(
+        Lower < 0 & Upper > 0,
+        1,
+        0)
+    )
+  return(TempResult)
+}
+
+SimConverge <- function(n){
+  Temp <- map_dfr(
+    1:200,
+    function(i){SimMean(i,n)}
+    )
+  TempResult <- tibble(
+    N = n,
+    Share = mean(Temp$Converge)
+  )
+  print(n)
+  return(TempResult)
+}
+
+TempResult <- map_dfr(
+  seq(100,5000,100),
+  SimConverge)
+
+TempResult |> 
+  ggplot(
+    aes(
+      x = N,
+      y = Share
+    )
+  ) +
+  theme_bw() +
+  geom_hline(yintercept = 0.95) +
+  geom_line()
+```
+

@@ -1,0 +1,106 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r SetUp}
+set.seed(111)
+
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3mbo,
+  arrow,
+  recipes
+  )
+
+Raw <- read_parquet("Public/Example.parquet")
+
+Data <- recipe(
+  Price ~ .,
+  Raw[1:1000,]
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+Task <- as_task_regr(
+  Data,
+  "Price"
+)
+
+OLS <- lrn(
+  "regr.lm",
+  id = "OLS"
+)
+
+Boost <- lrn(
+  "regr.xgboost"
+  ) |> 
+  lts()
+
+TunerMBO <-  tnr("mbo")
+
+Boost <- AutoTuner$new(
+  tuner =  TunerMBO,
+  learner = Boost,
+  resampling = rsmp("holdout"),
+  terminator = trm(
+    "evals",
+    n_evals = 3)
+  )
+
+LASSO <- lrn("regr.glmnet") |> 
+  lts()
+
+LinearRandom <- AutoTuner$new(
+  tuner = tnr("random_search"),
+  learner = LASSO,
+  resampling = rsmp("holdout"),
+  terminator = trm(
+    "evals",
+    n_evals = 3)
+  )
+
+LinearRandom$id <- "RandomSearch"
+
+TunerMBO <-  tnr("mbo")
+
+TunerMBO$surrogate <-srlrn(lrn("regr.ranger")) 
+
+LinearMBO <- AutoTuner$new(
+  tuner =  TunerMBO,
+  learner = LASSO,
+  resampling = rsmp("holdout"),
+  terminator = trm(
+    "evals",
+    n_evals = 3)
+  )
+
+LinearMBO$id <- "Bayes"
+
+LinearMBO$train(Task)
+
+LinearMBO$tuner$surrogate
+
+Design <- benchmark_grid(
+  tasks = Task,
+  learners = list(
+    Boost,
+    OLS
+    ),
+  resamplings = rsmp(
+    "holdout",
+    ratio = 0.8) 
+)
+
+BenchMark <- benchmark(Design)
+
+BenchMark$aggregate(msr("regr.rsq"))
+
+```
+

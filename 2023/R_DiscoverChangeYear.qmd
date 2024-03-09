@@ -1,0 +1,699 @@
+---
+title: "Example"
+format: html
+---
+
+# Test
+
+- Simple split into 3
+
+# SetUp
+
+```{r SetUp}
+set.seed(149)
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3pipelines,
+  mlr3extralearners,
+  recipes
+)
+```
+
+
+# Data
+
+```{r CleanData}
+TargetStructure <- c("ＳＲＣ","ＲＣ")
+
+TargetRoom <- c("オープンフロア","スタジオ","メゾネット")
+
+Raw <- arrow::read_parquet("~/Dropbox/DataClean/RetailJPN/AllPrefectture.parquet") |> 
+  filter(今後の利用目的 == "住宅") |> 
+  filter(用途 == "住宅") |> 
+  filter(改装 != "") |> 
+  filter(間取り != "") |> 
+  filter(都市計画 != "") |> 
+  filter(最寄駅.名称 != "") |> 
+  filter(都道府県名 == "東京都") |> 
+  filter(str_detect(市区町村名, "区")) |> 
+  filter(建物の構造 %in% TargetStructure) |> 
+  filter(!(間取り %in% TargetRoom)) |> 
+  mutate(Quartely = 
+           if_else(str_detect(取引時点,"１"),
+                   1,
+                   0)
+         ) |> 
+   mutate(Quartely = 
+           if_else(str_detect(取引時点,"２"),
+                   2,
+                   Quartely)
+         ) |> 
+   mutate(Quartely = 
+           if_else(str_detect(取引時点,"３"),
+                   3,
+                   Quartely)
+         ) |> 
+   mutate(Quartely = 
+           if_else(str_detect(取引時点,"４"),
+                   4,
+                   Quartely)
+         ) |> 
+  mutate(TradePeriod = str_sub(取引時点,1,4) |> 
+           as.numeric()
+         ) |> 
+  filter(TradePeriod %in% c(2019,2021)) |> 
+  mutate(
+    TempBuildYear = 
+      str_sub(建築年,3,-2) |> 
+      as.numeric(),
+    TempGengo = str_sub(建築年,1,2)
+    ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "令和",
+      TempBuildYear + 2018,
+      TempBuildYear
+      )
+  ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "平成",
+      TempBuildYear + 1988,
+      BuildYear
+      )
+  ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "昭和",
+      TempBuildYear + 1925,
+      BuildYear
+      )
+  ) |> 
+  mutate(
+    Price = 取引価格.総額./(10^6),
+    Tenure = TradePeriod - BuildYear,
+    DistanceStation = 最寄駅.距離.分. |> as.numeric(),
+    Size = 面積... |> as.numeric(),
+    Youseki = 容積率... |> as.numeric(),
+    Kenpei = 建ぺい率... |> as.numeric(),
+    RoomNum = if_else(str_detect(間取り,"１"),1,0),
+    RoomNum = if_else(str_detect(間取り,"２"),2,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"３"),3,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"４"),4,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"５"),5,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"６"),6,RoomNum),
+    ZoneHouse = if_else(str_detect(都市計画,"住居"),1,0),
+    ZoneBusiness = if_else(str_detect(都市計画,"商業"),1,0),
+    ZoneFactory = if_else(str_detect(都市計画,"工業"),1,0),
+    RoomL = if_else(str_detect(間取り,"Ｌ"),1,0),
+    RoomD = if_else(str_detect(間取り,"Ｄ"),1,0),
+    StructureSRC = if_else(建物の構造 == "ＳＲＣ",1,0),
+    After = if_else(
+      TradePeriod == 2021,
+        1,
+        0
+    ),
+    Reform = if_else(改装 == "改装済",1,0),
+    District = if_else(
+      市区町村名 %in% c("千代田区","港区","中央区"),
+      "CBD",
+      市区町村名
+      )
+  ) |> 
+  select(Quartely,Price:District) |> 
+  na.omit()
+
+Data <- recipe(
+  ~.,
+  Raw
+  ) |> 
+  step_filter(Tenure >= 0) |> 
+  step_filter(Size >= 15) |> 
+  step_filter(Size <= 110) |> 
+  step_filter(Tenure <= 50) |> 
+  step_filter(DistanceStation <= 20) |> 
+  step_filter(Youseki <= 700) |> 
+  step_filter(RoomNum <= 4) |> 
+  step_dummy(
+    District,
+    one_hot = TRUE) |> 
+  step_scale(
+    Tenure,
+    DistanceStation,
+    Size,
+    Youseki,
+    Kenpei,
+    RoomNum,
+    Quartely
+  ) |> 
+  prep() |> 
+  bake(new_data = NULL)
+
+X <- Data |> 
+  select(
+    -Price,
+    -After
+  )
+
+NameX <- names(X)
+names(X) <- str_c("X",1:ncol(X))
+
+Y <- Data$Price
+
+D <- Data$After
+
+Group <- sample(
+  1:3,
+  nrow(X),
+  replace = TRUE
+  )
+```
+
+# Learner
+
+## Base
+
+```{r}
+RegLM <- lrn(
+  "regr.lm",
+  id = "RegLM"
+  )
+
+RegRF <- lrn(
+  "regr.ranger",
+  id = "RefRF"
+  )
+```
+
+
+## Regression Learner
+
+```{r SetNuisanceLearner}
+RegStacking <- pipeline_stacking(
+  list(
+    RegRF,
+    RegLM
+    ), 
+  lrn(
+    "regr.lm",
+    id = "RegAggregate"
+    ),
+  folds = 2,
+  use_features = FALSE) |> 
+  as_learner()
+```
+
+## Signal Learner
+
+```{r SetSignalLearner}
+LearnSignal <- pipeline_stacking(
+  list(
+    RegRF,
+    RegLM
+    ), 
+  lrn(
+    "regr.lm",
+    id = "RegAggregate"
+    ),
+  folds = 2,
+  use_features = FALSE
+  ) |> 
+  as_learner()
+```
+
+# Nuisace
+
+```{r Nuisance}
+TempTask <- as_task_regr(
+  X[Group == 1 & D == 1,] |> 
+    mutate(Y = Y[Group == 1 & D == 1]),
+  target = "Y"
+  )
+
+FitY1 <- RegStacking$
+  clone()$
+  train(TempTask)
+
+TempTask <- as_task_regr(
+  X[Group == 1 & D == 0,] |> 
+    mutate(Y = Y[Group == 1 & D == 0]),
+  target = "Y"
+  )
+
+FitY0 <- RegStacking$
+  clone()$
+  train(TempTask)
+
+TempTask <- as_task_regr(
+  X[Group == 1,] |> 
+    mutate(Y = Y[Group == 1]),
+  target = "Y"
+  )
+
+FitY <- RegStacking$
+  clone()$
+  train(TempTask)
+
+TempTask <- as_task_regr(
+  X[Group == 1,] |> 
+    mutate(D = D[Group == 1]),
+  target = "D"
+  )
+
+FitD <- RegStacking$
+  clone()$
+  train(TempTask)
+```
+
+## Model
+
+```{r}
+FitY1$model$RegAggregate$model$coefficients
+
+FitY0$model$RegAggregate$model$coefficients
+
+FitY$model$RegAggregate$model$coefficients
+
+FitD$model$RegAggregate$model$coefficients
+```
+
+## Prediction
+
+```{r}
+TempTask <- as_task_regr(
+  X |> 
+    mutate(Y = Y),
+  target = "Y"
+  )
+
+PredY1 <- FitY1$predict(TempTask)
+PredY0 <- FitY0$predict(TempTask)
+PredY <- FitY$predict(TempTask)
+
+TempTask <- as_task_regr(
+  X |> 
+    mutate(D = D),
+  target = "D"
+  )
+
+PredD <- FitD$predict(TempTask)
+```
+
+## Check Support
+
+```{r}
+tibble(
+  Pred = PredD$response,
+  After = PredD$truth |> factor()
+  ) |> 
+  ggplot(
+    aes(
+      x = Pred,
+      fill = After
+    )
+  ) +
+  theme_bw() +
+  geom_vline(
+    xintercept = 0.05
+  ) +
+  geom_vline(
+    xintercept = 0.95
+  ) +
+  geom_histogram(
+    alpha = 0.5,
+    position = "identity"
+    ) +
+  xlim(0,1)
+```
+
+
+# Singnal Learning
+
+## AIPW base
+
+```{r LearnSignal}
+ScoreY1 <- PredY1$response + 
+  (D/PredD$response)*
+  (Y - PredY1$response)
+
+ScoreY0 <- PredY0$response + 
+  ((1-D)/(1-PredD$response))*
+  (Y - PredY0$response)
+
+ScoreAIPW <- 
+  ScoreY1 -
+  ScoreY0
+
+TempTask <-
+  as_task_regr(
+    X[Group == 2,] |> 
+      mutate(Y = ScoreAIPW[Group == 2]),
+    target = "Y"
+  )
+
+
+FitAIPW <- LearnSignal$
+  clone()$
+  train(TempTask)
+
+FitAIPW$model$RegAggregate$model$coefficients
+```
+
+### Linear
+
+```{r}
+FitLinearAIPW <- lrn("regr.lm")$
+  train(TempTask)
+```
+
+## R-Learner base
+
+```{r}
+OhtY <- Y - PredY$response
+
+OhtD <- D - PredD$response
+
+ScoreR <- OhtY/OhtD
+
+Weight <- OhtD^2
+
+TempTask <-
+  as_task_regr(
+    X[Group == 2,] |> 
+      mutate(Y = ScoreR[Group == 2],
+             Weight = Weight[Group == 2]),
+    target = "Y",
+    id = "R"
+  )
+
+TempTask$set_col_roles(
+  "Weight",
+  "weight"
+)
+
+FitR <- LearnSignal$
+  clone()$
+  train(TempTask)
+
+FitR$model$RegAggregate$model$coefficients
+```
+
+
+## Prediction
+
+```{r}
+TempTask <-
+  as_task_regr(
+    X |> 
+      mutate(Y = ScoreAIPW),
+    target = "Y"
+  )
+
+PredAIPW <- FitAIPW$predict(TempTask)
+
+PredLinearAIPW <- FitLinearAIPW$predict(TempTask)
+
+PredR <- FitR$predict(TempTask)
+```
+
+# Confirm
+
+```{r Confirm}
+Q <- qnorm(1-(0.05/(2*9)))
+```
+
+## Lower
+
+```{r}
+Est <- function(q){
+  Q_AIPW <- quantile(
+    PredAIPW$response[Group == 3], 
+    probs = q)
+  Q_LinearAIPW <- quantile(
+    PredLinearAIPW$response[Group == 3], 
+    probs = q)
+  Q_R <- quantile(
+    PredR$response[Group == 3], 
+    probs = q)
+  
+  TempAIPW <- Q_AIPW + 
+    (1/q)*if_else(
+      PredAIPW$response[Group == 3] <= Q_AIPW,
+      ScoreAIPW[Group == 3]- Q_AIPW,
+      0
+      )
+  TempLinearAIPW <- Q_LinearAIPW + 
+    (1/q)*if_else(
+      PredLinearAIPW$response[Group == 3] <= Q_LinearAIPW,
+      ScoreAIPW[Group == 3]- Q_LinearAIPW,
+      0
+      )
+  TempR <- Q_R +
+    (1/q)*if_else(
+      PredR$response[Group == 3] <= Q_R,
+      ScoreAIPW[Group == 3]- Q_R,
+      0
+      )
+  TempResult <- estimatr::lm_robust(
+    TempAIPW ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "AIPW with SL"
+      ) |> 
+    bind_rows(
+      estimatr::lm_robust(
+    TempLinearAIPW ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "AIPW with OLS"
+      )
+    ) |> 
+    bind_rows(
+      estimatr::lm_robust(
+    TempR ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "R"
+      )
+    )
+  return(TempResult)
+}
+
+map_dfr(seq(0.1,1,0.1),Est) |> 
+  ggplot(
+    aes(
+      x = Quantile,
+      y = estimate,
+      ymin = estimate - Q*std.error,
+      ymax = estimate + Q*std.error,
+      color = Method,
+      fill = Method
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(alpha = 0.3) +
+  geom_ribbon(
+    aes(
+      ymin = estimate - 1.96*std.error,
+      ymax = estimate + 1.96*std.error
+    ),
+    alpha = 0.5
+  ) +
+  facet_wrap(~Method)
+```
+
+## Upper
+
+```{r}
+Est <- function(q){
+  Q_AIPW <- quantile(
+    PredAIPW$response[Group == 3], 
+    probs = q)
+  Q_LinearAIPW <- quantile(
+    PredLinearAIPW$response[Group == 3], 
+    probs = q)
+  Q_R <- quantile(
+    PredR$response[Group == 3], 
+    probs = q)
+  
+  TempAIPW <- Q_AIPW + 
+    (1/(1-q))*if_else(
+      PredAIPW$response[Group == 3] >= Q_AIPW,
+      ScoreAIPW[Group == 3]- Q_AIPW,
+      0
+      )
+  TempLinearAIPW <- Q_LinearAIPW + 
+    (1/(1-q))*if_else(
+      PredLinearAIPW$response[Group == 3] >= Q_LinearAIPW,
+      ScoreAIPW[Group == 3]- Q_LinearAIPW,
+      0
+      )
+  TempR <- Q_R +
+    (1/(1-q))*if_else(
+      PredR$response[Group == 3] >= Q_R,
+      ScoreAIPW[Group == 3]- Q_R,
+      0
+      )
+  TempResult <- estimatr::lm_robust(
+    TempAIPW ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "AIPW with SL"
+      ) |> 
+    bind_rows(
+      estimatr::lm_robust(
+    TempLinearAIPW ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "AIPW with OLS"
+      )
+    ) |> 
+    bind_rows(
+      estimatr::lm_robust(
+    TempR ~ 1
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      Quantile = q,
+      Method = "R"
+      )
+    )
+  return(TempResult)
+}
+
+map_dfr(seq(0,0.9,0.1),Est) |> 
+  ggplot(
+    aes(
+      x = Quantile,
+      y = estimate,
+      ymin = estimate - Q*std.error,
+      ymax = estimate + Q*std.error,
+      color = Method,
+      fill = Method
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(alpha = 0.3) +
+  geom_ribbon(
+    aes(
+      ymin = estimate - 1.96*std.error,
+      ymax = estimate + 1.96*std.error
+    ),
+    alpha = 0.5
+  ) +
+  facet_wrap(~Method)
+```
+
+
+# CLAN
+
+## Lower 5%
+
+```{r, dev='ragg_png'}
+TempQ <- quantile(
+  PredAIPW$response[Group == 3], 
+  probs = 0.1)
+
+PsuY <- if_else(
+  PredAIPW$response <= TempQ,
+  1,
+  0)
+
+EstClan <- function(i){
+  Temp <- estimatr::lm_robust(
+  X[,i][[1]] ~ PsuY,
+  subset = Group == 3
+  ) |> 
+  generics::tidy() |> 
+  mutate(NameX = NameX[i]) |> 
+    filter(
+      term == "PsuY"
+    )
+  return(Temp)
+}
+
+CI <- qnorm(1- (0.05/(2*ncol(X))))
+
+map_dfr(1:ncol(X),EstClan) |> 
+  mutate(
+    NameX = factor(
+      NameX,
+      levels = NameX
+    )
+  ) |> 
+  ggplot(
+    aes(
+      y = NameX,
+      x = estimate,
+      xmin = estimate - CI*std.error,
+      xmax = estimate + CI*std.error
+    )
+  ) +
+  theme_bw() +
+  geom_vline(xintercept = 0) +
+  geom_pointrange() +
+  theme_bw()
+```
+
+
+## Upper 5%
+
+```{r, dev='ragg_png'}
+TempQ <- quantile(
+  PredAIPW$response[Group == 3], 
+  probs = 0.9)
+
+PsuY <- if_else(
+  PredAIPW$response >= TempQ,
+  1,
+  0)
+
+EstClan <- function(i){
+  Temp <- estimatr::lm_robust(
+  X[,i][[1]] ~ PsuY,
+  subset = Group == 3
+  ) |> 
+  generics::tidy() |> 
+  mutate(NameX = NameX[i]) |> 
+    filter(
+      term == "PsuY"
+    )
+  return(Temp)
+}
+
+CI <- qnorm(1- (0.05/(2*ncol(X))))
+
+map_dfr(1:ncol(X),EstClan) |> 
+  mutate(
+    NameX = factor(
+      NameX,
+      levels = NameX
+    )
+  ) |> 
+  ggplot(
+    aes(
+      y = NameX,
+      x = estimate,
+      xmin = estimate - CI*std.error,
+      xmax = estimate + CI*std.error
+    )
+  ) +
+  theme_bw() +
+  geom_vline(xintercept = 0) +
+  geom_pointrange() +
+  theme_bw()
+```
+

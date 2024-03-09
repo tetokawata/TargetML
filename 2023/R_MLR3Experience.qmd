@@ -1,0 +1,348 @@
+---
+title: "Example"
+format: html
+execute: 
+  warning: false
+  message: false
+---
+
+# SetUp
+
+```{r SetUp}
+set.seed(149)
+
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3pipelines,
+  mlr3extralearners,
+  recipes,
+  DALEX
+)
+
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+```
+
+
+# Data
+
+```{r CleanData}
+TargetStructure <- c("ＳＲＣ","ＲＣ")
+
+TargetRoom <- c("オープンフロア","スタジオ","メゾネット")
+
+Raw <- arrow::read_parquet("~/Dropbox/DataClean/RetailJPN/AllPrefectture.parquet") |> 
+  filter(今後の利用目的 == "住宅") |> 
+  filter(用途 == "住宅") |> 
+  filter(改装 != "") |> 
+  filter(間取り != "") |> 
+  filter(都市計画 != "") |> 
+  filter(最寄駅.名称 != "") |> 
+  filter(都道府県名 == "東京都") |> 
+  filter(str_detect(市区町村名, "区")) |> 
+  filter(建物の構造 %in% TargetStructure) |> 
+  filter(!(間取り %in% TargetRoom)) |> 
+  mutate(TradePeriod = str_sub(取引時点,1,4) |> 
+           as.numeric()
+         ) |> 
+  filter(TradePeriod %in% c(2017,2021)) |> 
+  mutate(
+    TempBuildYear = 
+      str_sub(建築年,3,-2) |> 
+      as.numeric(),
+    TempGengo = str_sub(建築年,1,2)
+    ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "令和",
+      TempBuildYear + 2018,
+      TempBuildYear
+      )
+  ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "平成",
+      TempBuildYear + 1988,
+      BuildYear
+      )
+  ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "昭和",
+      TempBuildYear + 1925,
+      BuildYear
+      )
+  ) |> 
+  mutate(
+    Price = 取引価格.総額./(10^6),
+    Tenure = TradePeriod - BuildYear,
+    DistanceStation = 最寄駅.距離.分. |> as.numeric(),
+    Size = 面積... |> as.numeric(),
+    Youseki = 容積率... |> as.numeric(),
+    Kenpei = 建ぺい率... |> as.numeric(),
+    RoomNum = if_else(str_detect(間取り,"１"),1,0),
+    RoomNum = if_else(str_detect(間取り,"２"),2,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"３"),3,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"４"),4,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"５"),5,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"６"),6,RoomNum),
+    ZoneHouse = if_else(str_detect(都市計画,"住居"),1,0),
+    ZoneBusiness = if_else(str_detect(都市計画,"商業"),1,0),
+    ZoneFactory = if_else(str_detect(都市計画,"工業"),1,0),
+    RoomK = if_else(str_detect(間取り,"Ｋ"),1,0),
+    RoomL = if_else(str_detect(間取り,"Ｌ"),1,0),
+    RoomD = if_else(str_detect(間取り,"Ｄ"),1,0),
+    StructureSRC = if_else(建物の構造 == "ＳＲＣ",1,0),
+    After = if_else(
+      TradePeriod == 2021,
+        1,
+        0
+    ),
+    Reform = if_else(改装 == "改装済",1,0),
+    District = 市区町村コード |> 
+      factor()
+  ) |> 
+  select(Price:District) |> 
+  na.omit()
+
+OriginalVariables <- names(Raw)
+
+Data <- recipe(
+  Price + After ~.,
+  Raw
+  ) |> 
+  step_interact(
+    ~all_predictors():all_predictors()
+  ) |> 
+  step_mutate(
+    Tenure2 = Tenure^2,
+    DistanceStation2 = DistanceStation^2,
+    Size2 = Size^2,
+    Youseki2 = Youseki^2,
+    Kenpei2 = Kenpei^2,
+    RoomNum2 = RoomNum^2
+  ) |> 
+  step_nzv(-OriginalVariables) |> 
+  step_corr(-OriginalVariables) |> 
+  step_dummy(all_nominal_predictors()) |> 
+  step_filter(Size <= 110) |> 
+  step_filter(Size >= 15) |> 
+  prep() |> 
+  bake(new_data = NULL)
+
+Group <- sample(
+  1:3,
+  nrow(Data),
+  replace = TRUE
+  )
+
+X <- Data |> 
+  select(
+    -After,
+    -Price
+  )
+
+Y <- Data$Price |> log()
+
+D <- Data$After
+```
+
+# Learner
+
+```{r SetLearner}
+OrignalX <- names(X)[c(1:14,68:89)]
+
+Select = po("select")
+
+Select$param_set$values$selector <- selector_name(OrignalX)
+
+Scale = po("scale")
+
+RegLM <- Scale %>>% 
+  lrn(
+  "regr.lm",
+  id = "RegLM"
+  ) |> 
+  as_learner()
+
+RegIntLM <- Select %>>%
+  Scale %>>% 
+  lrn(
+  "regr.lm",
+  id = "RegLM_NoInt"
+  ) |> 
+  as_learner()
+
+RegRF <- Select %>>%
+  Scale %>>% lrn(
+  "regr.ranger",
+  id = "RefRF"
+  ) |> 
+  as_learner()
+
+
+RegBART <- lrn(
+  "regr.bart",
+  id = "BART",
+  verbose = FALSE
+)
+
+RegLASSO <- lrn("regr.glmnet") |> 
+  lts()
+
+RegLASSO <- Scale %>>% 
+  RegLASSO |> 
+  as_learner()
+
+RegLASSO <- AutoTuner$new(
+  learner = RegLASSO,
+  resampling = rsmp("cv"),
+  terminator =  trm("evals",n_evals = 20),
+  tuner = tnr("grid_search",resolution = 20)
+  )
+
+RegLASSO$id <- "RegLASSO"
+
+RegXgboost <- lrn(
+  "regr.xgboost",
+  id = "RegBoost"
+  )
+RegXgboost$param_set$values$early_stopping_set <- "test"
+RegXgboost$param_set$values$early_stopping_rounds <- 100
+RegXgboost$param_set$values$nrounds <- 10000
+RegXgboost$param_set$values$eta <- 0.0001
+
+RegLightStack <- pipeline_stacking(
+  list(
+  RegRF,
+  RegIntLM
+  ), 
+  lrn(
+  "regr.lm",
+  id = "RegSL"
+  ),
+  use_features = FALSE,
+  folds = 2) |> 
+  as_learner()
+
+RegStack <- pipeline_stacking(
+  list(
+  RegRF,
+  RegIntLM,
+  RegLASSO,
+  RegBART
+  ), 
+  lrn(
+  "regr.lm",
+  id = "RegSL"
+  ),
+  use_features = FALSE,
+  folds = 10) |> 
+  as_learner()
+```
+
+# Test
+
+
+```{r}
+TaskY <- as_task_regr(
+  X |> 
+    mutate(Y),
+  target = "Y",
+  id = "Y"
+  )
+
+TaskD <- as_task_regr(
+  X |> 
+    mutate(D),
+  target = "D",
+  id = "D"
+  )
+```
+
+
+## Comparison
+
+```{r Estimation}
+
+Design <- benchmark_grid(
+  tasks = list(
+    TaskY,
+    TaskD
+  ),
+  learners = list(
+    RegLM,
+    RegIntLM,
+    RegLASSO,
+    RegStack,
+    RegLightStack
+  ),
+  resamplings = rsmp(
+    "holdout",
+    ratio = 1/3)
+)
+
+future::plan("multisession") # 並列処理
+
+BenchMark <- benchmark(Design)
+
+BenchMark$aggregate(msr("regr.rsq"))
+```
+
+## Model
+
+```{r}
+TestY <- RegStack$clone()$train(TaskY)
+TestY$model$RegSL$model
+
+TestD <- RegStack$clone()$train(TaskD)
+TestD$model$RegSL$model
+```
+
+
+# Visualization
+
+## Price
+
+```{r}
+ExpLinearY <- explain(
+  TestY,
+  data = X,
+  y = Y,
+  label = "Stack Price",
+  colorize = FALSE
+  )
+
+ExpLinearY |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("ICE plot of RF for age")
+```
+
+## After
+
+
+```{r}
+ExpLinearD <- explain(
+  TestD,
+  data = X,
+  y = D,
+  label = "Stack After",
+  colorize = FALSE
+  )
+
+ExpLinearD |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("ICE plot of RF for age")
+```
+
+# ICE
+
+## Price
+
+```{r}
+
+```
+

@@ -1,0 +1,534 @@
+---
+title: "決定木アルゴリズム: 発展"
+subtitle: "経済学のための機械学習入門"
+author: "川田恵介"
+format: 
+  revealjs:
+    html-math-method: katex
+    css: styles.css
+    slide-number: true
+self-contained: true
+self-contained-math: true
+bibliography: ref.bib
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+---
+
+# 交差推定
+
+```{r SetUp}
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3pipelines,
+  recipes,
+  DALEX,
+  patchwork,
+  magrittr,
+  DiagrammeR
+)
+
+
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+
+Data <- arrow::read_parquet("Public/Example.parquet")
+
+X <- Data |> 
+  select(
+    -After,
+    -Price
+  )
+
+Y <- Data$Price
+
+D <- Data$After
+
+RegTree <- lrn(
+  "regr.rpart"
+  ) |> 
+  lts()
+
+RegTree <- AutoTuner$new(
+  learner = RegTree,
+  resampling = rsmp("cv"),
+  terminator = trm("evals", n_evals = 20),
+  tuner = tnr("random_search")
+  )
+```
+
+- Cross fitting
+
+- "サンプル分割によるサブサンプルサイズ減少"を緩和
+
+    - そこそこのサンプルサイズ $n \le 50000$ で通常推奨される [@Bischl2021HyperparameterOF]
+
+- 格差/因果推論への応用においても重要
+
+    - "すべての"機械学習 (+ 因果/格差推定)の包括パッケージで実装されている
+
+## ポイント
+
+- 誤差項 $u:= Y - E_P[Y|X]$ 分布 ("データ固有") が、推定されたモデルにも、評価用事例にも入り込む
+
+    - 相関が生じ、正しく評価できない
+
+- 誤差項分布が、Training/Validation データで無相関であればOK
+
+    - 「役割の固定」は本質的ではない
+
+## 交差推定
+
+1. データをいくつか (2,5,10,20など)に分割
+
+2. 第1サブデータ **以外** を用いて予測モデルを試作
+
+3. 第1サブデータに予測値を適用
+
+4. 全てのサブデータに2,3を繰り返す
+
+## 交差検証
+
+- Cross validation
+
+5. 交差推定で導出した予測値と実現値について、予測誤差を推定
+
+
+## 数値例: 単純平均 VS 決定木(深さ2)
+
+```{r}
+set.seed(111)
+SimpleData <- tibble(
+  Group = c(rep(1,2),rep(2,2),rep(3,2)),
+  Y = runif(6,0,10) |> round(0),
+  X = sample(c(1,2,3),6,replace = TRUE)
+  )
+
+SimpleData
+```
+
+## 数値例: 単純平均 VS 決定木(深さ2)
+
+```{r}
+Target <- 1
+
+NewMeanPred <- mean(
+  SimpleData$Y[SimpleData$Group != Target])
+
+NewTreePred <- rpart::rpart(
+  Y ~ X,
+  SimpleData[SimpleData$Group != Target,],
+  control = rpart::rpart.control(
+    maxdepth = 2,
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1
+  )
+  ) |> 
+  predict(
+    SimpleData
+  )
+
+SimpleData <- SimpleData |> 
+  mutate(
+    PredMean = if_else(
+      Group == Target,
+      NewMeanPred,
+      NA
+      ),
+    PredTree = if_else(
+      Group == Target,
+      NewTreePred,
+      NA
+      )
+    )
+
+SimpleData
+```
+
+## 数値例: 単純平均
+
+```{r}
+Target <- 2
+
+NewMeanPred <- mean(
+  SimpleData$Y[SimpleData$Group != Target])
+
+NewTreePred <- rpart::rpart(
+  Y ~ X,
+  SimpleData[SimpleData$Group != Target,],
+  control = rpart::rpart.control(
+    maxdepth = 2,
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1
+  )
+  ) |> 
+  predict(
+    SimpleData
+  )
+
+SimpleData <- SimpleData |> 
+  mutate(
+    PredMean = if_else(
+      Group == Target,
+      NewMeanPred,
+      PredMean
+      ),
+    PredTree = if_else(
+      Group == Target,
+      NewTreePred,
+      PredTree
+      )
+    )
+
+SimpleData
+```
+
+
+## 数値例: 単純平均
+
+```{r}
+Target <- 3
+
+NewMeanPred <- mean(
+  SimpleData$Y[SimpleData$Group != Target])
+
+NewTreePred <- rpart::rpart(
+  Y ~ X,
+  SimpleData[SimpleData$Group != Target,],
+  control = rpart::rpart.control(
+    maxdepth = 2,
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1
+  )
+  ) |> 
+  predict(
+    SimpleData
+  )
+
+SimpleData <- SimpleData |> 
+  mutate(
+    PredMean = if_else(
+      Group == Target,
+      NewMeanPred,
+      PredMean
+      ),
+    PredTree = if_else(
+      Group == Target,
+      NewTreePred,
+      PredTree
+      )
+    )
+
+SimpleData
+```
+
+
+## 数値例: 単純平均
+
+```{r}
+SimpleData <- SimpleData |> 
+  mutate(
+    ErrorMean = (Y - PredMean)^2,
+    ErrorTree = (Y - PredTree)^2
+    )
+
+SimpleData
+```
+
+- 平均二乗誤差(Mean) `r mean(SimpleData$ErrorMean) |> round(2)`
+
+- 平均二乗誤差(Tree) `r mean(SimpleData$ErrorTree)`
+
+## トレードオフの緩和
+
+- サンプル分割法では、 Training データに多くの事例を割くと、 Validation データに割ける事例が減り、評価の精度が下がる (推計誤差の拡大 $\iff$ Validationデータへの依存)
+
+- 交差検証では、すべての事例について予測値を計算し、その平均を取るので、評価の精度を確保できる
+
+- 理論的検討: アルゴリズムの相対比較について有効 [@Wager2019CrossValidationRE]
+
+    - 最終的な予測モデルの性能検証には使えない
+
+## 予測研究の典型的ワーク
+
+```{r PredictionWorkFlow}
+grViz("digraph dot{
+      graph [rankdir = TB]
+      node []
+      A [label = 'データ & アルゴリズム群']
+      Tr [label = 'Trainingデータ']
+      Te [label = 'Testデータ']
+      C [label = 'CrossValidation']
+      Es [label = '全Trainingデータを用いて推定']
+      Mo [label = '予測モデル']
+      A -> Tr,Te
+      Tr -> C
+      C -> Es [label = 'アルゴリズム と Hyperparameter']
+      Es -> Mo
+      Te -> Mo [label = '評価']
+      {rank = same; Te;Mo}
+      }")
+```
+
+
+# 正則化
+
+- Hyperparameters $\simeq$ EmpricialRisk最小化では決定できないパラメータ
+
+- 決定木については、 木の深さ、 最小サンプルサイズ、 "剪定度合い" などなど
+
+## 剪定
+
+- 最大分割回数は、自然なHyper parameterだが、、、
+
+- 浅い木は、将来の重要な分割を見逃してしまう可能性がある
+
+- 剪定: 一旦非常に深い木を推定 (Approximation errorを減らす) した後に、単純化 (正則化) を行う
+
+    - 重要ではないサブグループについて、再結合
+    
+## Step 1. 深い木の推定
+
+- 停止条件を緩めると、一般にどこまでもサブサンプル分割が行われる
+
+    - 平均値が異なるサブグループが見つかる限り止まらない
+    
+## 数値例: サイコロゲーム
+
+- ディーラーは、サイコロを5つふり、4つ $(X_1,..,X_4)$ プレイヤーに見せる
+
+    - プレイヤーは残り一つの出目 $Y$ を予測
+    
+- サイコロの出目は、uniform分布 (完全無相関)に決定
+
+    - 理想の予測モデル $g(X_1,..,X_4)$
+
+- "見"を200回行いデータ収集
+
+## 例
+
+```{r}
+set.seed(1)
+
+TempData <- tibble(
+  X1 = sample(1:6, 200, replace = TRUE),
+  X2 = sample(1:6, 200, replace = TRUE),
+  X3 = sample(1:6, 200, replace = TRUE),
+  X4 = sample(1:6, 200, replace = TRUE),
+  Y = sample(1:6, 200, replace = TRUE)
+  )
+
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 1
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 例
+
+```{r}
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 4
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+## Setp 2. 剪定
+
+- 分割しても平均二乗誤差があまり減らないサブグループから再結合していく
+
+## 例: 剪定
+
+```{r}
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0.001,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 4
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 例: 剪定
+
+```{r}
+rpart::rpart(
+  Y ~ .,
+  TempData,
+  control = rpart::rpart.control(
+    cp = 0.0076,
+    minbucket = 1,
+    minsplit = 1,
+    maxdepth = 4
+    )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+## Step 2. 剪定
+
+- どこまで剪定する?
+
+- 理想は Population Risk $E_P[(Y - g(X))^2]$ 最小化
+
+    - できない
+
+- Empirical Risk $E[(Y_i - g(X_i))^2]$ はナンセンス
+
+    - 練習問題: なぜ?
+
+## Setp 2. 剪定: 罰則付き最適化
+
+- 以下を最小化するようにサブグループを再結合
+
+$$EmpiricalRisk + \underbrace{\lambda \times \bigr|T\bigr|}_{罰則項}$$
+
+- $\lambda$ : Hyper Parameter (rpart関数では cp)
+
+    - 交差推定で選択
+
+## 余談: "経済理論で学ぶ機械学習"
+
+- 経済理論の典型的問題設定: 社会厚生"関数"を明示
+
+    - エージェントの意思決定と社会厚生との齟齬を解消
+
+    - エージェントの意思決定を利得最大化問題として記述
+
+- 典型的アイディア: エージェントの最大化問題の修正 (課税/補助金/所得移転)
+
+    - エージェントの意思決定を活用しつつ、社会厚生との齟齬解消
+
+## 余談: "経済理論で学ぶ機械学習"
+
+- Population Risk $=$ 社会厚生
+
+- Empirical Risk $=$ 利得
+
+- 罰則項 $=$ 複雑さへの税金
+
+## Tuning space
+
+- 多くのアルゴリズムは、複数のHyper paramterを持つ
+
+    - 有界の範囲から探す必要がある
+
+    - どの範囲で探すか?
+
+- [mlr3tuningspaces](https://github.com/mlr-org/mlr3tuningspaces)
+
+    - $\lambda$ (cp) , 最小サンプルサイズ (minsplit), 分割を試みる最小サンプルサイズ (minbucket) を交差推定で最適化
+
+## 例: 交差推定で生成される決定木
+
+```{r}
+RegTree$train(
+  as_task_regr(
+    TempData,
+    "Y"
+  )
+)
+
+RegTree$model$learner$model |> 
+  rpart.plot::rpart.plot()
+```
+
+## 実例: 2000事例で取引年予測 (シード値1)
+
+```{r}
+set.seed(1)
+TempData <- X |> mutate(Y = D)
+
+RegTree$train(
+  as_task_regr(
+    TempData[sample(1:nrow(TempData),2000),],
+    "Y"
+  )
+)
+
+Fig <- RegTree$model$learner$model |> 
+  rpart.plot::rpart.plot()
+```
+
+## まとめ
+
+- Approximation errorの削減は、現代的なPC + アルゴリズムであれば容易
+
+    - 複雑にすればいいだけ!!!
+
+- モデルを適切に単純化 (HyperParameterを適切に選択)することで、Estimation errorを削減する(正則化)に工夫が必要
+
+- 正則化を行ったとしても、一般に決定木のEstimationErrorは大きい
+
+    - 対策: モデル集計 (RandomForest)
+
+## 実例: 2000事例で取引年予測 (シード値2)
+
+```{r}
+set.seed(2)
+TempData <- X |> 
+  mutate(Y = D)
+
+RegTree$train(
+  as_task_regr(
+    TempData[sample(1:nrow(TempData),2000),],
+    "Y"
+  )
+)
+
+RegTree$model$learner$model |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 補論: 最適化
+
+- 本講義では、 Random Search を使用
+
+    - 複雑なシステムについての最適化は、長年の研究課題
+
+    - mlr3tuning (mlr3verseに同梱) では、 Grid Searchや Iterated Racing なども実装
+    
+    - より発展的なアルゴリズムも mlr3mbo (baysian optimization) や mlr3hyperband (hyperband) で実装
+    
+    - Hyper parameterのスペースの具体例は、 mlr3tuningspace (mlr3verseに同梱) で提案
+
+- サーベイ: @Bischl2021HyperparameterOF (mlr3verseのauthorも含む)
+
+## 余談: 良性の過剰適合
+
+- 剪定などによる推定パラメタの削減は、教師付き学習の伝統的戦略 
+
+    - 伝統的な実証研究でも、研究者が頑張ってやっていた
+    
+- パラメタを大幅に増やす (サンプルサイズを超える)と、過剰適合が"減り!!!"、予測性能が改善する場合がある　[@bartlett2020benign; @hastie2022surprises]
+
+    - Benign overfitting 
+
+## Reference

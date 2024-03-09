@@ -1,0 +1,552 @@
+---
+title: "決定木アルゴリズム: モデル集計"
+subtitle: "経済学のための機械学習入門"
+author: "川田恵介"
+format: pdf
+pdf-engine: lualatex
+documentclass: ltjsarticle 
+bibliography: ref.bib
+toc: true
+toc-depth: 2
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+---
+
+# Model aggregation
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  arrow,
+  mlr3verse,
+  simpr,
+  DiagrammeR
+)
+
+lgr::get_logger("mlr3")$set_threshold("error")
+lgr::get_logger("bbotk")$set_threshold("error")
+
+Data <- read_parquet(
+  "Public/Example.parquet"
+)
+
+Noise <- 50
+FigLower <- -20
+FigUpper <- 60
+
+N <- 100
+
+SimData <- function(i,n){
+  set.seed(i)
+  TempData <- tibble(
+    X = runif(n,-4,4),
+    TrueY = 0.5*(X^2) + 
+      if_else(X <= -2,
+              10,
+              0) + 
+      if_else(X <= 0,
+              10,
+              0) + 
+      if_else(X <= 2,
+              10,
+              0),
+    Y = TrueY + runif(n,-Noise,Noise)
+  )
+  return(TempData)
+}
+
+TestData <- SimData(100,10000)
+
+EstDeepTree <- function(i,n){
+  TempData <- SimData(i,n)
+  TempPred <- rpart::rpart(
+    Y ~ X,
+    TempData,
+    control = rpart::rpart.control(
+      cp = 0,
+      maxdepth = 30,
+      minsplit = 50,
+      minbucket = 50
+    )
+  ) |> 
+    predict(TestData)
+  TempResult <- TestData |> 
+    mutate(
+    Pred = TempPred,
+    ID = i |> factor()
+  )
+  return(TempResult)
+}
+
+TempResult <- EstDeepTree(1,1000) |> 
+  bind_rows(
+    EstDeepTree(2,1000)
+  ) |> 
+  bind_rows(
+    EstDeepTree(3,1000)
+  ) |> 
+  bind_rows(
+    EstDeepTree(4,1000)
+  ) |> 
+  mutate(
+    Aggregate = mean(Pred),
+    .by = "X")
+```
+
+## 比喩: 予測屋会議
+
+- 複数の"専門家"の予測を集計して最終予測モデルとする
+
+    - "エコノミスト"の見通しの平均値
+    
+    - 専門家委員会
+
+- 一人の予測に頼るよりも、ましでは？
+
+    - 教師付き学習にも応用可能な発想
+
+## 数値例
+
+- 独立してサンプリングしたデータについて、深い予測木 (剪定なし) を推定
+
+- 各予測値と、予測値の平均を比較
+
+## Estimation Error
+
+```{r, dev='ragg_png'}
+TempResult |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred,
+      color = ID
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_smooth(
+    aes(
+      y = TrueY,
+      color = "Population"
+    ),
+    method = "lm",
+    formula = y ~ 0 + I(x^2) + I(if_else(x <= -2,1,0))
+    + I(if_else(x <= 0,1,0))
+    + I(if_else(x <= 2,1,0))
+    ) +
+  facet_wrap(
+    ~ ID
+  ) +
+  ylim(FigLower,FigUpper) +
+  ylab("E[Y|X]")
+```
+
+## Aggregation
+
+```{r, dev='ragg_png'}
+TempResult |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred,
+      color = ID
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    size = 0.3
+    ) +
+  geom_point(
+    aes(
+      y = Aggregate,
+      color = "平均"
+    )
+  ) +
+  geom_smooth(
+    aes(
+      y = TrueY,
+      color = "Population"
+    ),
+    method = "lm",
+    formula = y ~ 0 + I(x^2) + I(if_else(x <= -2,1,0))
+    + I(if_else(x <= 0,1,0))
+    + I(if_else(x <= 2,1,0))
+  ) +
+  ylim(FigLower,FigUpper) +
+  ylab("E[Y|X]")
+```
+
+## チャレンジ
+
+- 「独立して抽出された」有限個データから生成された予測モデル
+
+- 「独立して抽出した複数のデータから得た」予測モデルの集計は通常不可能
+
+    - 推定に使ったサンプルサイズが実質的に増えているので、性能改善は"当たり前"
+
+- 近似的に行う
+
+    - (Nonparametric) bootstrapの活用
+
+# Bootstrap Aggregating
+
+- Bagging
+
+## 決定木の不安定性
+
+- 多くの実践で、決定木推定の不安定性( $=$ データ依存, 大きなEstimation error)は、Reguliazationを行っても十分に緩和できない
+
+    - 変数や分割回数の決定など、 Discrete choiceが避けられないことが理由の一つ
+
+- 伝統的なアプローチ (研究者がモデルを設定するOLS, サブグループ分析) では、無意味な方法が有効
+
+    - Bootstrapでデータを複製して、モデル集計
+
+## 理想のBagging
+
+
+```{mermaid}
+flowchart TB
+  A[Prediction Task] --> B{Random Sampling}
+  B --> C[Data 1]
+  B --> D[Data 2]
+  B --> E[Data 3]
+  C --> F[Tree 1]
+  D --> G[Tree 2]
+  E --> H[Tree 3]
+  F --> J[Aggregate]
+  G --> J
+  H --> J
+```
+
+
+## アルゴリズム
+
+1. Nonparametric bootstrapで、データの複製を行う (500,1000,2000など)
+
+2. 各複製データについて、"深い"決定木を推定
+
+3. 各 $X$ についての予測値の平均を最終予測値とする
+
+
+## 補論: Bootstrap
+
+
+```{mermaid}
+flowchart TB
+  B{Original Data ID 1,2,3} --> C[ID 1,2,2]
+  B --> D[ID 2,3,1]
+  B --> E[ID 3,3,2]
+  C --> F[Tree 1]
+  D --> G[Tree 2]
+  E --> H[Tree 3]
+  F --> J[Aggregate]
+  G --> J
+  H --> J
+```
+
+
+## Baggingの発想
+
+- $g_b(X)$ 複製データ $b$ から生成されたモデルの $X$ についての予測値
+
+    - $g_b(X)$ : 確率変数
+    
+- 確率変数は、一般に、
+
+$$g_{ave}(X):=\frac{\sum_b g_b(X)}{B}$$
+
+## Baggingの発想
+
+- 基本アイディア: 非常に深い木 $g_b(X)$ を生成すれば、Approximation errorは減少する一方で、Estimation errorが大きくなる
+
+- 確率変数の平均値は一般に分散が削減できる
+
+    - 独立・無相関であれば、 無限個の**複製データ**から予測モデルを作れば、分散を0にできる (一致性)
+    
+    - 今のPCであれば、大量の予測モデルの生成は可能
+
+## Baggingの限界
+    
+- Bootstrapから計算した統計量は、一般に相関するので
+
+$$\lim_{B\rightarrow\infty}E[(g_{ave}(X)-E[g_{ave}(X)])^2]=\underbrace{\frac{var(g_b(X))}{B}}_{\rightarrow 0}$$
+
+$$+\underbrace{\frac{B-1}{B}\times corr(g_b(X),g_{b'}(X))\times var(g_b(X))}_{\nrightarrow 0}$$
+
+## RandomForest
+
+- データ分割に用いることができる変数群をランダムに選ぶ
+
+- 例：ある予測木の第n分割を行う際に
+
+    - Bagging: $\{$ 年齢、性別、学歴 $\}$ から選ぶ
+    
+    - Random Forest: $\{$ 年齢、性別 $\}$ から選ぶ
+    
+        - 第 $n+1$ 分割を行う際には、 $\{$ 学歴、性別 $\}$
+
+- 動機: 予測値同士の相関を弱める
+
+    - 相関を強める要因(データが多少変わっても、同じような変数を活用する)を排除
+
+    - そこそこの予測力を持つ変数が、強力な予測力を持つ変数の陰に隠れてしまうことを避けられる
+
+## 数値例
+
+```{r}
+Noise <- 10
+SimData <- function(i,n){
+  set.seed(i)
+  TempData <- tibble(
+    X = runif(n,-4,4),
+    D = if_else(X >= 0, 
+                sample(0:1,n,replace = TRUE, prob = c(95/100,5/100)),
+                sample(0:1,n,replace = TRUE, prob = c(5/100,95/100))
+                ),
+    TrueY = X + 0.5*D,
+    Y = TrueY + runif(n,-Noise,Noise)
+  ) |> 
+    mutate(D = factor(D))
+  return(TempData)
+}
+
+TestData <- SimData(100,10000)
+
+TestData |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY,
+      color = D
+    )
+  ) +
+  theme_bw() +
+  geom_line()
+```
+
+## 数値例
+
+```{r}
+Fit <- ranger::ranger(
+  Y ~ D + X,
+  SimData(1,3000),
+  mtry = 2,
+  max.depth = 3
+  )
+
+Pred <- predict(
+  Fit,
+  TestData,
+  predict.all = TRUE
+)
+
+TestData |> 
+  mutate(
+    Pred = Pred$predictions[,1],
+    ID = 1
+  ) |> 
+  bind_rows(
+    TestData |> 
+      mutate(
+        Pred = Pred$predictions[,2],
+        ID = 2
+        )
+    ) |> 
+  bind_rows(
+    TestData |> 
+      mutate(
+        Pred = Pred$predictions[,3],
+        ID = 3
+        )
+    ) |> 
+  bind_rows(
+    TestData |> 
+      mutate(
+        Pred = Pred$predictions[,4],
+        ID = 4
+        )
+    ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred,
+      color = D
+    )
+  ) +
+  theme_bw() +
+  geom_line(
+    aes(
+      y = TrueY,
+      color = D
+    )
+  ) +
+  geom_line() +
+  facet_wrap(
+    ~ ID
+  ) +
+  ylab("E[Y|X]")
+```
+
+## 数値例
+
+```{r}
+Fit <- ranger::ranger(
+  Y ~ D + X,
+  SimData(1,3000),
+  mtry = 1,
+  max.depth = 3
+  )
+
+Pred <- predict(
+  Fit,
+  TestData,
+  predict.all = TRUE
+)
+
+TestData |> 
+  mutate(
+    Pred = Pred$predictions[,1],
+    ID = 1
+  ) |> 
+  bind_rows(
+    TestData |> 
+      mutate(
+        Pred = Pred$predictions[,2],
+        ID = 2
+        )
+    ) |> 
+  bind_rows(
+    TestData |> 
+      mutate(
+        Pred = Pred$predictions[,3],
+        ID = 3
+        )
+    ) |> 
+  bind_rows(
+    TestData |> 
+      mutate(
+        Pred = Pred$predictions[,4],
+        ID = 4
+        )
+    ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred,
+      color = D
+    )
+  ) +
+  theme_bw() +
+  geom_line(
+    aes(
+      y = TrueY,
+      color = D
+    )
+  ) +
+  geom_line() +
+  facet_wrap(
+    ~ ID
+  ) +
+  ylab("E[Y|X]")
+```
+
+## Hyper prameter tuning
+
+- 多くの実戦で、 パッケージが提供するdefault valuesをそのまま使っている
+
+- Hyper parameterのチューニングについて、議論は存在し、実装されているパッケージもある
+
+    - mlr3tuningspaces
+    
+    - grf
+
+- 明確なのは、ブートストラップの回数は多ければ、多いほどよい
+
+## 実例
+
+```{r}
+#| eval: true
+
+Task <- as_task_regr(
+  Data,
+  "Price"
+)
+
+OLS <- lrn(
+  "regr.lm",
+  id = "OLS")
+
+Tree <- lrn(
+  "regr.rpart"
+  ) |> 
+  lts()
+
+Tree <- AutoTuner$new(
+  learner = Tree,
+  tuner = tnr("random_search"),
+  resampling = rsmp("holdout"),
+  terminator = trm(
+    "evals",
+    n_evals = 20)
+)
+
+Tree$id <- "OptimalTree"
+
+RF <- lrn(
+  "regr.ranger"
+  ) |> 
+  lts()
+
+RF <- AutoTuner$new(
+  learner = RF,
+  tuner = tnr("random_search"),
+  resampling = rsmp("holdout"),
+  terminator = trm(
+    "evals",
+    n_evals = 20)
+)
+
+RF$id <- "OptimalRF"
+
+OriginalRF <- lrn("regr.ranger")
+OriginalRF$id <- "RF"
+
+Design <- benchmark_grid(
+  tasks = Task,
+  learners = list(
+    OLS,
+    Tree,
+    OriginalRF,
+    RF
+    ),
+  resamplings = rsmp("holdout") 
+  )
+
+BenchMark <- benchmark(Design)
+
+BenchMark$aggregate(msr("regr.rsq"))
+```
+
+# まとめ
+
+- Resamplingは現代のデータ分析において、強力な手法
+
+    - モデル評価 (Cross fitting)だけでなく、 決定木の予測性能改善 (Bagging/RandomForest)にも有効
+    
+    - 伝統的なInferenceへのBootstrapの応用も、もちろん重要
+
+## Resampling 法の整理
+
+```{mermaid}
+flowchart TB
+  B{Original Data} --> C[Bootstrap]
+  B --> D[SubSampling]
+  C --> E[ModelAveraging]
+  C --> F[Inference]
+  D --> G[CrossFit/Validation]
+  D --> H[Training/Test]
+```

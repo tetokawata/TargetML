@@ -1,0 +1,196 @@
+---
+title: Confluence Demo
+format: confluence-html
+---
+
+
+## おすすめ教科書
+
+- [Advanced R](https://adv-r.hadley.nz/)
+
+    - 非常に簡潔かつわかりやすく、"プログラミング言語"としてのRを解説
+    
+    - 仕事でデータ分析をする可能性があるのであれば、学生時代に読むことを強くお勧め
+    
+    - Pythonなどにも共通する解説
+    
+- より一般的な解説書として、 [R for Data Science](https://r4ds.had.co.nz/)
+
+## 例題
+
+```{r}
+library(mlr3verse)
+
+Tree <- lrn("regr.rpart")
+
+ShallowTree <- Tree # <1>
+
+ShallowTree$param_set$values$maxdepth <- 2 # <1>
+```
+
+1. objectを複製し、 浅い木も推定したい、、が
+
+
+## 例題
+
+```{r}
+Tree # <1>
+```
+
+1. "勝手に変わった!!!"
+
+## Rの基本文法
+
+```{r}
+a <- 1 # <1>
+```
+
+1. "1をaという名前で保存"
+
+- 正確には、 "メモリ-上のどこか(Location)に保存された1を、aというReference(参照名)で保存"
+
+## Copy
+
+- 一般に複製(copy)には、複数の意味がある
+
+- 参照名の複製とobjectの複製を区別することは、しばしば重要
+
+    - mlr3のようなobject志向では非常に重要
+
+## LocationとReference (参照名)
+
+```{r}
+a <- 1
+
+b <- a # <1>
+```
+
+1. aを複製?
+
+```{r}
+lobstr::obj_addr(a) # <2>
+
+lobstr::obj_addr(b) # <3>
+```
+
+2. lobstrパッケージを局所的にロード
+
+3. 同じobjectに、異なる参照名 (a,b) を付与している"だけ"
+
+## Copy on modification
+
+
+```{r}
+a <- 1
+
+b <- a
+
+b <- b + 1 # <1>
+
+lobstr::obj_addr(a)
+
+lobstr::obj_addr(b)
+```
+
+1. objectに操作を加えると、objectそのものが異なるlocationにコピーされる
+
+
+## まとめ
+
+- Rのほとんどのpackageにおいて、copy-on-modificationがdefault
+
+    - objectを操作した場合、異なるlocationに複製(deep copy) を自動で行う
+
+- プログラムに詳しくなくても、予期せぬ挙動を抑止できる
+
+    - 不要なdeep copyが行われてしまい、計算速度が犠牲になる場合も、、、
+
+- [R6 class](https://r6.r-lib.org/articles/Introduction.html)を採用しているpackage(mlr3など) は例外
+
+## mlr3 objects
+
+```{r}
+library(mlr3verse)
+
+Tree <- lrn("regr.rpart")
+
+Tree1 <- Tree
+
+lobstr::obj_addr(Tree)
+
+lobstr::obj_addr(Tree1)
+```
+
+
+## mlr3 objects
+
+```{r}
+Tree <- lrn("regr.rpart")
+
+Tree1 <- Tree
+
+Tree1$param_set$values$maxdepth <- 2 # <1>
+
+Tree$param_set$values$maxdepth
+
+Tree1$param_set$values$maxdepth
+```
+
+1. object自体は複製されない!!!
+
+## mlr3 objects
+
+```{r}
+lobstr::obj_addr(Tree)
+
+lobstr::obj_addr(Tree1)
+```
+
+- object自体は複製されない!!!
+
+## clone 関数 (deep copy)
+
+```{r}
+Tree <- lrn("regr.rpart")
+
+Tree1 <- Tree$clone() # <1>
+
+lobstr::obj_addr(Tree)
+
+lobstr::obj_addr(Tree1)
+```
+
+1. deep-copy
+
+## Method chain
+
+- Object oriented programming
+
+    - objectにデータと関数(method) を格納
+    
+    - methodにより、object内データを操作
+    
+    - Rでは$で呼び出す
+
+- Method chain: methodを$で繋げることで、逐次的な処理が可能
+
+    - 慣れると、codeの読みやすさが改善
+
+    - 関数志向におけるpipe演算子に似た利点
+
+## 例
+
+```{r}
+library(tidyverse)
+
+Data <- read_csv("Public/Example.csv")
+
+Task <- as_task_regr(
+  Data,
+  "Price"
+)
+
+EstTree <- Tree$clone()$train(Task)$model # <1>
+```
+
+1. 複製/推定ずみ決定木を保存

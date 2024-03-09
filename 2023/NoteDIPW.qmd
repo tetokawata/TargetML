@@ -1,0 +1,17 @@
+---
+title: "Untitled"
+format: html
+---
+
+## Quarto
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  dipw
+)
+
+Data <- read_csv(
+  "Public/Example.csv")
+```
+

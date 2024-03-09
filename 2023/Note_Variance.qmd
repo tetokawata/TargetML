@@ -1,0 +1,13 @@
+---
+title: "Untitled"
+format: html
+---
+
+# SetUp
+
+```{r}
+pacman::p_load(
+  tidyverse
+)
+```
+

@@ -1,0 +1,3141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Example</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="R_DiscoverCVFull_files/libs/clipboard/clipboard.min.js"></script>
+<script src="R_DiscoverCVFull_files/libs/quarto-html/quarto.js"></script>
+<script src="R_DiscoverCVFull_files/libs/quarto-html/popper.min.js"></script>
+<script src="R_DiscoverCVFull_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="R_DiscoverCVFull_files/libs/quarto-html/anchor.min.js"></script>
+<link href="R_DiscoverCVFull_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="R_DiscoverCVFull_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="R_DiscoverCVFull_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="R_DiscoverCVFull_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="R_DiscoverCVFull_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Example</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="test" class="level1">
+<h1>Test</h1>
+<ul>
+<li><p>Simple split into 3</p>
+<ul>
+<li>Cross validate</li>
+</ul></li>
+</ul>
+</section>
+<section id="setup" class="level1">
+<h1>SetUp</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">149</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  tidyverse,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  mlr3verse,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  mlr3pipelines,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  mlr3extralearners,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  recipes</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>lgr<span class="sc">::</span><span class="fu">get_logger</span>(<span class="st">"mlr3"</span>)<span class="sc">$</span><span class="fu">set_threshold</span>(<span class="st">"error"</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>lgr<span class="sc">::</span><span class="fu">get_logger</span>(<span class="st">"bbotk"</span>)<span class="sc">$</span><span class="fu">set_threshold</span>(<span class="st">"error"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data" class="level1">
+<h1>Data</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>TargetStructure <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ＳＲＣ"</span>,<span class="st">"ＲＣ"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>TargetRoom <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"オープンフロア"</span>,<span class="st">"スタジオ"</span>,<span class="st">"メゾネット"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>Raw <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"~/Dropbox/DataClean/RetailJPN/AllPrefectture.parquet"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(今後の利用目的 <span class="sc">==</span> <span class="st">"住宅"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(用途 <span class="sc">==</span> <span class="st">"住宅"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(改装 <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(間取り <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(都市計画 <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(最寄駅.名称 <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(都道府県名 <span class="sc">==</span> <span class="st">"東京都"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(市区町村名, <span class="st">"区"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(建物の構造 <span class="sc">%in%</span> TargetStructure) <span class="sc">|&gt;</span> </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(間取り <span class="sc">%in%</span> TargetRoom)) <span class="sc">|&gt;</span> </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">TradePeriod =</span> <span class="fu">str_sub</span>(取引時点,<span class="dv">1</span>,<span class="dv">4</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>           <span class="fu">as.numeric</span>()</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(TradePeriod <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">2019</span>,<span class="dv">2021</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">TempBuildYear =</span> </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_sub</span>(建築年,<span class="dv">3</span>,<span class="sc">-</span><span class="dv">2</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.numeric</span>(),</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">TempGengo =</span> <span class="fu">str_sub</span>(建築年,<span class="dv">1</span>,<span class="dv">2</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">BuildYear =</span> <span class="fu">if_else</span>(</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>      TempGengo <span class="sc">==</span> <span class="st">"令和"</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>      TempBuildYear <span class="sc">+</span> <span class="dv">2018</span>,</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>      TempBuildYear</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">BuildYear =</span> <span class="fu">if_else</span>(</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>      TempGengo <span class="sc">==</span> <span class="st">"平成"</span>,</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>      TempBuildYear <span class="sc">+</span> <span class="dv">1988</span>,</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>      BuildYear</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">BuildYear =</span> <span class="fu">if_else</span>(</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>      TempGengo <span class="sc">==</span> <span class="st">"昭和"</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>      TempBuildYear <span class="sc">+</span> <span class="dv">1925</span>,</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>      BuildYear</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">Price =</span> 取引価格.総額.<span class="sc">/</span>(<span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>),</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">Tenure =</span> TradePeriod <span class="sc">-</span> BuildYear,</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">DistanceStation =</span> 最寄駅.距離.分. <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>(),</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">Size =</span> 面積... <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>(),</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">Youseki =</span> 容積率... <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>(),</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">Kenpei =</span> 建ぺい率... <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>(),</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomNum =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"１"</span>),<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomNum =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"２"</span>),<span class="dv">2</span>,RoomNum),</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomNum =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"３"</span>),<span class="dv">3</span>,RoomNum),</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomNum =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"４"</span>),<span class="dv">4</span>,RoomNum),</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomNum =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"５"</span>),<span class="dv">5</span>,RoomNum),</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomNum =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"６"</span>),<span class="dv">6</span>,RoomNum),</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">ZoneHouse =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(都市計画,<span class="st">"住居"</span>),<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>    <span class="at">ZoneBusiness =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(都市計画,<span class="st">"商業"</span>),<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">ZoneFactory =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(都市計画,<span class="st">"工業"</span>),<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomL =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"Ｌ"</span>),<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">RoomD =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(間取り,<span class="st">"Ｄ"</span>),<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">StructureSRC =</span> <span class="fu">if_else</span>(建物の構造 <span class="sc">==</span> <span class="st">"ＳＲＣ"</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">After =</span> <span class="fu">if_else</span>(</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>      TradePeriod <span class="sc">==</span> <span class="dv">2021</span>,</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span>,</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>        <span class="dv">0</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>    <span class="at">Reform =</span> <span class="fu">if_else</span>(改装 <span class="sc">==</span> <span class="st">"改装済"</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    <span class="at">District =</span> <span class="fu">if_else</span>(</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>      市区町村名 <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"千代田区"</span>,<span class="st">"港区"</span>,<span class="st">"中央区"</span>),</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>      <span class="st">"CBD"</span>,</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>      市区町村名</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Price<span class="sc">:</span>District) <span class="sc">|&gt;</span> </span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">na.omit</span>()</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>Data <span class="ot">&lt;-</span> <span class="fu">recipe</span>(</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>.,</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>  Raw</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(Tenure <span class="sc">&gt;=</span> <span class="dv">0</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(Size <span class="sc">&gt;=</span> <span class="dv">15</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(Size <span class="sc">&lt;=</span> <span class="dv">110</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(Tenure <span class="sc">&lt;=</span> <span class="dv">50</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(DistanceStation <span class="sc">&lt;=</span> <span class="dv">20</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(Youseki <span class="sc">&lt;=</span> <span class="dv">700</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_filter</span>(RoomNum <span class="sc">&lt;=</span> <span class="dv">4</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>    District,</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>    <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_scale</span>(</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>    Tenure,</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>    DistanceStation,</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>    Size,</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>    Youseki,</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>    Kenpei,</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>    RoomNum</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bake</span>(<span class="at">new_data =</span> <span class="cn">NULL</span>)</span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> Data <span class="sc">|&gt;</span> </span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>    <span class="sc">-</span>Price,</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>    <span class="sc">-</span>After</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>NameX <span class="ot">&lt;-</span> <span class="fu">names</span>(X)</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(X) <span class="ot">&lt;-</span> <span class="fu">str_c</span>(<span class="st">"X"</span>,<span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(X))</span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> Data<span class="sc">$</span>Price</span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> Data<span class="sc">$</span>After</span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a>Group <span class="ot">&lt;-</span> <span class="fu">sample</span>(</span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a>  <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>(X),</span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a>  <span class="at">replace =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="learner" class="level1">
+<h1>Learner</h1>
+<section id="base" class="level2">
+<h2 class="anchored" data-anchor-id="base">Base</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Mutate <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"mutate"</span>) <span class="co"># データ加工</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Mutate<span class="sc">$</span>param_set<span class="sc">$</span>values<span class="sc">$</span>mutation <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">X1_2 =</span> <span class="sc">~</span> X1<span class="sc">*</span>X1,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">X2_2 =</span> <span class="sc">~</span> X2<span class="sc">*</span>X2,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">X3_2 =</span> <span class="sc">~</span> X3<span class="sc">*</span>X3,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">X4_2 =</span> <span class="sc">~</span> X4<span class="sc">*</span>X4,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">X5_2 =</span> <span class="sc">~</span> X5<span class="sc">*</span>X5,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">X6_2 =</span> <span class="sc">~</span> X6<span class="sc">*</span>X6,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">X7_2 =</span> <span class="sc">~</span> X7<span class="sc">*</span>X7</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>) <span class="co"># 二乗項と交差項の作成</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>Scale <span class="ot">=</span> <span class="fu">po</span>(<span class="st">"scale"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>RegLM <span class="ot">&lt;-</span> Mutate <span class="sc">%&gt;&gt;%</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  Scale <span class="sc">%&gt;&gt;%</span> <span class="fu">lrn</span>(</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"regr.lm"</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="st">"RegLM"</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_learner</span>()</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>RegBART <span class="ot">&lt;-</span> <span class="fu">lrn</span>(</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"regr.bart"</span>,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="st">"RefBART"</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>RegRF <span class="ot">&lt;-</span> <span class="fu">lrn</span>(</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="st">"regr.ranger"</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="st">"RefRF"</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="regression-learner" class="level2">
+<h2 class="anchored" data-anchor-id="regression-learner">Regression Learner</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>RegStacking <span class="ot">&lt;-</span> <span class="fu">pipeline_stacking</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    RegRF,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    RegLM,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    RegBART</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    ), </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lrn</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"regr.lm"</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"RegAggregate"</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">folds =</span> <span class="dv">2</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">use_features =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_learner</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="signal-learner" class="level2">
+<h2 class="anchored" data-anchor-id="signal-learner">Signal Learner</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>LearnSignal <span class="ot">&lt;-</span> <span class="fu">pipeline_stacking</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    RegRF,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    RegLM</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ), </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lrn</span>(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"regr.lm"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"RegAggregate"</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">folds =</span> <span class="dv">2</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">use_features =</span> <span class="cn">FALSE</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_learner</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="learning" class="level1">
+<h1>Learning</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>MainEst <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    TempNuisance,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    TempITE,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    TempConfirm){</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    X[Group <span class="sc">==</span> TempNuisance <span class="sc">&amp;</span> D <span class="sc">==</span> <span class="dv">1</span>, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">Y =</span> Y[Group <span class="sc">==</span> TempNuisance <span class="sc">&amp;</span> D <span class="sc">==</span> <span class="dv">1</span>]),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"Nuisance Y1"</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  FitY1 <span class="ot">&lt;-</span> RegStacking<span class="sc">$</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clone</span>()<span class="sc">$</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    X[Group <span class="sc">==</span> TempNuisance <span class="sc">&amp;</span> D <span class="sc">==</span> <span class="dv">0</span>, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">Y =</span> Y[Group <span class="sc">==</span> TempNuisance <span class="sc">&amp;</span> D <span class="sc">==</span> <span class="dv">0</span>]),</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"Nuisance Y0"</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  FitY0 <span class="ot">&lt;-</span> RegStacking<span class="sc">$</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clone</span>()<span class="sc">$</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    X[Group <span class="sc">==</span> TempNuisance, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">Y =</span> Y[Group <span class="sc">==</span> TempNuisance]),</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"Nuisance Y"</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  FitY <span class="ot">&lt;-</span> RegStacking<span class="sc">$</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clone</span>()<span class="sc">$</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    X[Group <span class="sc">==</span> TempNuisance, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">D =</span> D[Group <span class="sc">==</span> TempNuisance]),</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"D"</span>,</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"Nuisance D"</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>  FitD <span class="ot">&lt;-</span> RegStacking<span class="sc">$</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clone</span>()<span class="sc">$</span></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>    X <span class="sc">|&gt;</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">Y =</span> Y),</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"Psude Problem"</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>  PredY1 <span class="ot">&lt;-</span> FitY1<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>  PredY0 <span class="ot">&lt;-</span> FitY0<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>  PredY <span class="ot">&lt;-</span> FitY<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>    X <span class="sc">|&gt;</span></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">D =</span> D),</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"D"</span>,</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"Psude Problem"</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>  PredD <span class="ot">&lt;-</span> FitD<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>  ScoreY1 <span class="ot">&lt;-</span> PredY1<span class="sc">$</span>response <span class="sc">+</span></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>    (D <span class="sc">/</span> PredD<span class="sc">$</span>response) <span class="sc">*</span></span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>    (Y <span class="sc">-</span> PredY1<span class="sc">$</span>response)</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>  ScoreY0 <span class="ot">&lt;-</span> PredY0<span class="sc">$</span>response <span class="sc">+</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>    ((<span class="dv">1</span> <span class="sc">-</span> D) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> PredD<span class="sc">$</span>response)) <span class="sc">*</span></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>    (Y <span class="sc">-</span> PredY0<span class="sc">$</span>response)</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>  ScoreAIPW <span class="ot">&lt;-</span></span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>    ScoreY1 <span class="sc">-</span> ScoreY0</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>      X[Group <span class="sc">==</span> TempITE, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">Y =</span> ScoreAIPW[Group <span class="sc">==</span> TempITE]),</span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>      <span class="at">target =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>      <span class="at">id =</span> <span class="st">"Lean ITE"</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>  FitAIPW <span class="ot">&lt;-</span> LearnSignal<span class="sc">$</span></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clone</span>()<span class="sc">$</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>  FitLinearAIPW <span class="ot">&lt;-</span> <span class="fu">lrn</span>(<span class="st">"regr.lm"</span>)<span class="sc">$</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>  OhtY <span class="ot">&lt;-</span> Y <span class="sc">-</span> PredY<span class="sc">$</span>response</span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>  OhtD <span class="ot">&lt;-</span> D <span class="sc">-</span> PredD<span class="sc">$</span>response</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>  ScoreR <span class="ot">&lt;-</span> OhtY <span class="sc">/</span> OhtD</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>  Weight <span class="ot">&lt;-</span> OhtD<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>      X[Group <span class="sc">==</span> TempITE, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>          <span class="at">Y =</span> ScoreR[Group <span class="sc">==</span> TempITE],</span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>          <span class="at">Weight =</span> Weight[Group <span class="sc">==</span> TempITE]</span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>      <span class="at">target =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>      <span class="at">id =</span> <span class="st">"R"</span></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>  TempTask<span class="sc">$</span><span class="fu">set_col_roles</span>(</span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Weight"</span>,</span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>    <span class="st">"weight"</span></span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>  FitR <span class="ot">&lt;-</span> LearnSignal<span class="sc">$</span></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clone</span>()<span class="sc">$</span></span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>    <span class="fu">train</span>(TempTask)</span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>  TempTask <span class="ot">&lt;-</span></span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_task_regr</span>(</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>      X <span class="sc">|&gt;</span></span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">Y =</span> ScoreAIPW),</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>      <span class="at">target =</span> <span class="st">"Y"</span></span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>  PredAIPW <span class="ot">&lt;-</span> FitAIPW<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>  PredLinearAIPW <span class="ot">&lt;-</span> FitLinearAIPW<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a>  PredR <span class="ot">&lt;-</span> FitR<span class="sc">$</span><span class="fu">predict</span>(TempTask)</span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a>  TempResult <span class="ot">&lt;-</span> Data[Group <span class="sc">==</span> TempConfirm, ] <span class="sc">|&gt;</span></span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredAIPW =</span> PredAIPW<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredLinearAIPW =</span> PredLinearAIPW<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredR =</span> PredR<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>      <span class="at">ScoreAIPW =</span> ScoreAIPW[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>      <span class="at">ScoreR =</span> ScoreR[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a>      <span class="at">ScoreY1 =</span> ScoreY1[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>      <span class="at">ScoreY0 =</span> ScoreY0[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredD =</span> PredD<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredY1 =</span> PredY1<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredY0 =</span> PredY0<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a>      <span class="at">PredY =</span> PredY<span class="sc">$</span>response[Group <span class="sc">==</span> TempConfirm],</span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(TempResult)</span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a>  }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="confirm" class="level1">
+<h1>Confirm</h1>
+<section id="estimation" class="level2">
+<h2 class="anchored" data-anchor-id="estimation">Estimation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>TempData <span class="ot">&lt;-</span> <span class="fu">MainEst</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">MainEst</span>(<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">1</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">MainEst</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000381
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2958
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 14.110938, curr sigma: 14.110938
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.178671
+
+Tree sizes, last iteration:
+[1] 1 1 7 3 2 2 3 1 6 2 3 3 2 1 3 4 2 3 
+2 3 2 2 1 3 2 3 2 5 5 2 3 2 2 2 2 2 2 2 
+3 2 2 3 2 2 2 3 2 2 3 2 3 2 2 2 2 2 3 2 
+2 2 2 3 3 3 1 3 2 2 2 2 2 2 1 3 3 4 2 1 
+3 2 7 2 3 2 3 2 3 5 2 3 5 2 2 2 2 2 2 2 
+2 3 2 3 5 1 3 2 1 2 1 4 3 3 3 2 2 2 3 5 
+2 2 2 2 1 3 2 4 2 3 2 3 4 2 2 2 4 2 1 2 
+2 2 2 4 1 2 2 2 3 5 2 3 1 4 5 5 2 2 2 3 
+2 2 3 3 2 3 2 2 4 2 3 2 2 2 3 1 2 8 6 2 
+3 2 2 2 4 3 4 3 2 2 2 3 4 2 2 2 4 2 5 3 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 22) (2: 16) (3: 5) (4: 8) (5: 10) 
+(6: 21) (7: 9) (8: 5) (9: 2) (10: 2) 
+(11: 9) (12: 9) (13: 3) (14: 10) (15: 8) 
+(16: 4) (17: 3) (18: 9) (19: 4) (20: 14) 
+(21: 3) (22: 8) (23: 40) (24: 2) (25: 6) 
+(26: 14) (27: 10) (28: 7) (29: 8) (30: 3) 
+(31: 16) (32: 6) (33: 8) (34: 10) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000668
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1479
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.856631, curr sigma: 13.856631
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.789970
+
+Tree sizes, last iteration:
+[1] 2 5 3 3 1 2 4 1 3 2 1 3 5 2 2 6 2 2 
+2 5 2 2 4 2 1 2 2 3 3 2 2 2 3 2 2 3 2 3 
+3 2 1 2 2 2 2 3 2 2 2 3 1 3 2 3 2 2 2 4 
+2 2 2 2 2 3 7 3 1 1 2 3 3 2 2 2 2 3 2 3 
+4 2 2 2 2 3 2 3 4 4 2 3 2 3 2 2 3 3 3 4 
+2 2 2 2 2 2 4 2 2 2 3 3 3 3 4 2 3 2 5 2 
+5 2 2 2 4 2 2 3 3 2 2 3 2 2 5 2 2 3 2 2 
+2 3 2 2 3 2 2 3 3 2 3 2 1 2 2 2 2 5 3 2 
+2 3 2 2 5 4 2 2 2 1 1 3 2 2 2 5 2 2 2 2 
+3 2 2 1 2 3 4 2 2 2 2 3 4 2 2 2 2 2 3 2 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 19) (2: 11) (3: 8) (4: 13) (5: 12) 
+(6: 15) (7: 6) (8: 7) (9: 4) (10: 6) 
+(11: 6) (12: 11) (13: 3) (14: 6) (15: 9) 
+(16: 2) (17: 5) (18: 12) (19: 7) (20: 13) 
+(21: 1) (22: 6) (23: 35) (24: 8) (25: 6) 
+(26: 9) (27: 9) (28: 6) (29: 7) (30: 4) 
+(31: 11) (32: 8) (33: 6) (34: 7) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000389
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1479
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 14.263935, curr sigma: 14.263935
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.764543
+
+Tree sizes, last iteration:
+[1] 2 1 3 2 2 2 2 2 2 2 2 2 2 3 5 2 3 3 
+2 2 3 2 5 2 2 2 2 1 3 2 3 2 1 4 2 2 3 2 
+6 3 2 2 3 2 2 1 2 2 2 2 3 2 2 1 1 5 2 3 
+2 2 2 4 4 4 3 3 2 2 7 2 2 2 2 3 2 3 2 2 
+2 1 2 2 3 2 4 2 3 3 2 2 3 4 3 1 2 3 2 1 
+1 4 1 2 3 4 4 3 3 2 3 3 2 3 2 2 3 2 2 2 
+2 2 2 1 4 5 2 3 2 2 2 3 3 2 4 4 4 2 2 4 
+2 2 2 2 2 2 4 2 2 3 1 2 2 2 3 1 2 2 2 3 
+2 1 2 2 1 3 2 5 2 2 4 3 2 3 3 4 2 2 2 2 
+5 2 2 2 2 5 2 2 1 2 3 3 2 3 2 1 2 2 2 2 
+4 3 
+
+Variable Usage, last iteration (var:count):
+(1: 16) (2: 10) (3: 7) (4: 5) (5: 10) 
+(6: 13) (7: 7) (8: 5) (9: 9) (10: 10) 
+(11: 7) (12: 9) (13: 7) (14: 7) (15: 7) 
+(16: 7) (17: 8) (18: 3) (19: 6) (20: 10) 
+(21: 8) (22: 4) (23: 30) (24: 6) (25: 6) 
+(26: 5) (27: 5) (28: 8) (29: 7) (30: 7) 
+(31: 12) (32: 9) (33: 6) (34: 15) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000325
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2528
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 12.639976, curr sigma: 12.639976
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.243884
+
+Tree sizes, last iteration:
+[1] 1 3 2 4 2 3 3 2 4 2 3 2 2 2 6 1 2 3 
+2 3 2 3 2 4 2 2 2 2 3 2 2 2 2 2 4 4 2 3 
+2 2 2 3 2 2 2 4 2 5 2 2 1 8 3 2 2 2 2 2 
+2 2 1 3 3 2 2 2 2 3 6 3 4 2 4 2 2 2 2 4 
+2 5 2 3 3 5 2 1 2 2 3 2 3 4 2 2 2 2 2 4 
+2 2 4 3 3 3 2 2 6 2 4 3 3 2 3 2 3 3 2 2 
+4 3 3 3 2 2 2 2 2 2 9 1 3 2 2 2 3 2 4 2 
+2 2 3 2 2 2 2 2 5 3 4 3 1 3 2 3 2 2 2 3 
+2 9 4 2 2 2 3 1 2 2 3 2 2 2 3 2 2 2 2 2 
+5 1 2 3 2 3 3 2 2 2 2 2 2 3 2 2 3 1 2 4 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 18) (2: 9) (3: 8) (4: 8) (5: 8) 
+(6: 16) (7: 7) (8: 6) (9: 8) (10: 3) 
+(11: 12) (12: 8) (13: 6) (14: 10) (15: 5) 
+(16: 8) (17: 6) (18: 9) (19: 6) (20: 12) 
+(21: 5) (22: 9) (23: 41) (24: 8) (25: 4) 
+(26: 6) (27: 7) (28: 7) (29: 10) (30: 7) 
+(31: 14) (32: 6) (33: 10) (34: 12) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000376
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1264
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.474925, curr sigma: 13.474925
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.110434
+
+Tree sizes, last iteration:
+[1] 1 3 2 2 2 2 2 2 2 2 2 1 3 2 2 3 3 3 
+2 2 4 3 2 4 2 5 2 2 4 2 3 2 2 3 2 2 2 2 
+3 2 2 2 4 3 2 2 2 3 2 2 4 2 2 2 2 3 2 1 
+2 3 2 3 3 2 4 2 2 2 2 2 3 2 3 2 3 2 2 3 
+5 3 3 2 1 2 2 2 8 5 2 2 2 2 2 2 2 2 2 2 
+2 3 2 3 2 4 2 2 3 2 2 6 2 2 2 2 1 3 2 2 
+2 2 4 2 2 3 1 2 2 2 2 2 2 4 3 2 5 2 3 4 
+7 3 2 2 2 3 2 2 2 4 2 2 3 2 2 3 3 2 3 2 
+2 2 1 7 2 3 2 1 3 2 3 3 3 3 2 3 2 3 4 2 
+2 2 4 2 2 2 4 2 2 2 2 2 2 3 2 2 4 2 4 3 
+3 3 
+
+Variable Usage, last iteration (var:count):
+(1: 16) (2: 13) (3: 8) (4: 7) (5: 10) 
+(6: 17) (7: 9) (8: 5) (9: 7) (10: 3) 
+(11: 5) (12: 11) (13: 7) (14: 8) (15: 6) 
+(16: 7) (17: 9) (18: 6) (19: 6) (20: 10) 
+(21: 7) (22: 4) (23: 28) (24: 5) (25: 7) 
+(26: 13) (27: 9) (28: 10) (29: 7) (30: 6) 
+(31: 14) (32: 7) (33: 3) (34: 12) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000560
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1264
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 11.762052, curr sigma: 11.762052
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.598699
+
+Tree sizes, last iteration:
+[1] 3 2 2 2 5 1 2 2 3 2 3 2 2 2 2 2 2 2 
+3 2 2 2 2 2 3 1 2 2 3 4 2 2 3 2 3 6 2 2 
+2 2 2 2 3 2 3 3 2 2 2 3 3 3 2 4 2 3 2 2 
+3 3 3 2 2 3 2 4 3 2 2 2 6 2 2 2 3 2 4 2 
+2 2 2 2 2 2 2 3 3 3 2 2 2 3 2 3 2 2 6 2 
+3 2 2 3 2 2 2 5 5 3 5 2 3 3 3 2 2 2 2 3 
+2 4 2 2 2 4 2 3 2 2 3 2 2 2 2 2 2 2 2 2 
+2 2 3 2 2 2 2 2 2 2 2 3 4 3 4 5 2 1 4 2 
+2 2 2 4 3 2 5 2 3 2 2 2 3 2 2 5 4 3 4 2 
+2 3 3 1 5 2 2 2 2 1 1 2 4 2 5 2 3 3 2 2 
+3 3 
+
+Variable Usage, last iteration (var:count):
+(1: 19) (2: 9) (3: 9) (4: 14) (5: 10) 
+(6: 14) (7: 9) (8: 5) (9: 3) (10: 6) 
+(11: 6) (12: 5) (13: 4) (14: 6) (15: 9) 
+(16: 7) (17: 3) (18: 9) (19: 7) (20: 16) 
+(21: 15) (22: 8) (23: 32) (24: 3) (25: 10) 
+(26: 12) (27: 5) (28: 9) (29: 8) (30: 3) 
+(31: 9) (32: 6) (33: 14) (34: 3) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000362
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 5486
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.776942, curr sigma: 13.776942
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 5.820738
+
+Tree sizes, last iteration:
+[1] 1 1 2 2 3 2 2 4 2 2 2 2 2 2 5 2 6 2 
+1 5 3 9 2 3 2 2 2 2 2 2 3 2 2 2 2 2 2 2 
+4 2 2 2 3 2 2 2 5 2 3 2 2 3 5 4 2 4 2 2 
+2 2 2 3 3 2 2 4 2 4 2 3 2 4 2 2 4 2 2 2 
+2 5 2 3 2 2 3 3 3 7 3 6 2 2 2 2 1 2 6 3 
+2 2 2 4 2 3 2 3 2 2 4 2 4 3 2 2 2 2 3 2 
+3 2 3 7 3 2 1 7 3 4 1 3 2 2 3 4 6 7 2 3 
+3 2 1 2 2 7 4 2 3 2 2 3 4 4 2 2 2 2 5 2 
+3 2 4 2 4 4 7 2 1 2 2 2 6 3 1 5 3 6 9 2 
+2 6 2 3 3 2 2 2 5 1 2 2 6 2 4 3 3 2 4 3 
+2 3 
+
+Variable Usage, last iteration (var:count):
+(1: 26) (2: 14) (3: 8) (4: 13) (5: 12) 
+(6: 23) (7: 6) (8: 5) (9: 7) (10: 2) 
+(11: 10) (12: 14) (13: 6) (14: 9) (15: 11) 
+(16: 7) (17: 4) (18: 9) (19: 7) (20: 11) 
+(21: 8) (22: 6) (23: 44) (24: 5) (25: 6) 
+(26: 10) (27: 9) (28: 6) (29: 12) (30: 9) 
+(31: 22) (32: 13) (33: 10) (34: 7) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000361
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2743
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.305726, curr sigma: 13.305726
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.968922
+
+Tree sizes, last iteration:
+[1] 1 2 4 2 2 2 2 3 2 2 3 3 2 2 1 2 4 2 
+3 2 5 4 2 1 2 2 2 3 1 2 2 2 1 3 2 1 2 2 
+2 3 4 2 2 3 3 3 5 2 2 2 5 3 4 2 2 3 2 2 
+2 2 3 2 2 4 2 2 2 2 2 2 3 3 4 3 2 3 2 2 
+2 2 1 2 2 3 5 2 3 2 1 2 1 3 2 5 2 2 1 2 
+2 3 2 2 3 2 2 3 3 5 3 5 1 2 10 2 2 2 2 4 
+2 3 2 3 2 2 2 5 3 2 3 2 2 2 2 2 6 2 3 5 
+2 3 2 3 6 2 2 4 4 5 1 2 2 3 4 3 2 7 2 3 
+2 3 2 2 2 3 3 4 3 3 2 3 5 3 3 3 3 2 2 2 
+2 1 1 2 3 4 1 1 2 2 2 2 3 2 2 4 2 2 4 3 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 16) (2: 7) (3: 9) (4: 10) (5: 9) 
+(6: 17) (7: 9) (8: 7) (9: 7) (10: 4) 
+(11: 10) (12: 10) (13: 3) (14: 9) (15: 11) 
+(16: 3) (17: 2) (18: 10) (19: 8) (20: 10) 
+(21: 5) (22: 11) (23: 37) (24: 5) (25: 8) 
+(26: 10) (27: 8) (28: 7) (29: 5) (30: 7) 
+(31: 19) (32: 4) (33: 8) (34: 11) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000388
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2743
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 14.253296, curr sigma: 14.253296
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.947488
+
+Tree sizes, last iteration:
+[1] 1 1 2 4 3 2 3 4 2 2 4 2 2 3 1 1 2 2 
+2 3 2 6 3 3 2 3 2 2 4 2 2 3 2 2 3 2 2 2 
+2 2 2 3 2 2 3 5 2 2 1 2 2 2 3 4 2 1 5 3 
+2 5 4 2 4 2 2 2 2 2 2 3 2 4 2 2 2 2 3 4 
+3 3 2 2 2 2 2 2 4 3 2 2 3 3 2 2 2 2 3 2 
+2 2 3 2 5 1 2 2 2 2 7 2 2 2 7 1 2 2 3 3 
+4 2 3 2 3 2 2 7 2 3 7 2 2 3 3 2 3 2 2 2 
+3 4 7 4 2 3 2 2 2 2 2 5 2 3 2 2 4 2 3 2 
+2 2 2 2 1 2 2 3 2 2 3 2 2 2 8 1 4 3 5 2 
+2 2 2 2 3 2 3 2 2 2 2 3 3 2 2 4 2 3 4 3 
+3 4 
+
+Variable Usage, last iteration (var:count):
+(1: 22) (2: 15) (3: 11) (4: 10) (5: 9) 
+(6: 14) (7: 9) (8: 7) (9: 5) (10: 6) 
+(11: 7) (12: 13) (13: 5) (14: 10) (15: 8) 
+(16: 5) (17: 11) (18: 8) (19: 12) (20: 9) 
+(21: 7) (22: 14) (23: 29) (24: 7) (25: 7) 
+(26: 6) (27: 6) (28: 3) (29: 5) (30: 3) 
+(31: 14) (32: 8) (33: 8) (34: 10) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 5486
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 6.434792
+
+Tree sizes, last iteration:
+[1] 1 3 4 2 2 3 1 3 3 3 2 2 2 1 1 2 3 2 
+2 2 2 3 2 2 1 3 1 2 5 3 2 3 3 2 2 2 2 2 
+4 1 2 3 2 2 3 2 2 1 2 2 3 4 2 2 1 2 2 2 
+2 2 2 2 3 2 2 3 2 2 2 2 2 3 2 2 3 2 4 2 
+1 2 2 2 2 2 2 2 1 2 2 2 3 2 2 3 2 3 2 2 
+3 2 2 2 2 3 2 2 2 2 3 2 2 1 3 2 2 2 1 2 
+2 5 2 2 2 3 2 3 2 2 2 1 2 4 4 3 2 2 2 1 
+3 3 3 2 2 1 4 1 3 2 2 2 2 2 3 4 2 1 2 2 
+2 2 2 3 2 4 5 2 2 1 2 2 2 2 3 3 2 4 3 3 
+2 2 2 3 2 3 3 3 3 2 2 2 2 2 4 2 2 2 3 2 
+2 4 
+
+Variable Usage, last iteration (var:count):
+(1: 21) (2: 8) (3: 8) (4: 20) (5: 9) 
+(6: 5) (7: 9) (8: 7) (9: 9) (10: 8) 
+(11: 7) (12: 1) (13: 10) (14: 5) (15: 6) 
+(16: 1) (17: 2) (18: 3) (19: 4) (20: 13) 
+(21: 10) (22: 6) (23: 9) (24: 5) (25: 12) 
+(26: 4) (27: 11) (28: 6) (29: 3) (30: 13) 
+(31: 8) (32: 3) (33: 6) (34: 6) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2743
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.251266
+
+Tree sizes, last iteration:
+[1] 2 2 2 2 3 2 2 3 2 2 3 2 2 2 3 2 2 3 
+2 2 3 2 1 3 2 4 2 3 3 2 4 2 2 2 2 3 3 2 
+3 2 2 2 2 2 2 2 2 2 2 3 2 2 2 2 2 3 4 3 
+1 3 2 2 3 2 3 3 3 2 3 2 2 1 2 2 3 3 3 2 
+2 2 2 2 2 2 3 2 2 2 2 3 2 2 2 1 2 2 3 3 
+3 3 2 1 3 1 3 2 3 2 3 2 2 2 2 2 3 2 2 2 
+2 2 2 3 3 2 2 2 2 2 2 2 2 2 3 2 3 2 3 3 
+3 2 3 3 1 2 2 2 2 2 2 4 2 3 3 2 3 3 2 3 
+2 2 2 2 1 2 2 2 3 2 3 2 2 3 2 2 4 2 2 4 
+2 2 2 4 3 2 2 2 3 2 3 2 2 2 4 2 1 4 4 2 
+3 2 
+
+Variable Usage, last iteration (var:count):
+(1: 7) (2: 5) (3: 15) (4: 8) (5: 7) 
+(6: 8) (7: 8) (8: 7) (9: 9) (10: 5) 
+(11: 6) (12: 10) (13: 6) (14: 7) (15: 12) 
+(16: 4) (17: 3) (18: 11) (19: 6) (20: 5) 
+(21: 8) (22: 7) (23: 12) (24: 4) (25: 8) 
+(26: 5) (27: 12) (28: 9) (29: 6) (30: 6) 
+(31: 7) (32: 17) (33: 10) (34: 7) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2743
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.263720
+
+Tree sizes, last iteration:
+[1] 2 3 2 4 3 2 3 1 2 2 2 2 2 4 2 2 2 2 
+2 1 3 2 2 2 2 2 3 2 2 2 2 2 2 2 3 2 2 2 
+2 2 2 2 3 2 2 3 4 2 2 3 2 2 2 2 1 3 2 2 
+2 2 2 2 3 2 2 2 2 3 3 2 2 4 2 2 2 2 3 2 
+2 2 2 4 2 4 2 2 5 3 3 2 3 2 2 3 2 2 2 1 
+2 3 4 3 3 2 2 3 2 2 6 1 3 2 2 2 2 2 2 3 
+4 2 3 2 2 2 3 3 2 4 3 3 2 2 3 3 2 3 2 2 
+2 3 3 2 2 2 2 2 3 2 2 3 3 2 2 2 3 2 2 2 
+2 1 3 3 2 2 2 2 2 3 3 4 3 2 2 3 2 2 2 2 
+2 1 2 2 2 2 2 4 2 3 2 1 3 2 2 2 2 2 2 2 
+1 2 
+
+Variable Usage, last iteration (var:count):
+(1: 11) (2: 10) (3: 11) (4: 12) (5: 9) 
+(6: 6) (7: 7) (8: 13) (9: 8) (10: 6) 
+(11: 8) (12: 7) (13: 3) (14: 9) (15: 7) 
+(16: 10) (17: 5) (18: 2) (19: 3) (20: 12) 
+(21: 7) (22: 13) (23: 7) (24: 6) (25: 8) 
+(26: 5) (27: 7) (28: 11) (29: 5) (30: 6) 
+(31: 5) (32: 10) (33: 12) (34: 5) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000448
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2995
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 14.325077, curr sigma: 14.325077
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.217596
+
+Tree sizes, last iteration:
+[1] 1 1 3 2 4 2 3 2 2 2 2 2 2 4 1 2 5 2 
+3 5 2 2 4 3 2 4 2 2 2 3 3 2 2 2 3 2 2 2 
+2 2 3 2 3 2 2 2 3 4 3 2 2 5 5 3 4 3 3 2 
+7 2 5 2 4 3 2 2 2 2 4 3 6 2 2 5 2 2 3 2 
+2 2 2 3 3 2 2 2 4 2 5 2 7 4 2 2 3 5 3 2 
+3 1 2 3 2 2 2 2 2 2 2 3 2 3 1 3 2 6 3 2 
+2 6 5 2 2 3 3 2 2 4 4 2 2 2 2 2 5 2 2 2 
+2 7 2 3 2 2 4 2 4 1 2 3 2 2 3 3 2 3 2 4 
+2 4 3 2 2 3 2 2 2 2 2 2 3 4 3 2 2 2 3 3 
+2 3 2 4 3 3 1 4 3 2 3 2 4 1 2 2 2 2 2 2 
+3 2 
+
+Variable Usage, last iteration (var:count):
+(1: 15) (2: 13) (3: 19) (4: 16) (5: 8) 
+(6: 21) (7: 8) (8: 3) (9: 8) (10: 8) 
+(11: 8) (12: 12) (13: 1) (14: 10) (15: 8) 
+(16: 5) (17: 11) (18: 8) (19: 9) (20: 10) 
+(21: 7) (22: 6) (23: 41) (24: 7) (25: 9) 
+(26: 5) (27: 9) (28: 4) (29: 10) (30: 7) 
+(31: 9) (32: 5) (33: 9) (34: 6) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000509
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1497
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.735139, curr sigma: 13.735139
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.802599
+
+Tree sizes, last iteration:
+[1] 2 2 1 2 2 4 2 2 2 2 4 2 2 2 2 2 3 3 
+2 1 1 1 3 3 2 2 4 4 3 2 3 5 3 2 2 3 2 6 
+2 2 2 2 2 3 3 5 3 4 1 3 3 4 2 2 2 2 2 3 
+2 2 1 2 3 2 2 4 4 2 4 2 2 2 3 3 2 2 8 2 
+2 2 5 3 1 3 2 2 3 2 8 2 2 3 1 2 2 2 2 2 
+2 2 5 3 2 2 2 2 5 4 2 2 4 2 2 2 2 3 3 2 
+2 2 3 4 3 2 2 3 2 2 1 2 3 2 4 3 2 2 3 3 
+2 1 2 3 2 5 2 2 2 2 4 2 2 3 2 3 3 2 3 3 
+2 2 2 2 2 2 2 4 2 3 2 2 2 3 2 2 2 3 2 2 
+1 2 2 2 2 1 2 2 1 2 2 4 1 3 6 2 2 3 2 1 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 15) (2: 9) (3: 11) (4: 10) (5: 7) 
+(6: 10) (7: 6) (8: 6) (9: 7) (10: 4) 
+(11: 9) (12: 10) (13: 6) (14: 5) (15: 8) 
+(16: 6) (17: 8) (18: 8) (19: 12) (20: 9) 
+(21: 7) (22: 2) (23: 30) (24: 5) (25: 15) 
+(26: 7) (27: 9) (28: 6) (29: 9) (30: 6) 
+(31: 14) (32: 7) (33: 9) (34: 5) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000498
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1498
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 14.938423, curr sigma: 14.938423
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.824856
+
+Tree sizes, last iteration:
+[1] 2 2 2 2 2 2 2 3 3 2 2 3 2 2 3 2 3 2 
+3 2 2 3 3 6 4 2 2 2 2 2 2 3 4 2 2 3 3 2 
+1 3 2 4 3 2 3 5 4 3 2 2 2 3 2 3 2 2 3 2 
+2 2 3 2 2 2 2 2 2 1 2 2 3 3 2 2 2 3 2 3 
+4 2 2 2 3 1 2 4 2 2 2 3 3 4 2 3 2 2 5 2 
+2 2 2 4 6 2 2 2 3 2 2 2 4 3 1 2 6 2 3 3 
+3 2 2 2 2 3 3 2 3 2 2 3 3 6 2 2 2 2 2 2 
+4 5 4 2 2 2 2 3 2 2 2 2 1 5 3 2 3 2 4 2 
+3 2 5 3 4 2 1 1 3 2 3 6 2 2 1 3 2 2 4 3 
+3 3 2 2 2 3 2 2 5 3 1 2 2 2 1 3 3 4 3 2 
+2 3 
+
+Variable Usage, last iteration (var:count):
+(1: 15) (2: 15) (3: 12) (4: 14) (5: 10) 
+(6: 16) (7: 7) (8: 11) (9: 9) (10: 5) 
+(11: 9) (12: 12) (13: 4) (14: 12) (15: 3) 
+(16: 3) (17: 10) (18: 9) (19: 6) (20: 14) 
+(21: 4) (22: 3) (23: 30) (24: 7) (25: 4) 
+(26: 4) (27: 8) (28: 5) (29: 8) (30: 12) 
+(31: 11) (32: 5) (33: 11) (34: 4) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000373
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2531
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 10.843501, curr sigma: 10.843501
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.852664
+
+Tree sizes, last iteration:
+[1] 1 1 3 3 2 3 2 1 3 2 2 2 3 5 4 2 2 2 
+2 2 2 2 2 2 2 2 2 2 3 2 3 3 2 2 3 4 2 5 
+3 2 2 2 2 3 2 2 2 1 2 2 5 2 2 3 2 3 2 2 
+4 2 2 3 3 5 5 2 4 3 4 2 4 3 2 4 3 6 2 2 
+2 2 2 2 3 9 4 4 3 2 2 2 2 3 3 2 2 3 2 2 
+2 2 3 1 2 8 2 2 8 3 7 2 7 2 3 4 3 5 3 2 
+5 2 2 3 2 5 4 2 2 2 2 2 2 2 2 2 2 3 2 2 
+2 2 3 5 4 3 2 3 2 2 2 4 5 2 3 2 3 3 2 3 
+2 4 2 1 2 4 2 3 2 5 3 2 3 3 2 2 2 2 2 3 
+2 2 2 6 2 2 4 2 2 2 2 2 2 2 2 1 2 3 1 3 
+2 3 
+
+Variable Usage, last iteration (var:count):
+(1: 21) (2: 7) (3: 11) (4: 16) (5: 12) 
+(6: 18) (7: 8) (8: 6) (9: 11) (10: 10) 
+(11: 9) (12: 12) (13: 10) (14: 12) (15: 6) 
+(16: 6) (17: 6) (18: 3) (19: 10) (20: 12) 
+(21: 5) (22: 6) (23: 31) (24: 8) (25: 8) 
+(26: 7) (27: 6) (28: 6) (29: 11) (30: 7) 
+(31: 10) (32: 11) (33: 8) (34: 9) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000447
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1265
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 11.831638, curr sigma: 11.831638
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.627488
+
+Tree sizes, last iteration:
+[1] 3 2 2 6 8 2 2 3 1 2 3 1 2 2 2 2 2 4 
+3 2 1 2 3 2 5 3 3 2 3 2 1 3 3 2 2 3 2 2 
+5 5 1 2 2 2 3 4 2 2 2 2 2 2 1 2 4 1 2 2 
+5 2 3 2 1 3 2 2 3 2 3 2 2 2 2 2 1 2 2 3 
+1 4 2 4 2 3 2 2 2 3 2 2 2 2 2 2 2 2 2 2 
+2 2 2 2 2 2 3 2 3 3 4 2 3 2 2 2 2 8 2 2 
+1 2 2 3 2 3 2 1 2 1 2 2 3 2 3 3 2 2 5 2 
+2 1 3 2 3 4 2 2 2 2 2 2 2 2 3 2 2 2 2 2 
+3 2 2 2 2 3 3 4 2 2 2 2 4 2 3 4 3 3 5 4 
+3 2 2 3 3 2 3 2 2 3 4 3 2 2 2 3 2 2 2 2 
+4 3 
+
+Variable Usage, last iteration (var:count):
+(1: 19) (2: 10) (3: 5) (4: 12) (5: 9) 
+(6: 15) (7: 8) (8: 6) (9: 10) (10: 5) 
+(11: 11) (12: 10) (13: 7) (14: 5) (15: 6) 
+(16: 8) (17: 2) (18: 4) (19: 3) (20: 8) 
+(21: 10) (22: 11) (23: 27) (24: 7) (25: 5) 
+(26: 5) (27: 3) (28: 11) (29: 10) (30: 8) 
+(31: 8) (32: 9) (33: 5) (34: 9) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000586
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1266
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 9.744547, curr sigma: 9.744547
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.593409
+
+Tree sizes, last iteration:
+[1] 2 2 2 3 3 2 3 3 3 2 3 3 2 2 2 2 3 1 
+3 2 3 1 3 1 3 3 2 6 2 3 2 2 2 2 3 3 2 2 
+2 2 2 1 3 2 3 2 2 2 2 3 2 2 1 2 2 2 2 3 
+2 2 2 2 2 3 2 2 3 2 2 1 2 2 3 1 2 4 2 5 
+3 2 2 2 2 3 3 2 2 2 2 2 2 2 2 2 3 3 2 3 
+3 3 2 3 2 2 2 2 2 1 2 3 3 3 2 2 2 6 2 3 
+2 3 2 2 3 2 3 2 4 3 3 2 3 2 2 2 3 2 2 2 
+3 2 3 2 3 2 3 2 4 3 2 3 2 2 3 3 1 4 2 3 
+2 3 2 2 4 3 2 2 4 1 2 3 2 4 2 2 5 2 4 1 
+2 2 4 2 5 1 3 5 6 2 1 3 3 2 2 2 3 3 2 4 
+3 2 
+
+Variable Usage, last iteration (var:count):
+(1: 16) (2: 9) (3: 12) (4: 13) (5: 11) 
+(6: 13) (7: 8) (8: 7) (9: 9) (10: 5) 
+(11: 13) (12: 10) (13: 3) (14: 9) (15: 12) 
+(16: 4) (17: 2) (18: 9) (19: 6) (20: 10) 
+(21: 11) (22: 3) (23: 23) (24: 6) (25: 5) 
+(26: 4) (27: 11) (28: 4) (29: 8) (30: 4) 
+(31: 8) (32: 7) (33: 8) (34: 9) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000386
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 5526
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.292666, curr sigma: 13.292666
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 5.898426
+
+Tree sizes, last iteration:
+[1] 1 4 5 2 3 1 5 2 8 2 2 2 2 3 2 4 2 2 
+2 3 2 2 4 6 5 2 4 3 4 2 3 2 4 4 1 2 2 3 
+3 4 3 2 3 3 2 2 2 3 3 2 5 1 1 2 6 3 2 2 
+3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 6 4 3 2 
+4 2 6 6 2 4 2 2 5 2 2 2 4 3 2 3 4 2 2 2 
+2 5 2 2 2 4 2 2 1 6 3 3 2 2 2 3 2 2 2 6 
+3 5 2 2 2 8 2 2 3 2 2 3 2 3 5 2 3 3 2 2 
+2 2 5 2 2 2 6 8 6 2 2 3 5 2 2 3 2 3 2 2 
+6 5 2 2 1 2 3 1 2 3 5 3 2 2 2 3 3 3 2 4 
+2 1 2 2 2 2 2 4 2 4 2 2 2 2 2 2 1 2 2 3 
+5 3 
+
+Variable Usage, last iteration (var:count):
+(1: 24) (2: 12) (3: 5) (4: 7) (5: 13) 
+(6: 25) (7: 6) (8: 5) (9: 4) (10: 6) 
+(11: 12) (12: 15) (13: 4) (14: 3) (15: 6) 
+(16: 5) (17: 9) (18: 10) (19: 10) (20: 15) 
+(21: 12) (22: 3) (23: 43) (24: 6) (25: 13) 
+(26: 7) (27: 6) (28: 5) (29: 14) (30: 10) 
+(31: 15) (32: 13) (33: 9) (34: 6) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000423
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2763
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.910426, curr sigma: 13.910426
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.984396
+
+Tree sizes, last iteration:
+[1] 3 3 2 2 1 4 2 2 3 2 3 2 2 3 2 2 3 4 
+3 2 2 3 4 4 1 2 2 3 4 8 2 5 1 2 2 2 3 4 
+5 2 2 3 4 2 1 2 2 3 2 2 2 2 2 3 2 4 5 2 
+7 3 3 6 2 2 3 2 2 2 2 4 2 2 2 4 8 2 2 2 
+2 2 2 3 2 2 3 2 4 3 3 5 2 2 2 3 3 2 3 2 
+2 5 2 4 1 2 2 2 3 3 2 2 2 2 6 3 4 3 2 4 
+5 1 2 2 2 2 3 3 2 2 2 2 4 4 3 4 2 2 2 2 
+5 2 3 2 3 5 3 3 3 2 3 2 2 2 4 2 2 3 3 2 
+3 2 2 2 2 2 2 3 3 4 2 3 2 2 2 4 2 3 2 2 
+2 3 2 3 3 2 2 3 2 3 3 4 3 2 2 3 2 4 2 2 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 21) (2: 12) (3: 10) (4: 7) (5: 10) 
+(6: 19) (7: 5) (8: 2) (9: 5) (10: 8) 
+(11: 4) (12: 10) (13: 5) (14: 10) (15: 10) 
+(16: 10) (17: 11) (18: 8) (19: 12) (20: 14) 
+(21: 12) (22: 8) (23: 35) (24: 11) (25: 9) 
+(26: 4) (27: 9) (28: 6) (29: 10) (30: 4) 
+(31: 12) (32: 7) (33: 13) (34: 5) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000375
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2763
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 12.664468, curr sigma: 12.664468
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.179532
+
+Tree sizes, last iteration:
+[1] 1 3 4 2 3 2 3 2 4 4 3 3 5 2 1 3 4 4 
+2 2 5 2 6 3 2 2 2 6 3 3 4 2 2 5 2 4 1 2 
+2 2 4 3 2 2 4 3 2 2 2 2 3 2 3 3 2 3 2 2 
+3 2 2 4 2 2 2 3 2 4 3 2 3 2 2 2 2 2 2 2 
+2 2 2 3 2 2 2 2 3 1 3 3 2 3 3 2 2 3 3 2 
+2 5 2 3 4 2 3 2 3 1 3 2 3 4 3 3 2 2 2 2 
+2 2 2 2 2 2 2 2 2 2 2 3 3 4 3 2 5 4 2 4 
+2 2 3 2 2 2 2 3 2 3 2 2 2 2 2 3 4 2 2 2 
+2 2 4 1 2 3 4 2 6 2 2 4 2 2 4 5 2 3 4 3 
+6 2 2 7 3 3 2 2 2 2 3 3 2 2 3 2 4 2 2 3 
+4 6 
+
+Variable Usage, last iteration (var:count):
+(1: 17) (2: 10) (3: 13) (4: 7) (5: 14) 
+(6: 20) (7: 4) (8: 9) (9: 6) (10: 3) 
+(11: 6) (12: 12) (13: 4) (14: 8) (15: 6) 
+(16: 5) (17: 7) (18: 11) (19: 6) (20: 10) 
+(21: 7) (22: 7) (23: 36) (24: 6) (25: 7) 
+(26: 7) (27: 9) (28: 5) (29: 17) (30: 10) 
+(31: 13) (32: 13) (33: 12) (34: 8) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 5526
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 6.536490
+
+Tree sizes, last iteration:
+[1] 3 3 1 2 2 3 2 2 3 2 2 2 2 1 2 2 1 2 
+2 3 4 2 3 1 2 2 2 3 2 2 2 2 2 2 4 3 2 3 
+2 2 2 4 2 2 2 4 2 2 2 1 2 3 2 2 2 2 3 2 
+3 2 3 2 2 2 1 3 2 2 4 2 3 3 3 2 2 1 2 3 
+2 2 3 2 2 2 3 2 2 2 2 2 2 2 3 3 2 3 3 2 
+2 2 2 2 2 2 3 2 2 2 3 2 2 2 2 2 2 3 2 2 
+2 2 5 3 3 2 3 1 2 3 1 2 2 2 2 2 2 4 4 2 
+2 2 2 2 2 2 3 3 2 3 2 2 2 2 2 2 2 2 3 2 
+2 3 2 2 2 2 2 3 1 1 3 2 3 3 1 2 2 2 3 2 
+2 3 2 2 2 3 2 2 3 2 2 2 3 2 2 2 2 3 2 2 
+2 4 
+
+Variable Usage, last iteration (var:count):
+(1: 18) (2: 9) (3: 5) (4: 6) (5: 7) 
+(6: 8) (7: 10) (8: 6) (9: 8) (10: 7) 
+(11: 5) (12: 7) (13: 6) (14: 10) (15: 9) 
+(16: 9) (17: 7) (18: 7) (19: 6) (20: 8) 
+(21: 9) (22: 7) (23: 4) (24: 5) (25: 8) 
+(26: 9) (27: 8) (28: 4) (29: 8) (30: 7) 
+(31: 9) (32: 4) (33: 7) (34: 6) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2763
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.304347
+
+Tree sizes, last iteration:
+[1] 2 2 2 2 2 2 5 2 2 2 3 2 3 2 2 2 2 3 
+2 2 2 3 2 2 3 2 2 2 4 2 2 2 2 2 2 2 3 3 
+3 2 2 3 1 3 3 3 2 1 2 2 1 4 2 4 3 2 2 2 
+2 4 3 3 2 3 3 3 2 2 2 2 1 2 2 2 4 2 2 2 
+2 2 2 1 2 2 2 2 2 1 1 4 2 2 2 2 2 2 2 2 
+2 2 3 3 2 3 2 3 2 3 2 2 1 2 4 2 4 2 2 2 
+2 2 2 3 2 2 1 2 2 2 2 3 2 3 2 4 2 1 2 2 
+4 3 2 2 2 2 2 3 2 4 2 4 2 3 3 2 3 2 2 2 
+2 3 4 2 2 3 2 1 2 1 2 2 2 2 2 3 3 2 4 2 
+2 2 2 1 3 2 2 2 2 2 3 2 2 4 2 2 1 3 2 2 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 12) (2: 7) (3: 8) (4: 8) (5: 7) 
+(6: 8) (7: 4) (8: 5) (9: 4) (10: 7) 
+(11: 8) (12: 7) (13: 7) (14: 8) (15: 10) 
+(16: 11) (17: 7) (18: 5) (19: 6) (20: 6) 
+(21: 7) (22: 13) (23: 9) (24: 6) (25: 7) 
+(26: 7) (27: 6) (28: 1) (29: 10) (30: 8) 
+(31: 11) (32: 6) (33: 8) (34: 13) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2763
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.263452
+
+Tree sizes, last iteration:
+[1] 3 2 2 2 4 3 2 3 1 2 4 2 2 2 2 2 3 2 
+2 2 2 2 3 2 3 2 3 3 3 3 2 2 2 3 2 2 2 2 
+2 3 2 2 3 2 2 2 3 2 2 2 2 3 2 3 2 2 3 2 
+2 2 2 2 2 2 2 2 3 2 2 2 3 2 2 2 2 6 2 2 
+4 2 2 4 2 2 2 3 2 2 3 1 2 3 4 2 2 2 2 2 
+3 2 2 3 3 3 2 3 2 2 3 3 2 2 2 3 3 1 2 2 
+3 3 2 2 3 2 2 2 2 2 1 2 2 2 2 2 2 5 2 4 
+2 3 3 2 2 2 3 3 2 2 3 3 3 2 4 2 2 2 3 4 
+2 2 3 2 3 3 1 2 2 2 2 3 2 3 2 2 1 2 3 2 
+2 2 3 3 2 2 4 3 2 2 3 3 2 2 4 2 3 2 4 2 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 10) (2: 6) (3: 12) (4: 10) (5: 15) 
+(6: 10) (7: 4) (8: 9) (9: 8) (10: 9) 
+(11: 9) (12: 12) (13: 6) (14: 8) (15: 8) 
+(16: 5) (17: 6) (18: 4) (19: 7) (20: 13) 
+(21: 11) (22: 6) (23: 8) (24: 4) (25: 2) 
+(26: 5) (27: 12) (28: 7) (29: 5) (30: 16) 
+(31: 10) (32: 6) (33: 7) (34: 7) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000480
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2994
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.831562, curr sigma: 13.831562
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.283379
+
+Tree sizes, last iteration:
+[1] 1 2 8 2 2 3 2 2 3 2 2 2 2 2 3 2 2 6 
+1 2 3 2 2 5 3 2 2 2 2 2 2 3 2 2 3 1 1 2 
+5 2 3 3 2 2 2 2 2 2 1 5 2 1 2 4 3 2 3 3 
+2 1 3 2 2 2 4 3 3 2 3 2 3 5 2 5 3 4 2 2 
+2 2 2 1 3 2 3 1 4 4 2 2 4 5 3 3 4 2 1 4 
+2 3 2 2 3 2 12 2 2 2 2 4 2 3 2 2 3 2 4 3 
+2 3 2 2 2 2 3 3 2 2 3 2 5 5 2 2 2 3 2 2 
+2 5 4 2 3 2 1 2 6 4 2 2 2 2 3 2 3 2 2 6 
+2 2 2 5 4 2 3 4 3 2 2 2 4 3 2 2 2 3 3 2 
+3 4 2 2 6 2 2 2 2 7 3 2 2 2 2 2 3 4 2 2 
+3 2 
+
+Variable Usage, last iteration (var:count):
+(1: 26) (2: 7) (3: 9) (4: 12) (5: 10) 
+(6: 15) (7: 9) (8: 7) (9: 4) (10: 7) 
+(11: 7) (12: 13) (13: 4) (14: 7) (15: 13) 
+(16: 9) (17: 11) (18: 5) (19: 5) (20: 13) 
+(21: 12) (22: 5) (23: 38) (24: 7) (25: 5) 
+(26: 8) (27: 11) (28: 5) (29: 13) (30: 5) 
+(31: 13) (32: 7) (33: 6) (34: 6) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000514
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1497
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 14.306524, curr sigma: 14.306524
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.817074
+
+Tree sizes, last iteration:
+[1] 2 1 3 2 2 2 2 4 3 3 2 2 2 3 4 2 2 4 
+2 2 5 2 3 3 2 2 3 6 2 2 2 2 2 4 2 5 2 4 
+2 3 2 2 1 2 2 2 2 2 3 4 2 2 3 2 3 2 2 3 
+2 3 1 2 3 2 2 3 2 2 3 2 4 3 2 2 2 6 3 2 
+2 3 3 4 3 3 3 2 3 3 2 2 2 2 2 2 2 2 3 3 
+3 2 2 2 2 2 3 4 3 3 3 2 2 3 2 3 3 2 4 2 
+2 2 2 2 3 3 2 3 3 3 3 4 2 2 1 3 2 2 5 4 
+2 2 2 2 3 4 2 2 2 2 3 3 3 3 2 3 3 2 2 3 
+4 2 2 3 3 2 2 2 2 2 3 2 2 3 3 5 4 6 2 2 
+3 2 4 2 2 2 2 3 2 4 2 6 2 3 2 2 2 3 1 3 
+1 4 
+
+Variable Usage, last iteration (var:count):
+(1: 20) (2: 9) (3: 7) (4: 7) (5: 8) 
+(6: 16) (7: 3) (8: 8) (9: 10) (10: 4) 
+(11: 8) (12: 11) (13: 7) (14: 6) (15: 16) 
+(16: 10) (17: 15) (18: 9) (19: 10) (20: 10) 
+(21: 13) (22: 7) (23: 28) (24: 3) (25: 4) 
+(26: 4) (27: 6) (28: 7) (29: 13) (30: 0) 
+(31: 14) (32: 12) (33: 6) (34: 7) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000627
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1497
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.417128, curr sigma: 13.417128
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.818034
+
+Tree sizes, last iteration:
+[1] 4 1 2 2 3 3 1 3 2 2 3 2 3 2 3 2 3 2 
+2 1 3 2 3 2 2 2 3 2 2 3 1 2 2 2 3 3 2 2 
+4 4 2 6 3 3 2 2 2 2 3 3 4 4 2 2 4 2 7 2 
+2 1 3 3 2 2 2 4 1 2 3 2 3 4 3 2 2 4 7 2 
+6 2 4 2 2 2 3 2 2 2 2 3 2 1 3 2 2 2 2 6 
+3 1 2 2 4 3 2 5 2 3 2 2 4 1 2 4 2 1 2 2 
+2 2 2 2 3 3 3 2 2 3 2 2 5 4 2 2 3 4 2 5 
+2 3 1 3 3 3 5 2 1 3 2 4 2 2 2 2 2 3 2 5 
+2 3 2 1 4 1 2 3 3 3 4 2 3 2 2 3 1 2 2 2 
+5 2 1 2 3 2 3 2 2 2 2 2 2 3 3 4 2 2 3 3 
+5 4 
+
+Variable Usage, last iteration (var:count):
+(1: 20) (2: 20) (3: 5) (4: 10) (5: 7) 
+(6: 14) (7: 8) (8: 7) (9: 3) (10: 8) 
+(11: 5) (12: 11) (13: 8) (14: 7) (15: 10) 
+(16: 7) (17: 4) (18: 8) (19: 9) (20: 15) 
+(21: 13) (22: 12) (23: 36) (24: 5) (25: 8) 
+(26: 4) (27: 9) (28: 5) (29: 10) (30: 9) 
+(31: 8) (32: 4) (33: 6) (34: 3) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000544
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2473
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 10.464827, curr sigma: 10.464827
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.719395
+
+Tree sizes, last iteration:
+[1] 2 2 1 3 6 2 3 2 1 2 2 2 2 2 2 2 2 3 
+2 3 3 3 4 2 2 3 2 2 3 2 3 2 2 2 3 3 3 2 
+2 4 4 2 3 2 3 2 1 3 2 2 2 4 3 3 3 2 3 2 
+2 4 4 3 4 3 3 2 2 2 6 2 2 3 4 2 2 2 2 2 
+2 2 2 2 2 2 2 4 4 2 2 3 4 2 2 2 3 2 3 2 
+3 3 3 2 2 2 1 2 2 3 2 2 1 2 5 4 2 3 2 1 
+2 8 2 2 2 1 2 2 3 2 2 2 2 2 1 2 3 1 2 4 
+2 3 2 2 2 3 4 2 2 4 2 2 7 2 2 6 3 4 2 2 
+5 2 2 1 1 3 2 2 3 2 3 3 2 5 3 6 5 3 4 2 
+2 6 2 2 5 2 4 2 2 1 2 1 2 2 2 2 1 2 2 4 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 18) (2: 9) (3: 11) (4: 2) (5: 8) 
+(6: 15) (7: 9) (8: 7) (9: 6) (10: 6) 
+(11: 5) (12: 12) (13: 14) (14: 8) (15: 8) 
+(16: 6) (17: 8) (18: 7) (19: 9) (20: 7) 
+(21: 12) (22: 6) (23: 37) (24: 3) (25: 8) 
+(26: 6) (27: 7) (28: 8) (29: 10) (30: 5) 
+(31: 13) (32: 12) (33: 5) (34: 5) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000619
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1236
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 10.458230, curr sigma: 10.458230
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.573928
+
+Tree sizes, last iteration:
+[1] 2 2 3 2 2 2 2 2 2 1 5 2 1 2 2 2 3 4 
+2 1 3 2 2 2 2 2 2 2 2 3 2 2 2 3 2 3 3 2 
+2 6 2 2 2 3 3 3 3 2 2 2 2 2 3 2 2 2 2 4 
+4 2 2 2 3 2 2 2 4 2 3 3 2 2 4 5 2 5 2 1 
+2 3 2 2 2 2 2 2 2 4 2 4 3 2 3 2 2 2 2 2 
+2 2 2 2 4 2 3 4 1 1 3 1 2 3 2 5 2 2 4 2 
+3 2 2 2 2 3 2 2 3 8 2 3 2 3 2 2 2 2 2 2 
+2 3 2 3 1 1 3 2 4 3 2 3 1 3 4 2 1 2 3 3 
+2 2 2 2 4 3 4 2 2 2 2 2 2 1 3 2 2 2 3 2 
+2 3 2 3 2 4 2 2 2 6 3 3 2 2 2 1 2 3 3 1 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 12) (2: 5) (3: 10) (4: 5) (5: 9) 
+(6: 10) (7: 6) (8: 5) (9: 11) (10: 9) 
+(11: 8) (12: 8) (13: 7) (14: 8) (15: 17) 
+(16: 10) (17: 9) (18: 5) (19: 8) (20: 6) 
+(21: 13) (22: 4) (23: 30) (24: 3) (25: 7) 
+(26: 6) (27: 10) (28: 3) (29: 5) (30: 7) 
+(31: 10) (32: 6) (33: 8) (34: 5) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000541
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 1237
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 10.436332, curr sigma: 10.436332
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 1.560654
+
+Tree sizes, last iteration:
+[1] 2 3 2 2 1 2 2 3 4 1 5 1 7 2 2 4 2 2 
+2 2 5 2 3 1 3 3 2 2 3 3 1 3 2 2 2 2 3 6 
+1 4 3 3 2 2 3 3 2 2 2 2 2 3 1 4 2 2 4 2 
+3 2 2 2 2 2 2 2 2 2 2 3 3 4 3 2 3 3 2 3 
+3 3 2 3 2 3 2 2 3 5 5 2 3 2 2 2 2 2 2 2 
+2 2 2 2 2 2 3 1 2 5 2 2 3 2 3 2 2 3 2 5 
+2 4 2 2 2 5 2 4 4 2 2 2 3 2 2 4 2 3 2 2 
+3 2 2 2 2 3 3 5 2 2 2 2 2 3 2 2 2 4 3 2 
+2 3 2 4 3 3 2 2 2 2 2 2 4 2 2 2 2 2 2 2 
+2 2 3 2 2 2 2 2 2 3 2 2 2 2 2 2 2 2 2 2 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 20) (2: 9) (3: 12) (4: 9) (5: 8) 
+(6: 13) (7: 3) (8: 4) (9: 10) (10: 1) 
+(11: 5) (12: 10) (13: 5) (14: 7) (15: 11) 
+(16: 3) (17: 7) (18: 7) (19: 11) (20: 11) 
+(21: 11) (22: 3) (23: 29) (24: 8) (25: 4) 
+(26: 9) (27: 7) (28: 6) (29: 4) (30: 5) 
+(31: 16) (32: 7) (33: 6) (34: 13) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000421
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 5467
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 12.944144, curr sigma: 12.944144
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 5.934472
+
+Tree sizes, last iteration:
+[1] 1 2 4 3 3 2 3 2 1 2 4 2 2 5 3 4 8 4 
+2 2 3 5 3 4 2 1 1 2 2 3 1 3 3 3 1 2 5 2 
+2 2 3 3 2 2 3 5 3 3 1 4 2 5 2 2 2 3 3 2 
+3 3 5 4 3 3 6 2 2 4 2 7 2 8 7 1 2 1 1 3 
+5 2 1 1 4 5 2 6 2 2 3 4 2 2 4 4 4 2 5 3 
+2 2 2 7 4 2 2 3 3 2 2 3 5 2 3 3 2 3 4 2 
+2 5 2 1 3 2 3 2 3 2 3 5 3 3 2 6 1 2 2 2 
+2 4 3 7 2 2 2 2 2 3 4 4 2 3 2 2 3 3 7 2 
+3 2 4 2 2 2 10 3 1 2 5 1 2 4 4 2 2 5 3 3 
+2 6 2 2 2 3 7 3 2 2 3 5 3 6 2 2 4 1 2 2 
+4 2 
+
+Variable Usage, last iteration (var:count):
+(1: 28) (2: 9) (3: 6) (4: 15) (5: 12) 
+(6: 24) (7: 8) (8: 4) (9: 6) (10: 6) 
+(11: 8) (12: 15) (13: 5) (14: 9) (15: 6) 
+(16: 10) (17: 15) (18: 8) (19: 8) (20: 17) 
+(21: 13) (22: 5) (23: 61) (24: 9) (25: 5) 
+(26: 6) (27: 11) (28: 7) (29: 13) (30: 7) 
+(31: 11) (32: 6) (33: 10) (34: 10) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000459
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2733
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 12.529921, curr sigma: 12.529921
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 2.958759
+
+Tree sizes, last iteration:
+[1] 1 1 2 2 2 2 2 2 2 2 4 6 2 2 3 2 2 3 
+2 2 2 2 2 5 2 2 2 3 2 2 2 5 2 1 2 2 2 3 
+2 2 4 2 2 2 2 6 3 3 3 2 2 2 2 3 5 1 4 2 
+1 4 3 2 2 2 5 2 2 2 4 3 2 2 2 7 3 4 2 4 
+2 2 3 4 2 4 1 2 2 4 3 2 2 2 3 2 4 2 2 3 
+2 2 6 5 2 2 2 2 2 4 2 4 2 4 2 2 3 2 3 3 
+2 7 3 1 4 2 3 2 2 3 3 2 1 3 2 4 2 2 3 2 
+3 2 2 3 3 4 3 2 2 3 4 4 3 2 3 4 7 2 3 2 
+3 1 2 2 2 3 2 2 3 4 3 2 2 3 3 5 2 2 3 2 
+2 1 3 4 3 4 4 2 2 4 6 3 2 4 3 4 3 3 3 2 
+4 2 
+
+Variable Usage, last iteration (var:count):
+(1: 25) (2: 11) (3: 5) (4: 6) (5: 9) 
+(6: 19) (7: 7) (8: 9) (9: 6) (10: 10) 
+(11: 8) (12: 14) (13: 8) (14: 10) (15: 1) 
+(16: 4) (17: 10) (18: 9) (19: 5) (20: 17) 
+(21: 12) (22: 8) (23: 43) (24: 7) (25: 9) 
+(26: 4) (27: 6) (28: 4) (29: 14) (30: 9) 
+(31: 11) (32: 6) (33: 4) (34: 11) 
+DONE BART
+
+
+Running BART with numeric y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    degrees of freedom in sigma prior: 3.000000
+    quantile in sigma prior: 0.900000
+    scale in sigma prior: 0.000447
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2734
+    number of test observations: 0
+    number of explanatory variables: 34
+    init sigma: 13.342621, curr sigma: 13.342621
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.472750
+
+Tree sizes, last iteration:
+[1] 1 2 5 2 9 4 2 3 5 3 2 2 2 8 2 3 5 1 
+2 2 2 3 3 1 4 4 6 4 4 2 2 2 2 2 2 5 3 2 
+3 3 2 3 1 3 2 2 2 3 2 2 2 3 3 2 4 3 3 2 
+2 1 4 2 2 2 4 3 2 3 2 2 1 3 1 2 1 5 1 2 
+2 2 4 2 2 3 2 3 1 2 3 2 5 3 5 3 2 5 2 2 
+3 2 2 2 1 3 1 2 3 2 2 2 2 2 4 4 3 2 4 2 
+2 2 3 2 3 2 2 3 2 3 2 3 7 2 3 6 6 2 3 2 
+2 2 3 2 1 4 3 2 2 2 2 3 2 2 2 2 2 1 2 5 
+2 2 3 2 2 2 3 3 4 2 2 2 3 2 2 2 2 4 3 3 
+3 2 4 2 2 2 2 3 2 2 2 4 5 7 3 3 2 2 4 2 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 21) (2: 12) (3: 6) (4: 9) (5: 17) 
+(6: 15) (7: 6) (8: 4) (9: 9) (10: 6) 
+(11: 8) (12: 21) (13: 5) (14: 10) (15: 6) 
+(16: 5) (17: 8) (18: 5) (19: 6) (20: 8) 
+(21: 12) (22: 7) (23: 36) (24: 5) (25: 6) 
+(26: 7) (27: 11) (28: 5) (29: 5) (30: 7) 
+(31: 20) (32: 7) (33: 7) (34: 12) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 5467
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 6.716371
+
+Tree sizes, last iteration:
+[1] 2 2 1 2 2 2 2 2 2 2 4 2 5 4 2 2 3 2 
+2 3 2 1 2 2 3 3 2 2 2 3 3 2 3 2 2 2 2 3 
+2 2 3 2 2 2 2 2 2 2 4 2 2 4 1 2 2 2 3 2 
+2 2 4 4 2 3 5 2 2 2 2 2 3 2 3 2 2 2 2 3 
+2 2 3 1 3 2 2 2 3 2 3 2 2 3 2 3 3 2 3 2 
+2 2 2 2 5 2 3 2 1 2 2 2 2 3 2 2 3 2 2 4 
+2 3 3 3 2 2 1 4 2 4 2 4 2 3 2 2 2 2 2 2 
+2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 3 2 3 2 3 
+2 2 2 4 2 2 2 3 4 1 2 2 2 2 2 2 1 3 3 2 
+2 2 3 3 4 2 2 2 2 3 2 2 2 3 2 1 2 3 4 2 
+4 2 
+
+Variable Usage, last iteration (var:count):
+(1: 13) (2: 11) (3: 19) (4: 2) (5: 10) 
+(6: 9) (7: 10) (8: 10) (9: 4) (10: 6) 
+(11: 6) (12: 10) (13: 3) (14: 7) (15: 6) 
+(16: 12) (17: 5) (18: 5) (19: 11) (20: 3) 
+(21: 8) (22: 10) (23: 9) (24: 8) (25: 5) 
+(26: 4) (27: 5) (28: 4) (29: 12) (30: 2) 
+(31: 10) (32: 7) (33: 10) (34: 13) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2733
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.238307
+
+Tree sizes, last iteration:
+[1] 1 1 1 2 2 2 2 1 2 2 2 2 2 2 2 1 2 2 
+1 3 3 3 2 3 2 2 3 2 2 2 2 2 2 2 1 2 3 2 
+3 2 3 2 1 3 2 2 2 2 2 2 2 4 2 2 2 2 3 2 
+2 3 3 2 2 2 2 2 3 3 3 2 2 2 2 2 2 3 2 1 
+2 3 2 2 3 3 2 3 2 3 3 2 2 4 2 2 2 3 2 2 
+2 2 2 3 3 1 2 3 2 2 2 2 3 2 2 4 3 2 2 2 
+1 2 2 2 2 2 3 2 4 2 2 2 2 3 3 2 2 3 2 6 
+3 2 2 1 3 2 2 2 1 2 2 2 2 2 4 5 2 4 3 3 
+2 4 2 2 4 3 3 2 4 2 5 2 2 2 2 3 3 2 2 3 
+4 3 4 3 3 3 3 3 3 2 2 2 2 2 2 3 2 2 2 2 
+3 2 
+
+Variable Usage, last iteration (var:count):
+(1: 11) (2: 7) (3: 11) (4: 20) (5: 8) 
+(6: 9) (7: 5) (8: 9) (9: 6) (10: 4) 
+(11: 7) (12: 8) (13: 8) (14: 11) (15: 5) 
+(16: 9) (17: 8) (18: 2) (19: 5) (20: 4) 
+(21: 9) (22: 7) (23: 10) (24: 1) (25: 3) 
+(26: 11) (27: 1) (28: 13) (29: 5) (30: 8) 
+(31: 9) (32: 11) (33: 14) (34: 10) 
+DONE BART
+
+
+Running BART with binary y
+
+number of trees: 200
+number of chains: 1, number of threads 1
+tree thinning rate: 1
+Prior:
+    k prior fixed to 2.000000
+    power and base for tree prior: 2.000000 0.950000
+    use quantiles for rule cut points: false
+    proposal probabilities: birth/death 0.50, swap 0.10, change 0.40; birth 0.50
+data:
+    number of training observations: 2734
+    number of test observations: 0
+    number of explanatory variables: 34
+
+Cutoff rules c in x&lt;=c vs x&gt;c
+Number of cutoffs: (var: number of possible c):
+(1: 100) (2: 100) (3: 100) (4: 100) (5: 100) 
+(6: 100) (7: 100) (8: 100) (9: 100) (10: 100) 
+(11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
+(16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
+(21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
+(26: 100) (27: 100) (28: 100) (29: 100) (30: 100) 
+(31: 100) (32: 100) (33: 100) (34: 100) 
+offsets:
+    reg : 0.00 0.00 0.00 0.00 0.00
+Running mcmc loop:
+iteration: 100 (of 1000)
+iteration: 200 (of 1000)
+iteration: 300 (of 1000)
+iteration: 400 (of 1000)
+iteration: 500 (of 1000)
+iteration: 600 (of 1000)
+iteration: 700 (of 1000)
+iteration: 800 (of 1000)
+iteration: 900 (of 1000)
+iteration: 1000 (of 1000)
+total seconds in loop: 3.232450
+
+Tree sizes, last iteration:
+[1] 2 2 2 3 2 2 2 3 2 3 2 4 3 1 3 3 1 2 
+3 2 2 3 3 2 3 2 3 4 2 2 2 3 2 3 3 2 2 2 
+3 3 3 2 2 3 2 3 3 2 2 3 2 2 3 2 1 2 2 2 
+2 3 2 2 2 2 2 3 2 1 1 2 2 3 2 2 2 2 2 3 
+3 2 3 2 2 4 2 2 2 2 3 2 2 2 3 2 3 2 3 2 
+1 2 1 2 2 3 2 2 2 2 3 2 2 1 1 4 2 2 2 3 
+3 3 2 3 3 2 2 3 1 2 1 2 2 3 3 2 2 2 2 3 
+2 2 4 2 2 3 2 2 2 2 2 3 2 2 3 3 3 2 4 2 
+2 4 2 2 3 2 2 3 2 2 2 4 2 2 2 2 2 2 3 2 
+2 2 2 2 2 2 4 2 2 3 1 3 2 1 2 3 3 2 2 3 
+2 2 
+
+Variable Usage, last iteration (var:count):
+(1: 16) (2: 12) (3: 8) (4: 14) (5: 11) 
+(6: 9) (7: 7) (8: 7) (9: 4) (10: 4) 
+(11: 7) (12: 6) (13: 8) (14: 6) (15: 6) 
+(16: 3) (17: 6) (18: 6) (19: 4) (20: 7) 
+(21: 7) (22: 10) (23: 7) (24: 5) (25: 7) 
+(26: 4) (27: 7) (28: 4) (29: 5) (30: 10) 
+(31: 14) (32: 8) (33: 11) (34: 11) 
+DONE BART</code></pre>
+</div>
+</div>
+</section>
+<section id="lower" class="level2">
+<h2 class="anchored" data-anchor-id="lower">Lower</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Q <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span><span class="sc">-</span>(<span class="fl">0.05</span><span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span><span class="dv">9</span>)))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>Est <span class="ot">&lt;-</span> <span class="cf">function</span>(q){</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  Q_AIPW <span class="ot">&lt;-</span> <span class="fu">quantile</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    TempData<span class="sc">$</span>PredAIPW, </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">probs =</span> q)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  Q_LinearAIPW <span class="ot">&lt;-</span> <span class="fu">quantile</span>(</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    TempData<span class="sc">$</span>PredLinearAIPW, </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">probs =</span> q)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  Q_R <span class="ot">&lt;-</span> <span class="fu">quantile</span>(</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    TempData<span class="sc">$</span>PredR, </span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">probs =</span> q)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  TempAIPW <span class="ot">&lt;-</span> Q_AIPW <span class="sc">+</span> </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span><span class="sc">/</span>q)<span class="sc">*</span><span class="fu">if_else</span>(</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>PredAIPW <span class="sc">&lt;=</span> Q_AIPW,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>ScoreAIPW<span class="sc">-</span> Q_AIPW,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  TempLinearAIPW <span class="ot">&lt;-</span> Q_LinearAIPW <span class="sc">+</span> </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span><span class="sc">/</span>q)<span class="sc">*</span><span class="fu">if_else</span>(</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>PredLinearAIPW <span class="sc">&lt;=</span> Q_LinearAIPW,</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>ScoreAIPW<span class="sc">-</span> Q_LinearAIPW,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  TempR <span class="ot">&lt;-</span> Q_R <span class="sc">+</span> </span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span><span class="sc">/</span>q)<span class="sc">*</span><span class="fu">if_else</span>(</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>PredR <span class="sc">&lt;=</span> Q_R,</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>ScoreAIPW<span class="sc">-</span> Q_R,</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  TempResult <span class="ot">&lt;-</span> estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    TempAIPW <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    generics<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">Quantile =</span> q,</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">Method =</span> <span class="st">"AIPW with SL"</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span> </span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>      estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    TempLinearAIPW <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>    generics<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>      <span class="at">Quantile =</span> q,</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">Method =</span> <span class="st">"AIPW with OLS"</span></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>      estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>    TempR <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>    generics<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">Quantile =</span> q,</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>      <span class="at">Method =</span> <span class="st">"R"</span></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(TempResult)</span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a><span class="fu">map_dfr</span>(<span class="fu">seq</span>(<span class="fl">0.1</span>,<span class="dv">1</span>,<span class="fl">0.1</span>),Est) <span class="sc">|&gt;</span> </span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> Quantile,</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> estimate,</span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymin =</span> estimate <span class="sc">-</span> Q<span class="sc">*</span>std.error,</span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymax =</span> estimate <span class="sc">+</span> Q<span class="sc">*</span>std.error,</span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> Method,</span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> Method</span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymin =</span> estimate <span class="sc">-</span> <span class="fl">1.96</span><span class="sc">*</span>std.error,</span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymax =</span> estimate <span class="sc">+</span> <span class="fl">1.96</span><span class="sc">*</span>std.error</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.5</span></span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Method)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="R_DiscoverCVFull_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="upper" class="level2">
+<h2 class="anchored" data-anchor-id="upper">Upper</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Est <span class="ot">&lt;-</span> <span class="cf">function</span>(q){</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  Q_AIPW <span class="ot">&lt;-</span> <span class="fu">quantile</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    TempData<span class="sc">$</span>PredAIPW, </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">probs =</span> q)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  Q_LinearAIPW <span class="ot">&lt;-</span> <span class="fu">quantile</span>(</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    TempData<span class="sc">$</span>PredLinearAIPW, </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">probs =</span> q)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  Q_R <span class="ot">&lt;-</span> <span class="fu">quantile</span>(</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    TempData<span class="sc">$</span>PredR, </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">probs =</span> q)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  TempAIPW <span class="ot">&lt;-</span> Q_AIPW <span class="sc">+</span> </span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>q))<span class="sc">*</span><span class="fu">if_else</span>(</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>PredAIPW <span class="sc">&gt;=</span> Q_AIPW,</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>ScoreAIPW<span class="sc">-</span> Q_AIPW,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  TempLinearAIPW <span class="ot">&lt;-</span> Q_LinearAIPW <span class="sc">+</span> </span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>q))<span class="sc">*</span><span class="fu">if_else</span>(</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>PredLinearAIPW <span class="sc">&gt;=</span> Q_LinearAIPW,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>ScoreAIPW<span class="sc">-</span> Q_LinearAIPW,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  TempR <span class="ot">&lt;-</span> Q_R <span class="sc">+</span> </span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>q))<span class="sc">*</span><span class="fu">if_else</span>(</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>PredR <span class="sc">&gt;=</span> Q_R,</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>      TempData<span class="sc">$</span>ScoreAIPW<span class="sc">-</span> Q_R,</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>  TempResult <span class="ot">&lt;-</span> estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    TempAIPW <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    generics<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>      <span class="at">Quantile =</span> q,</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">Method =</span> <span class="st">"AIPW with SL"</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span> </span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>      estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>    TempLinearAIPW <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    generics<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>      <span class="at">Quantile =</span> q,</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>      <span class="at">Method =</span> <span class="st">"AIPW with OLS"</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>      estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>    TempR <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span> </span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>    generics<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>      <span class="at">Quantile =</span> q,</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>      <span class="at">Method =</span> <span class="st">"R"</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(TempResult)</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a><span class="fu">map_dfr</span>(<span class="fu">seq</span>(<span class="dv">0</span>,<span class="fl">0.9</span>,<span class="fl">0.1</span>),Est) <span class="sc">|&gt;</span> </span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(</span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> Quantile,</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> estimate,</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymin =</span> estimate <span class="sc">-</span> Q<span class="sc">*</span>std.error,</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymax =</span> estimate <span class="sc">+</span> Q<span class="sc">*</span>std.error,</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> Method,</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> Method</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymin =</span> estimate <span class="sc">-</span> <span class="fl">1.96</span><span class="sc">*</span>std.error,</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymax =</span> estimate <span class="sc">+</span> <span class="fl">1.96</span><span class="sc">*</span>std.error</span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.5</span></span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Method)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="R_DiscoverCVFull_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

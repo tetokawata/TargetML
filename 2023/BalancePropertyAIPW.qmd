@@ -1,0 +1,142 @@
+---
+title: "NoteAIPW"
+format: html
+---
+
+# Quarto
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  patchwork
+)
+
+SimData <- function(a,i,n){
+  set.seed(i)
+  TempData <- tibble(
+    X = 0,
+    D = 1
+  ) |> 
+    mutate(
+      Y = rnorm(1,0,10)
+    ) |> 
+    bind_rows(
+      tibble(
+        X = rep(0,n),
+        D = sample(0:1,n,replace = TRUE, prob = c(1-a,a))
+        ) |> 
+        mutate(
+          Y = rnorm(n,0,10)
+          )
+      ) |> 
+    bind_rows(
+      tibble(
+        X = 1,
+        D = sample(0:1,n,replace = TRUE)
+        ) |> 
+        mutate(
+          Y = rnorm(n,0,10)
+          )
+    )
+  TempData$id <- seq(1,nrow(TempData),1)
+  return(TempData)
+}
+
+
+
+SimAIPW <- function(a,i,n){
+  TempData <- SimData(a,i,n)
+  OracleY1 <- 1
+  OracleY0 <- 0
+  OracleP <- if_else(
+    SimData(a,i,n)$X == 1,
+    0.5,
+    a
+  )
+  Score <- OracleY1 - OracleY0 + if_else(TempData$D == 1,(TempData$Y - OracleY1)/OracleP,-(TempData$Y - OracleY0)/(1-OracleP))
+  TempResult <- tibble(
+    AIPW =  mean(Score),
+    ID = i,
+    N = n,
+    Type = "AIPW"
+  ) |> 
+    bind_rows(
+      tibble(
+    AIPW =    TempData$Y[1],
+    ID = i,
+    N = n,
+    Type = "Top"
+  )
+    ) |> 
+    mutate(Alpha = a)
+  return(TempResult)
+}
+```
+
+## 100サンプル
+
+```{r}
+N <- 100
+
+map_dfr(1:50,function(i){SimAIPW(0.01,i,N)}) |> 
+  bind_rows(
+    map_dfr(1:50,function(i){SimAIPW(0.5,i,N)})
+  ) |> 
+  bind_rows(
+    map_dfr(1:50,function(i){SimAIPW(0.99,i,N)})
+  ) |> 
+  ggplot(
+    aes(
+      y = ID,
+      x = AIPW,
+      group = ID,
+      color = Type
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_line(
+    color = "black"
+  ) +
+  facet_wrap(
+    ~ Alpha
+  ) +
+  geom_vline(
+    xintercept = 0
+  )
+```
+
+
+## 5000サンプル
+
+```{r}
+N <- 1000
+
+map_dfr(1:50,function(i){SimAIPW(0.01,i,N)}) |> 
+  bind_rows(
+    map_dfr(1:50,function(i){SimAIPW(0.5,i,N)})
+  ) |> 
+  bind_rows(
+    map_dfr(1:50,function(i){SimAIPW(0.99,i,N)})
+  ) |> 
+  ggplot(
+    aes(
+      y = ID,
+      x = AIPW,
+      group = ID,
+      color = Type
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_line(
+    color = "black"
+  ) +
+  facet_wrap(
+    ~ Alpha
+  ) +
+  geom_vline(
+    xintercept = 0
+  )
+```
+

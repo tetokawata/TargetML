@@ -1,0 +1,147 @@
+---
+title: "Untitled"
+format: html
+---
+
+# SetUp
+
+```{r}
+pacman::p_load(
+  ebci,
+  tidyverse
+)
+```
+
+# Data
+
+```{r CleanData}
+Raw <- arrow::read_parquet("~/Dropbox/DataClean/RetailJPN/AllPrefectture.parquet") |> 
+  filter(今後の利用目的 == "住宅") |> 
+  filter(用途 == "住宅") |> 
+  filter(改装 != "") |> 
+  filter(間取り != "") |> 
+  filter(都市計画 != "") |> 
+  filter(最寄駅.名称 != "") |> 
+  filter(都道府県名 == "東京都") |> 
+  filter(str_detect(市区町村名, "区")) |> 
+  filter(
+    建物の構造 == "ＳＲＣ" |
+      建物の構造 == "ＲＣ"
+  ) |> 
+  filter(
+    間取り != "オープンフロア"
+  ) |> 
+  filter(
+    間取り != "スタジオ"
+  ) |> 
+  filter(
+    間取り != "メゾネット"
+  ) |> 
+  mutate(TradePeriod = str_sub(取引時点,1,4) |> 
+           as.numeric()
+         ) |> 
+  filter(TradePeriod == 2021) |> 
+  mutate(
+    TempBuildYear = 
+      str_sub(建築年,3,-2) |> 
+      as.numeric(),
+    TempGengo = str_sub(建築年,1,2)
+    ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "令和",
+      TempBuildYear + 2018,
+      TempBuildYear
+      )
+  ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "平成",
+      TempBuildYear + 1988,
+      BuildYear
+      )
+  ) |> 
+  mutate(
+    BuildYear = if_else(
+      TempGengo == "昭和",
+      TempBuildYear + 1925,
+      BuildYear
+      )
+  ) |> 
+  mutate(
+    Price = 取引価格.総額./(10^6),
+    Tenure = TradePeriod - BuildYear,
+    DistanceStation = 最寄駅.距離.分. |> as.numeric(),
+    Size = 面積... |> as.numeric(),
+    Youseki = 容積率... |> as.numeric(),
+    Kenpei = 建ぺい率... |> as.numeric(),
+    RoomNum = if_else(str_detect(間取り,"１"),1,0),
+    RoomNum = if_else(str_detect(間取り,"２"),2,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"３"),3,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"４"),4,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"５"),5,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"６"),6,RoomNum),
+    ZoneBusiness = if_else(str_detect(都市計画,"商業"),1,0),
+    ZoneFactory = if_else(str_detect(都市計画,"工業"),1,0),
+    RoomK = if_else(str_detect(間取り,"Ｋ"),1,0),
+    RoomL = if_else(str_detect(間取り,"Ｌ"),1,0),
+    RoomD = if_else(str_detect(間取り,"Ｄ"),1,0),
+    RoomS = if_else(str_detect(間取り,"Ｓ"),1,0),
+    StructureSRC = if_else(建物の構造 == "ＳＲＣ",1,0),
+    District = 市区町村名,
+    Reform = if_else(改装 == "改装済",1,0)
+  ) |> 
+  select(Price:Reform) |> 
+  na.omit()
+
+Data <- recipe(
+  ~.,
+  Raw
+  ) |> 
+  step_scale(
+    all_numeric_predictors()
+  ) |> 
+  prep() |> 
+  bake(new_data = NULL)
+
+Fit <- estimatr::lm_robust(
+  Price ~ .,
+  Data,
+  se = "HC3"
+  ) |> 
+  generics::tidy() |> 
+  filter(str_detect(term,"District"))
+
+summary(Fit)
+ReFit <- ebci(estimate ~ 1,
+     Fit,
+     se = std.error,
+     weight = 1/std.error^2)
+
+ReFit$df
+
+Fit |> 
+  mutate(
+    EB = ReFit$df$th_eb,
+    EB_SE = ReFit$df$se) |> 
+  ggplot(
+    aes(
+      y = term,
+      x = estimate,
+      xmin = estimate - 1.96*std.error,
+      xmax = estimate + 1.96*std.error
+    )
+  ) +
+  geom_pointrange() +
+  geom_pointrange(
+    aes(
+      x = EB,
+      xmin = EB - 1.96*EB_SE,
+      xmax = EB + 1.96*EB_SE,
+      color = "EB"
+    ),
+    position = position_dodge(2)
+  )
+
+table(Data$District)
+```

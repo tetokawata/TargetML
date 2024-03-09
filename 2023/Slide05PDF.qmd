@@ -1,0 +1,718 @@
+---
+title: "線形モデル: OLS と Stackingへの応用"
+subtitle: "経済学のための機械学習入門"
+author: "川田恵介"
+format: pdf
+pdf-engine: lualatex
+documentclass: ltjsarticle 
+bibliography: ref.bib
+toc: true
+toc-depth: 2
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+---
+
+# Linear prediction model
+
+- $g(X_1,..,X_L)=\beta_0 + \beta_1X_1+..+\beta_LX_L$
+
+    - "Smooth"な母平均関数に対する、有力な手法
+
+    - 大量の推定方法: **OLS**, Maximum liklehood, Bays, Penalized Regression
+    
+## 例
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  arrow,
+  mlr3verse,
+  mlr3pipelines,
+  simpr,
+  DiagrammeR,
+  patchwork
+)
+
+OLS <- lrn("regr.lm")
+
+RF <- lrn("regr.ranger")
+
+Tree <- lrn(
+  "regr.rpart"
+  ) |> 
+  lts()
+
+Tree <- AutoTuner$new(
+  learner = Tree,
+  tuner = tnr("random_search"),
+  resampling = rsmp("holdout"),
+  terminator = trm(
+    "evals",
+    n_evals = 20)
+)
+
+Tree$id <- "OptimalTree"
+
+Stack <- pipeline_stacking(
+  list(
+    Tree,
+    OLS,
+    RF
+  ),
+  lrn("regr.lm",
+      id = "SuperLearner"),
+  use_features = FALSE,
+  folds = 2
+)|> 
+  as_learner()
+
+Stack$id <- "Stack"
+
+lgr::get_logger("mlr3")$set_threshold("error")
+lgr::get_logger("bbotk")$set_threshold("error")
+
+Data <- read_parquet(
+  "Public/Example.parquet"
+)
+
+SimLinearData <- function(i,N){
+  set.seed(i)
+  TempData <- tibble(
+    X = runif(N,0,2),
+    U = rnorm(N,0,5)
+  ) |> 
+    mutate(
+      TrueY = X + 0.5*(X^2),
+      Y = TrueY + U
+    )
+  return(TempData)
+}
+
+
+SimLinearData(1,3000) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    formula = y ~ 0 + x + I(x^2),
+    se = FALSE
+  ) +
+  ylim(-15, 15) +
+  ylab("E[Y|X]")
+```
+
+## Tree
+
+```{r}
+MakeExample <- function(i){
+  Label <- str_c("ID",i)
+  TempData <- SimLinearData(i,3000)
+  TempTask <- as_task_regr(
+    TempData |> 
+      select(-TrueY,-U), 
+    "Y"
+    )
+  TempFig <- TempData |> 
+    mutate(
+      Pred = Tree$
+        clone()$
+        train(TempTask)$
+        predict(TempTask)$
+        response
+      ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab(Label) +
+    xlab("") +
+    ylim(-15, 15)
+  return(TempFig)
+}
+
+TempFig <- SimLinearData(1,3000) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab("E[Y|X]") +
+    xlab("") +
+    ylim(-15, 15)
+
+TempFig | (MakeExample(1) + MakeExample(2))/(MakeExample(3) + MakeExample(4))
+```
+
+
+## RandomForest
+
+```{r}
+MakeExample <- function(i){
+  Label <- str_c("ID",i)
+  TempData <- SimLinearData(i,3000)
+  TempTask <- as_task_regr(
+    TempData |> 
+      select(-TrueY,-U), 
+    "Y"
+    )
+  TempFig <- TempData |> 
+    mutate(
+      Pred = RF$
+        clone()$
+        train(TempTask)$
+        predict(TempTask)$
+        response
+      ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab(Label) +
+    xlab("") +
+    ylim(-15, 15)
+  return(TempFig)
+}
+
+TempFig <- SimLinearData(1,3000) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab("E[Y|X]") +
+    xlab("") +
+    ylim(-15, 15)
+
+TempFig | (MakeExample(1) + MakeExample(2))/(MakeExample(3) + MakeExample(4))
+```
+
+- 参考: Smoothな母平均への対応 [@friedberg2020local] : [grf](https://github.com/grf-labs/grf)
+
+## OLS
+
+```{r}
+MakeExample <- function(i){
+  TempData <- SimLinearData(i,3000)
+  TempTask <- as_task_regr(
+    TempData |> 
+      select(-TrueY,-U), 
+    "Y"
+    )
+  TempFig <- TempData |> 
+    mutate(
+      Pred = OLS$
+        clone()$
+        train(TempTask)$
+        predict(TempTask)$
+        response
+      ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab("") +
+    xlab("") +
+    ylim(-15, 15)
+  return(TempFig)
+}
+
+ TempFig <- SimLinearData(1,3000) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab("E[Y|X]") +
+    xlab("") +
+    ylim(-15, 15)
+
+TempFig | (MakeExample(1) + MakeExample(2))/(MakeExample(3) + MakeExample(4))
+```
+
+## Stacking (後述)
+
+```{r}
+MakeExample <- function(i){
+  TempData <- SimLinearData(i,3000)
+  TempTask <- as_task_regr(
+    TempData |> 
+      select(-TrueY,-U), 
+    "Y"
+    )
+  TempFig <- TempData |> 
+    mutate(
+      Pred = Stack$
+        clone()$
+        train(TempTask)$
+        predict(TempTask)$
+        response
+      ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab("") +
+    xlab("") +
+    ylim(-15, 15)
+  return(TempFig)
+}
+
+ TempFig <- SimLinearData(1,3000) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+    theme_bw() +
+    geom_line() +
+    ylab("E[Y|X]") +
+    xlab("") +
+    ylim(-15, 15)
+
+TempFig | (MakeExample(1) + MakeExample(2))/(MakeExample(3) + MakeExample(4))
+```
+
+## サンプル分割による評価
+
+```{r}
+Task <- as_task_regr(
+  SimLinearData(1,5000) |> 
+    select(Y,X),
+  target = "Y",
+  id = "Linear Population (5000)"
+)
+
+Design <- benchmark_grid(
+  tasks = Task,
+  learners = list(OLS,Tree,RF,Stack),
+  resamplings = rsmp("holdout")
+)
+
+benchmark(Design)$score(msr("regr.rsq"))
+```
+
+## Empirical Risk Minimizationによる推定
+
+1. 研究者が事前にモデルを指定
+
+$$g(X_i)=\beta_0+..+\beta_LX_L$$
+
+2. "OLS"推定
+
+$$\min_{\beta_0,..,\beta_L} E[(Y_i-g(X_i))^2]$$
+
+## Basic function
+
+- Linear modelは"一直線"とは限らない
+
+    - 非常に自由度が高いフレームワーク
+
+- Linear model with Basic function
+
+$$g(Y_i)=\beta_0+..+\beta_L b_L(X_i)$$
+
+- $b:$ 研究者が指定する既知の関数
+
+    - 例: $b_1(X_i)=X_1^2,b_2(X_i)=X_2^2,b_2(X_i)=X_1\times X_2$
+
+## モデル設定
+
+- 事例数に比べて、十分に単純 (推定するパラメタが少ない)なモデルを指定できれば、OLS推定可能
+
+    - モデルを複雑にしすぎると、過剰適合する
+
+- 極めて難しい課題
+
+    - 実践として、連続変数についての二乗項の優先順位は高い
+
+## 例
+
+```{r}
+SimSimpleData <- function(i){
+  set.seed(i)
+  TempData <- tibble(
+    X = seq(-4,4,1),
+    U = runif(9,-10,10)
+  ) |> 
+    mutate(
+      TrueY = X + (1/10)*I(X^2) + (1/10^2)*I(X^3) + (1/10^3)*I(X^4) + (1/10^4)*I(X^5) + (1/10^5)*I(X^6) + (1/10^6)*I(X^7) + (1/10^5)*I(X^8)
+    ) |> 
+    mutate(Y = TrueY + U)
+  return(TempData)
+}
+
+Fig <- SimSimpleData(1) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ 0 + x + I(x^2) + I(x^3) + I(x^4) + I(x^5)
+    + I(x^6)+ I(x^7)+ I(x^8),
+    se = FALSE
+  ) +
+  xlab("E_P[Y|X]")
+
+TempFigure <- function(i,p){
+  Label <- str_c(p,"次項")
+  TempFit <- SimSimpleData(i) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    aes(),
+    method = "lm",
+    formula = y ~ poly(x,p),
+    se = FALSE
+  ) +
+    geom_point() +
+    xlab(Label) +
+    ylab("")
+  return(TempFit)
+}
+
+Fig | (TempFigure(1,1) + TempFigure(1,2))/(TempFigure(1,3) + TempFigure(1,8))
+```
+
+    
+## 復習: 過剰適合した決定木
+
+```{r}
+SimSimpleTestData <- function(i){
+  set.seed(i)
+  TempData <- tibble(
+    X = runif(1000,-4,4),
+    U = runif(1000,-10,10)
+  ) |> 
+    mutate(
+      TrueY = X + (1/10)*I(X^2) + (1/10^2)*I(X^3) + (1/10^3)*I(X^4) + (1/10^4)*I(X^5) + (1/10^5)*I(X^6) + (1/10^6)*I(X^7) + (1/10^5)*I(X^8)
+    ) |> 
+    mutate(Y = TrueY + U)
+  return(TempData)
+}
+
+SimSimpleData <- function(i){
+  set.seed(i)
+  TempData <- tibble(
+    X = seq(-4,4,1),
+    U = runif(9,-10,10)
+  ) |> 
+    mutate(
+      TrueY = X + (1/10)*I(X^2) + (1/10^2)*I(X^3) + (1/10^3)*I(X^4) + (1/10^4)*I(X^5) + (1/10^5)*I(X^6) + (1/10^6)*I(X^7) + (1/10^5)*I(X^8)
+    ) |> 
+    mutate(Y = TrueY + U)
+  return(TempData)
+}
+
+Fig <- SimSimpleData(1) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ 0 + x + I(x^2) + I(x^3) + I(x^4) + I(x^5)
+    + I(x^6)+ I(x^7)+ I(x^8),
+    se = FALSE
+  ) +
+  xlab("X") +
+  ylab("E_P[Y|X]") +
+  ylim(-12,12)
+
+FigShallowTree <- SimSimpleTestData(1) |> 
+  mutate(
+    Pred = rpart::rpart(
+      Y ~ X,
+      SimSimpleData(1),
+      control = rpart::rpart.control(
+        maxdepth = 1,
+        cp = 0,
+        minbucket = 1,
+        minsplit = 1
+      )
+    ) |> 
+      predict(SimSimpleTestData(1))
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_point(
+    data = SimSimpleData(1),
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  ylim(-12,12) +
+  xlab("MaxDepth 1") +
+  ylab("")
+
+
+FigDeepTree <- SimSimpleTestData(1) |> 
+  mutate(
+    Pred = rpart::rpart(
+      Y ~ X,
+      SimSimpleData(1),
+      control = rpart::rpart.control(
+        maxdepth = 30,
+        cp = 0,
+        minbucket = 1,
+        minsplit = 1
+      )
+    ) |> 
+      predict(SimSimpleTestData(1))
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Pred
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_point(
+    data = SimSimpleData(1),
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  ylim(-12,12) +
+  xlab("MaxDepth 30") +
+  ylab("")
+
+Fig | FigDeepTree/FigShallowTree
+```
+
+# Stacking
+
+- 大きく異なる予測モデル群を、最適化された加重を用いて集計する
+
+    - Bagging: 決定木を単純集計
+
+- 応用むけに推奨される [@naimi2021challenges; @Daz2019MachineLI]
+
+    - @einav2018predictive でも活用
+
+## 動機
+
+- 大量のアルゴリズムが提案されている
+
+- 最善のアルゴリズム $=$ 母集団の性質に依存
+
+    - 社会分析においては、BlackBox
+
+- 解決策: 交差検証で性能を比較し、最善のアルゴリズムを選択
+
+    - Stacking $=$ 一般化
+    
+    - かなり現実的な選択肢
+
+## アイディア
+
+- 最終予測モデル:
+
+$$f(X)=\beta_{OLS}\times\underbrace{f_{OLS}(X)}_{OLSの予測}+\beta_{RF}\times\underbrace{f_{RF}(X)}_{RFの予測} +...$$
+
+- $\beta_a$ 各予測への重み付け
+
+    - "交差推定で最善のアルゴリズムを探す"のであれば、 $\beta_a=\{0,1\}$
+    
+    - $\{0,1\}$ に限定する理由はない
+
+## Stacking with linear model
+
+$$g(X)=\beta_0 + \beta_1 g_1(X) + .. + \beta_A g_A(X)$$
+
+- $g_a(X) :=$ Algorithm $a$ (例: OLS, RandomForest) によって生成される予測モデル
+
+## Stacking
+
+- 全訓練データを用いて、 $g_{a}(X)$ などを推定
+
+- $\beta_a$ を推定
+
+    1. 交差推定を用いて、 $\bar g_{a}$ を推定
+    
+    2. 以下を解く
+    
+$$\min_{\beta_a} E[(Y_i-\beta_0-..- \beta_{A}\times\bar g_{A})^2]$$
+
+
+## 数値例
+
+```{r}
+set.seed(111)
+SimpleData <- tibble(
+  Group = c(rep(1,10),rep(2,10)),
+  X = rep(c(1,2,3,4,5),4),
+  Y = X + X^2 + rnorm(20,0,1) |> round(2)
+  )
+
+TempTask1 <- as_task_regr(
+  SimpleData |> 
+    filter(Group == 1) |> 
+    select(Y,X),
+  "Y"
+)
+
+TempTask2 <- as_task_regr(
+  SimpleData |> 
+    filter(Group == 2) |> 
+    select(Y,X),
+  "Y"
+)
+
+SimpleData
+```
+
+## 数値例: OLS と 決定木
+
+```{r}
+OLS1 <- OLS$clone()$train(TempTask1)
+
+OLS2 <- OLS$clone()$train(TempTask2)
+
+Tree1 <- Tree$clone()$train(TempTask1)
+
+Tree2 <- Tree$clone()$train(TempTask2)
+
+SimpleData |> 
+  mutate(
+    FitOLS = c(
+      OLS1$predict(TempTask1)$response,
+      OLS2$predict(TempTask2)$response),
+    FitTree = c(
+      Tree1$predict(TempTask1)$response,
+      Tree2$predict(TempTask2)$response)
+    )
+```
+
+## 数値例: OLS と 決定木
+
+```{r}
+ExampleData <- SimpleData |> 
+  mutate(
+    FitOLS = c(
+      OLS1$predict(TempTask1)$response,
+      OLS2$predict(TempTask2)$response),
+    FitTree = c(
+      Tree1$predict(TempTask1)$response,
+      Tree2$predict(TempTask2)$response)
+    ) |> 
+  mutate(
+    PredOLS = c(
+      OLS2$predict(TempTask1)$response,
+      OLS1$predict(TempTask2)$response),
+    PredTree = c(
+      Tree2$predict(TempTask1)$response,
+      Tree1$predict(TempTask2)$response)
+    )
+
+ExampleData
+```
+
+## 数値例: OLS と 決定木
+
+```{r}
+#| echo: true
+
+lm(Y ~ PredOLS + PredTree,
+   ExampleData) # <1>
+```
+
+1. OLSによる最適加重の計算
+
+## 数値例: OLS と 決定木
+
+```{r}
+TempTaskFinal <- as_task_regr(
+  SimpleData |> 
+    select(Y,X),
+  "Y"
+)
+
+OLSFinal <- OLS$clone()$train(TempTaskFinal)
+
+TreeFinal <- Tree$clone()$train(TempTaskFinal)
+
+
+SimpleData |> 
+  mutate(
+    FitOLS = OLSFinal$predict(TempTaskFinal)$response,
+    FitTree = TreeFinal$predict(TempTaskFinal)$response) |> 
+  mutate(
+    Stacking = -0.1176 + 0.2598*FitOLS + 0.7488*FitTree |> 
+      round(0)
+  )
+```
+
+## 他の例: SuperLearner
+
+- @van2007super により提案
+
+    - OLS推定だが、 $\beta_0=0, \beta_a \ge 0$ と制約
+
+- 細かいチュートリアル [@phillips2022practical]
+
+- [SuperLearner Pacakge](https://github.com/ecpolley/SuperLearner)
+
+## まとめ
+
+- Stackingの実戦では、大きく異なる予測モデルを生み出すアルゴリズムを使用すべき
+
+    - 少なくとも決定木系統とLinearModel系統を含めている実践が多い
+    
+    - 単純なOLSなど、伝統的な推定方法も含める
+
+## Reference
+

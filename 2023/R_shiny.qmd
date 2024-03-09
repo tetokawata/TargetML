@@ -1,0 +1,30 @@
+---
+title: "Untitled"
+format: 
+  html:
+      page-layout: custom
+---
+
+
+```{r}
+#| panel: sidebar
+
+pacman::p_load(
+  shiny
+)
+
+vars <- setdiff(names(iris), "Species")
+
+selectInput('xcol', 'X Varaible', vars)
+
+selectInput('ycol', 'Y Variable', vars, selected = vars[[2]])
+
+numericInput('clusters', 'Cluster count', 3, min = 1, max = 9)
+```
+
+```{r}
+#| panel: fill
+
+plotOutput('plot1')
+```
+

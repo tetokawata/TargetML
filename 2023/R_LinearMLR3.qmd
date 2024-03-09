@@ -1,0 +1,140 @@
+---
+title: "Untitled"
+format: html
+---
+
+# SetUp
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3pipelines,
+  recipes,
+  DALEX
+)
+
+CV <- rsmp("cv",folds = 2) # 2分割交差検証
+
+Terminal = trm("evals",
+               n_evals = 20) # 20回の繰り返し評価
+
+Tuner <- tnr("grid_search",
+             resolution = 20) # 20回のグリッドサーチ
+
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+
+
+
+Data <- read_csv("Public/Example.csv")
+
+Data <- Data[sample(1:nrow(Data),200),]
+
+X <- recipe(
+  ~ .,
+  Data |> 
+    select(
+      -Price,
+      -After
+    )
+  ) |> 
+  step_interact(
+    ~ Size:all_predictors()
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+Y <- Data$Price|> log()
+
+D <- Data$After
+
+RegLM <- lrn(
+  "regr.lm",
+  id = "OLS"
+  )
+
+LASSO <- lrn("regr.glmnet") |> 
+  lts()
+
+LASSO <- 
+  LASSO |> 
+  as_learner()
+
+LASSO <- AutoTuner$new(
+  learner = LASSO,
+  resampling = CV,
+  terminator = Terminal,
+  tuner = Tuner
+  )
+
+LASSO$id <- "LASSO"
+```
+
+# Benchmark
+
+```{r}
+Task <- as_task_regr(
+  X |> 
+    mutate(Y = Y),
+  target = "Y"
+  )
+
+Design <- benchmark_grid(
+  tasks = Task,
+  learners = list(
+    LASSO,
+    RegLM
+  ),
+  resamplings = CV
+)
+
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+future::plan("multisession") # 並列処理
+
+BenchMark <- benchmark(Design)
+
+BenchMark$aggregate(msr("regr.rsq"))
+```
+
+# ICE plot
+
+```{r}
+FitLASSO <- LASSO$clone()$train(Task)
+FitOLS <- RegLM$clone()$train(Task)
+
+FitLASSO$model$learner$model
+
+FitOLS |> 
+  explain(
+    data = X,
+    y = Y,
+    label = "",
+    colorize = FALSE,
+    verbose = FALSE
+    ) |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("Shallow tree")
+```
+
+```{r}
+FitLASSO |> 
+  explain(
+    data = X,
+    y = Y,
+    label = "",
+    colorize = FALSE,
+    verbose = FALSE
+    ) |> 
+  model_profile(variables = "Size") |> 
+  plot(geom="profiles") + 
+  ggtitle("Shallow tree")
+```
+

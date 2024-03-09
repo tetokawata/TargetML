@@ -1,0 +1,169 @@
+---
+title: "Oblique Decision Tree"
+format: html
+---
+
+# SetUp
+
+```{r}
+#| label: SetUp
+
+pacman::p_load(
+  tidyverse,
+  ODRF,
+  ranger,
+  patchwork
+)
+
+SimData <- function(i,n){
+  set.seed(i)
+  TempData <- tibble(
+    Z = sample(0:1,n,replace = TRUE),
+    X = runif(n,-5,5),
+    Y = X^2 + Z + rnorm(n,0,10)
+  )
+  return(TempData)
+}
+
+TempData <- SimData(10,1000)
+
+PredRF <- ranger(
+  Y ~ X + Z,
+  SimData(1,1000)
+  ) |> 
+  predict(SimData(10,1000))
+
+TempData$PredRF <- PredRF$predictions
+
+FitOF <- ODRF(
+  Y ~ X + Z,
+  SimData(1,1000)
+  )
+
+TempData$PredOF <- predict(FitOF,SimData(10,1000) |> select(X,Z))
+
+mean((TempData$Y - TempData$PredRF)^2)
+
+mean((TempData$Y - TempData$PredOF)^2)
+
+FigOF <- TempData |> 
+  ggplot(
+    aes(
+      x = X,
+      y = PredOF,
+      color = Z
+    )
+  )  +
+  geom_point() +
+  ylim(-10,40) +
+  xlab("OF")
+
+FigRF <- TempData |> 
+  ggplot(
+    aes(
+      x = X,
+      y = PredRF,
+      color = Z
+    )
+  )  +
+  geom_point() +
+  ylim(-10,40) +
+  xlab("RF")
+
+FigRF + FigOF
+```
+
+## Real Data
+
+```{r}
+Data <- arrow::read_parquet("Public/Example.parquet") |> 
+  select(-After)
+
+Group <- sample(0:1,nrow(Data),replace = TRUE)
+SubgGroup <- sample(0:1,nrow(Data),replace = TRUE)
+
+FitTree <- rpart::rpart(
+  Price ~ .,
+  Data[Group == 0,]
+  )
+
+PredTree <- predict(FitTree,
+  Data[Group == 1,]
+  )
+
+PredRF <- ranger(
+  Price ~ .,
+  Data[Group == 0,]
+  ) |> 
+  predict(Data[Group == 1,])
+
+FitOF <- ODRF(
+  Price ~ .,
+  Data[Group == 0,]
+  )
+
+PredOF <- predict(FitOF,Data[Group == 1,] |> select(-Price))
+
+FitOT <- ODT(
+  Price ~ .,
+  Data[Group == 0 & SubgGroup == 0,]
+  )
+
+FitPruneOT <- prune(
+  FitOT,
+  Data[Group == 0 & SubgGroup == 1,] |> select(-Price),
+  Data$Price[Group == 0 & SubgGroup == 1]
+)
+
+plot(FitPruneOT)
+
+PredOT <- predict(FitOT,Data[Group == 1,] |> select(-Price))
+PredPruneOT <- predict(FitPruneOT,Data[Group == 1,] |> select(-Price))
+
+1 - mean((Data[Group == 1,]$Price - PredRF$predictions)^2)/var(Data$Price)
+
+1 - mean((Data[Group == 1,]$Price - PredOF)^2)/var(Data$Price)
+
+1 - mean((Data[Group == 1,]$Price - PredOT)^2)/var(Data$Price)
+1 - mean((Data[Group == 1,]$Price - PredPruneOT)^2)/var(Data$Price)
+
+
+1 - mean((Data[Group == 1,]$Price - PredTree)^2)/var(Data$Price)
+
+```
+
+
+## Real Data
+
+```{r}
+Data <- arrow::read_parquet("Public/Example.parquet") |> 
+  select(-Price)
+
+Group <- sample(0:1,nrow(Data),replace = TRUE)
+
+PredRF <- ranger(
+  After ~ .,
+  Data[Group == 0,]
+  ) |> 
+  predict(Data[Group == 1,])
+
+FitOF <- ODRF(
+  After ~ .,
+  Data[Group == 0,]
+  )
+
+PredOF <- predict(FitOF,Data[Group == 1,] |> select(-After))
+
+FitOT <- ODT(
+  After ~ .,
+  Data[Group == 0,]
+  )
+
+PredOT <- predict(FitOT,Data[Group == 1,] |> select(-After))
+
+1 - mean((Data[Group == 1,]$After - PredRF$predictions)^2)/var(Data$After)
+
+1 - mean((Data[Group == 1,]$After - PredOF)^2)/var(Data$After)
+
+```
+

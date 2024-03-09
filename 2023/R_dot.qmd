@@ -1,0 +1,16 @@
+---
+title: "Untitled"
+format: pdf
+pdf-engine: lualatex
+documentclass: ltjsarticle 
+---
+
+```{mermaid}
+flowchart TB
+  B{Original Data} --> C[Bootstrap (With replacement)]
+  B --> D[SubSampling (Without replacement)]
+  C --> E[ModelAveraging]
+  C --> F[Inference]
+  D --> G[CrossFit/Validation]
+  D --> H[Training/Test]
+```

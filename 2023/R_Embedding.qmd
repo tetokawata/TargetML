@@ -1,0 +1,216 @@
+---
+title: "Example"
+format: html
+execute: 
+  warning: false
+  message: false
+---
+
+# SetUp
+
+```{r SetUp}
+set.seed(149)
+
+pacman::p_load(
+  tidyverse,
+  mlr3verse,
+  mlr3pipelines,
+  mlr3extralearners,
+  recipes
+)
+
+lgr::get_logger("mlr3")$set_threshold("error") # Errorのみを表示
+lgr::get_logger("bbotk")$set_threshold("error") # Errorのみを表示
+```
+
+
+# Data
+
+```{r Data}
+Raw <- arrow::read_parquet("~/Dropbox/DataClean/RetailJPN/AllPrefectture.parquet") |> 
+  filter(今後の利用目的 == "住宅") |> 
+  filter(用途 == "住宅") |> 
+  filter(改装 != "") |> 
+  filter(間取り != "") |> 
+  filter(都市計画 != "") |> 
+  filter(最寄駅.名称 != "") |> 
+  filter(都道府県名 == "東京都") |> 
+  filter(str_detect(取引時点,"４")) |> 
+  filter(str_detect(市区町村名, "区")) |> 
+  filter(
+    建物の構造 == "ＳＲＣ" |
+      建物の構造 == "ＲＣ"
+  ) |> 
+  filter(
+    間取り != "オープンフロア"
+  ) |> 
+  filter(
+    間取り != "スタジオ"
+  ) |> 
+  filter(
+    間取り != "メゾネット"
+  ) |> 
+  mutate(TradePeriod = str_sub(取引時点,1,4) |> 
+           as.numeric()
+         ) |> 
+  filter(TradePeriod == 2016 |
+           TradePeriod == 2021) |> 
+  mutate(
+    Price = 取引価格.総額./(10^6),
+    RoomOriginal = 間取り,
+    RoomNum = if_else(str_detect(間取り,"１"),1,0),
+    RoomNum = if_else(str_detect(間取り,"２"),2,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"３"),3,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"４"),4,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"５"),5,RoomNum),
+    RoomNum = if_else(str_detect(間取り,"６"),6,RoomNum),
+    RoomK = if_else(str_detect(間取り,"Ｋ"),1,0),
+    RoomL = if_else(str_detect(間取り,"Ｌ"),1,0),
+    RoomD = if_else(str_detect(間取り,"Ｄ"),1,0),
+    RoomS = if_else(str_detect(間取り,"Ｓ"),1,0),
+    After = if_else(
+      TradePeriod == 2021,
+        1,
+        0
+    )
+    ) |> 
+  select(Price:After) |> 
+  na.omit()
+
+Data <- recipe(
+  ~.,
+  Raw
+  ) |> 
+  step_dummy(RoomOriginal) |> 
+  prep() |> 
+  bake(new_data = NULL)
+
+Data <- Data[sample(1:nrow(Data),400),]
+
+XOriginal <- Data |> 
+  select(
+    starts_with("RoomOriginal")
+  ) 
+
+names(XOriginal) <- str_c("X",1:ncol(XOriginal))
+
+XEmbedding <- Data |> 
+  select(
+    -Price,
+    -After,
+    -starts_with("RoomOriginal")
+  ) 
+
+names(XEmbedding) <- str_c("X",1:ncol(XEmbedding))
+
+
+Y <- Data$Price
+
+D <- Data$After
+```
+
+# Learner
+
+```{r SetLearner}
+
+
+RegLM <-  lrn(
+  "regr.lm",
+  id = "RegLM"
+  )
+
+RegRF <- lrn(
+  "regr.ranger",
+  id = "RefRF"
+  )
+
+RegBART <- lrn(
+  "regr.bart",
+  id = "BART",
+  verbose = FALSE
+)
+```
+
+# Test
+
+
+```{r}
+TaskY <- as_task_regr(
+  XOriginal |> 
+    mutate(Y),
+  target = "Y",
+  id = "Y"
+  )
+
+Group <- partition(TaskY,ratio = 0.8)
+
+lrn("regr.lm")$train(TaskY,Group$train)$predict(TaskY,Group$test)$score(msr("regr.rsq"))
+
+
+TaskY <- as_task_regr(
+  XEmbedding |> 
+    mutate(Y),
+  target = "Y",
+  id = "Y"
+  )
+
+lrn("regr.lm")$train(TaskY,Group$train)$predict(TaskY,Group$test)$score(msr("regr.rsq"))
+
+TaskD <- as_task_regr(
+  X |> 
+    mutate(D),
+  target = "D",
+  id = "D"
+  )
+
+```
+
+
+## Model
+
+```{r}
+TestBoost <- RegXgboost$clone()$train(TaskY)
+```
+
+
+```{r}
+TestRegY <- RegNuisanceLearnerAdvanced$
+  clone()$
+  train(TaskY)
+
+TestRegY$model$RegSL$model
+```
+
+```{r}
+TestRegD <- RegNuisanceLearnerAdvanced$
+  clone()$
+  train(TaskD)
+
+TestRegD$model$RegSL$model
+```
+
+
+## Comparison
+
+```{r Estimation}
+
+Design <- benchmark_grid(
+  tasks = list(
+    TaskY,
+    TaskD
+  ),
+  learners = list(
+    lrn("regr.lm"),
+    RegNuisanceLearner,
+    RegNuisanceLearnerAdvanced
+  ),
+  resamplings = rsmp("holdout")
+)
+
+future::plan("multisession") # 並列処理
+
+BenchMark <- benchmark(Design)
+
+BenchMark$aggregate(msr("regr.rsq"))
+```
+
