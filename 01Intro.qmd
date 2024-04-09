@@ -1,0 +1,450 @@
+---
+title: "Introduction"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+# 概要
+
+- 機械学習初学者向けに、コンセプトの紹介と社会分析への応用を紹介
+
+1. 教師付き学習の紹介と予測への応用
+
+2. モーメント推定への応用: 格差や因果効果推定に有益
+
+- 随時、Rによる実装と復習
+
+## おすすめ無料(英語)教材
+
+- Supervised Learning: [Introduction to Statistical Learning](https://www.statlearning.com/)
+              
+- Supervised Learning + 比較研究 ("因果効果"): [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/)
+
+- R
+
+    - [Tidyverse Style Guide](https://style.tidyverse.org/)
+
+    - [R for Data Science](https://r4ds.had.co.nz/)
+
+## 将来の学習
+
+- 坂口さんの講義
+
+- 包括的な入門書
+
+    - [ビジネスデータサイエンスの教科書](https://www.amazon.co.jp/%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E3%83%87%E3%83%BC%E3%82%BF%E3%82%B5%E3%82%A4%E3%82%A8%E3%83%B3%E3%82%B9%E3%81%AE%E6%95%99%E7%A7%91%E6%9B%B8-%E3%83%9E%E3%83%83%E3%83%88%E3%83%BB%E3%82%BF%E3%83%87%E3%82%A3/dp/4799109154/ref=sr_1_1?crid=PJAQ7GRN78IN&dib=eyJ2IjoiMSJ9.8xEhmFZMbM8Lp9oFm6XWIaOF2P9Sdnzkqz6iEWzKq0ACvKLX9L6lymL7M2hmzy2YGKYxAISncfbB-G6cZr5ecZ2RlEEnKnkh-jd148a4UrSD8VUEPCKgKAsAl9niFmUSfhbJpSpy1EvxdhvMWt6h814lWaxT9wT7F8vm_wlarKoZjPVSknveeL7Z5bY5Nd52hv7nh5vcmIy-Par_q3y2Y-HizfATClVX01b0sh283stBvMPIq4T21o_m9BEEs_lgvWN70Gpf7bUspUzYI9xZacg96BrOrRV1UjbTXnm1t6M.H1Nlw9rlsaPmI9vnnVLnIPt5FBVWPsihaQO-cayUsjY&dib_tag=se&keywords=%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E3%83%87%E3%83%BC%E3%82%BF%E3%82%B5%E3%82%A4%E3%82%A8%E3%83%B3%E3%82%B9&qid=1709778446&sprefix=%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E3%83%87%E3%83%BC%E3%82%BF%2Caps%2C170&sr=8-1)
+
+    - [Computer Age Statistical Inference](https://hastie.su.domains/publications.html)
+
+- より理論的
+
+    - [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/)
+
+    - [The Elements of Statistical Learning](https://hastie.su.domains/publications.html)
+
+
+## 機械学習とは?
+
+- 統計学とその派生(計量経済学など)とは異なるルーツを有する
+
+    - 主として、**予測**のために**Non-(Over-) parametric model**を推定する
+
+        - 計算機科学、データ主導のAI開発
+
+- Moment推定との融合が進む
+    
+    - 社会の**特徴把握(記述/要約)**のために、**Semi-parametric model**を推定する
+
+## 導入の動機
+
+- データ分析への"研究者の介入 (Researcher degree of freedom)"を**適切に**減らす
+
+- データ分析 $=$ 前提 (観察したデータの特徴、具体的な分析対象、データの収集法)から結論を得る
+
+    - 前提の中に、研究者によるモデル定式化が含まれる
+    
+        - 根拠/透明性が低い仮定への、極力避けたい
+        
+            - 機械学習の活用が有力
+            
+    - 他の部分については、研究者の介入を前提    
+
+## 講義の動機
+
+- 機械学習 $+$ "因果効果"に対して、学際的な関心 [@athey2019machine; @grimmer2021machine; @brand2023recent]
+
+- 実務家からの関心も高い (例: [microsoft](https://www.microsoft.com/en-us/research/group/alice/), [netflix](https://research.netflix.com/), [サイバーエージェント](https://cyberagent.ai/ailab/))
+
+    - モーメント法との融合は、有力なアプローチとして、必ず紹介されている
+
+- 研究/実務機関ともに、機械学習を生かした研究経験は、関心を持たれやすい?
+
+## 講義の予定
+
+- 概観: OLSにより推定したLinearModelの予測モデル/記述モデルとしての解釈とその拡張として、LASSOとDouble Selection を紹介
+
+- 予測の発展: Random forest, Boosting, Stackingなど
+
+- 記述の発展: 平均効果、効果の異質性等
+
+## 講義の方針
+
+- 応用に向けた手法のコンセプトと実装方法の紹介に注力
+
+    - 証明は省略 (必要に応じてアイディアのみ紹介)
+
+- 応用時に質問が集中しがちな既存の手法との接続/比較に注力
+
+    - 線形モデルのOLS/最尤法/ベイズによる推定、傾向スコア/Balancing Weight
+
+- 「手法の動機と研究課題とのrelevanceを説明しながら、実際の研究に応用する」ことを目指す
+
+## 講義の方針: 既習者向け
+
+- 教師付き学習とモーメント推定を、大表本性質を確保しながら融合し、柔軟に活用する方法を提示
+
+    - 鍵となる性質: Neyman's ohthgonality condition
+    
+        - Nuisance関数の推定値の収束速度が多少遅くても、Target parameterの推定値は漸近的に正規分布に従う
+
+## 課題
+
+- ３回のレポート
+
+    - 理解を確認するために、講義中にミニクイズも行うが成績には反映しない
+
+- 受講者は次回までに**R/Rstudioの設定**/**パッケージ(tidyverse/glmnet)のダウンロード**/**データのダウンロード**/**プロジェクトフォルダの作成**/**データの格納**まで行うこと
+
+- 講義資料やアーカイブは、すべてのレポジトリ(https://github.com/tetokawata/TargetML)から入手可能
+
+# 概念整理: 分析目標
+
+- 分析目標を明確に理解し、イメージし続けることが分析を進める上で有益
+
+    - 本講義では、分析目標を大きく、予測と特徴の記述に分類
+
+## Naiveなイメージ
+
+- 手元にデータがあり、そのデータを使って研究対象(例: 日本社会)への示唆を得る
+
+```{dot}
+digraph {
+    rankdir=LR;
+    node [shape = none]; 
+    Society[label = "研究対象"];
+    Data[label = "データ"];
+    Researcher[label = "研究者"];
+    Researcher -> Society[style=dashed, color=grey, label = "Image"]
+    Society -> Data[style=dashed, color=grey]
+    Data -> Society[style=dashed, color=grey]
+    subgraph cluster_0 {
+        label="";
+        Society;
+    }
+    subgraph cluster_1 {
+        label="現実";
+        Researcher -> Data[label = "Access"]
+    }
+}
+```
+
+## 分析目標
+
+- もう少し具体的な分析目標を定める必要がある: 本講義では以下に焦点
+
+    - 予測(Prediction)
+    
+    - 特徴の記述(Summary/Description)
+
+- **明確に区別すること**が今後重要
+
+    - 現状は、混同されがち
+
+## 例
+
+- @einav2018predictive (予測): 患者の一年後の死亡を予測できるか？
+
+    - 動機: 終末期医療論争への含意
+    
+    - 結論: 予測精度は低い
+    
+- @athey2023heterogeneous (記述): 失職の影響は、どのような層で大きいか?
+
+    - 動機: 所得 - 失職の関係性を、顕著な異質性も含めて理解
+    
+    - 結論: 日常業務 -　高齢者において特に顕著な影響
+
+
+# 概念整理: モデル
+
+- データからモデルを推定し、分析目標に応える
+
+    - 機械学習/統計学: 推定方法(Algorithm)を提供
+
+- 分析目標に応じて、好ましいモデルは異なる (予測モデル/記述モデル)
+    
+    - かつては(今も?)、「真の一つのモデルを推定する」、という発想が強いが、本講義では不採用
+
+## モデル = 模型
+
+- モデルは、現実に比べて、単純すぎる"からこそ"有益
+
+    - データは複雑すぎ、直接理解/活用できないので、データの持つ情報を、要約(=モデル化)する必要がある
+
+- 例: 不動産取引価格と築年数と広さのモデル
+
+```{r}
+Temp = arrow::read_parquet(
+  "Public/Data.parquet"
+  ) |> 
+  lm(
+    Price ~ Size + Tenure,
+    data = _
+  ) |> 
+  magrittr::extract2("coefficients")
+```
+
+- Price $=$ `r Temp[1] |> round(1)` $+$ `r Temp[2] |> round(1)` $\times$ Size $-$ `r Temp[3] |> abs() |> round(1)` $\times$ Tenure
+
+## モデルの活用目的
+
+- 伝統的な方法では統計モデルと呼ばれ、予測/記述、双方に使用されてきた
+
+- 予測モデルとしての活用: $\{$ Size $=$ 10,Tenure $=$ 5 $\}$ の予測価格は、 18.6$=$ `r Temp[1] |> round(1)` $+$ `r Temp[2] |> round(1)` $\times$ 10 $-$ `r Temp[3] |> abs() |> round(1)` $\times$ 5
+
+- 記述モデルとしての活用
+
+    - Price と Tenure の記述モデル上の関係性 $=$-0.6
+    
+    - "築年数が古くなると、価格が下がる"
+
+## モデルの活用目的
+
+- モデルの目的は、**大きく２種類**あることに注意
+
+    - 人間が理解できるようにする
+    
+        - 記述への活用において相対的に重要
+        
+            - 研究者によるモデル作りに比較優位
+    
+    - 大量の変数に起因する、モデルのデータへの過剰な依存度を減らす
+    
+         - 多くの変数を活用する必要がある、予測において相対的に重要
+         
+             - データによるモデル作りに比較優位
+
+## まとめ
+
+```{dot}
+digraph {
+    rankdir=LR;
+    node [shape = none]; 
+    Society[label = "研究対象"];
+    Data[label = "データ"];
+    Model[label= "モデル"];
+    Researcher[label = "研究者"];
+    NewTarget[label = "予測対象"];
+    Researcher -> Society[style=dashed, color=grey, label = "Image"]
+    Society -> NewTarget[style=dashed, color=grey]
+    Society -> Data[style=dashed, color=grey]
+    Model -> Society[color = red, label = "Summary"]
+    subgraph cluster_0 {
+        label="";
+        Society;
+    }
+    subgraph cluster_1 {
+        label="現実";
+        Researcher -> Data[label = "Access"];
+        Data -> Model
+        Model -> NewTarget [color=red,label = "Predict"]
+    }
+}
+```
+
+## 最終イメージ
+
+```{dot}
+digraph {
+    rankdir=LR;
+    node [shape = none]; 
+    Society[label = "研究対象"];
+    Pop[label = "母集団"];
+    Estimand[label = "Estimand"];
+    Data[label = "手元のデータ"];
+    Model[label= "モデル"];
+    Researcher[label = "研究者"];
+    NewTarget[label = "予測対象"];
+    Algorithm[label = "アルゴリズム(機械学習)"];
+    Researcher -> Society[style=dashed, color=grey]
+    Researcher -> Pop[style=dashed, color=grey]
+    Researcher -> Estimand[style=dashed, color=grey, label = "Image"]
+    Pop -> NewTarget[style=dashed, color=grey]
+    Pop -> Data[style=dashed, color=grey]
+    Model -> Estimand[color = red, label = "Summary"]
+    subgraph cluster_0 {
+        label="";
+        Society -> Pop -> Estimand [style=dashed, color=grey]
+    }
+    subgraph cluster_1 {
+        label="現実";
+        Researcher -> Data[label = "Access"];
+        Researcher -> Algorithm[label = "Select"]
+        Data -> Algorithm
+        Algorithm -> Model
+        Model -> NewTarget [color=red,label = "Predict"]
+        {rank = same; Data; Algorithm}
+    }
+}
+```
+
+
+
+# Gallary
+
+- 2022年の東京23区で取引された[中古マンションデータ](https://www.reinfolib.mlit.go.jp/)を使用した分析例
+
+    - 本講義の中で、学ぶ分析方法
+
+## 研究目的: 取引価格の予測
+
+- 取引価格の予測モデル: $X=[$ 部屋の広さ(Size),立地(District)$] \rightarrow$ 取引価格(Price)
+
+    - Linear Model $$Price\sim \beta_0 + \beta_1Size + \beta_D dummy(District)$$ を OLSで推定
+    
+    - OLS/RandomForest/LASSO/BoostingをStacking
+
+## 予測研究
+
+```{r, dev = 'ragg_png'}
+arrow::read_parquet(
+  "Figure/Slide01BackData01.parquet"
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = OLS
+    )
+  ) +
+  theme_bw() +
+  geom_line(
+    aes(
+      color = "OLS"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = Stack,
+      color = "Stacking"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  ) +
+  ylab("Predictied log-price") +
+  theme(
+    legend.position = "bottom"
+  )
+```
+
+
+## 研究目的: 特徴の理解
+
+- 各地域内で、不動産価格は2017-2022年にかけて、どの程度変化したのか?
+
+    - 単純な地域内の平均変化: 機械学習は"不要"
+    
+    - 同一物件(同じ取引物件の部屋の広さ/駅からの距離/最寄駅/築年数/容積率) についてどの程度変化したか?
+    
+        - 2017-2022年にかけて、価格以外についても取引物件の性質は変化しており、この影響を除外する
+
+- 予測モデル"のみ"を用いると、推定の誤差(信頼区間)を評価できない [@chernozhukov2018double]
+
+## BLP
+
+```{r, dev='ragg_png'}
+arrow::read_parquet(
+    "Figure/Slide01BackData02.parquet"
+    ) |> 
+  mutate(
+    Method = case_when(
+      Method == "OLS" ~ "交差項分析",
+      .default = Method
+    ),
+    Method = case_when(
+      Method == "No Control" ~ "単純比較",
+      Method == "Double/Debiased Machine Learning" ~ "機械学習の応用",
+      .default = Method
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      y = term,
+      color = Method
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange(
+    position = position_dodge(width = 0.5)
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  ylab("地域") +
+  xlab("平均取引価格の上昇率")
+```
+
+## 研究目的: 特徴の理解
+
+- 背景変数(立地区/同じ取引物件の部屋の広さ/駅からの距離/最寄駅/築年数/容積率)のすべての組み合わせについて、異質性を評価
+
+- 変化が上位$q\% (quantile)$ あるいは下位$q\% (-quantile)$ 内での平均的な変化を推定
+
+    - @kallus2023treatment
+
+## Risk
+
+```{r}
+arrow::read_parquet(
+  "Figure/Slide01BackData04.parquet"
+  ) |> 
+  ggplot(
+    aes(
+      x = quantile,
+      y = estimate,
+      ymin = conf.low,
+      ymax = conf.high
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    alpha = 0.2
+  )
+```
+
+## Reference
