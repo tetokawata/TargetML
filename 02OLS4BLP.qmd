@@ -1,0 +1,1252 @@
+---
+title: "Recap: OLS for Best Linear Projection Model"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+```{r}
+library(tidyverse)
+
+SimData = function(n,i=1,sd=1){
+  set.seed(i)
+  
+  data = tibble::tibble(
+    X = sample(
+      0:5,
+      n,
+      replace = TRUE
+    )
+  ) |> 
+    dplyr::mutate(
+      TrueY = X^3,
+      Y = TrueY + rnorm(n,0,sd)
+    )
+  return(data)
+}
+
+SimLM = function(n,i=1,d,sd=1){
+  pred = SimData(n,i,sd) |> 
+    lm(
+      Y ~ poly(X,d),
+      data = _
+    ) |> 
+    predict(
+      SimData(n,i)
+    ) |> 
+    as.numeric()
+  result = SimData(n,i = i, sd = sd) |> 
+    mutate(
+      Pred = pred,
+      ID = i |> as.character()
+      )
+  return(result)
+}
+```
+
+# OLS
+
+- 研究者が**事前に設定した**Linear Modelを、データに最も当てはまるように推定する**Algorithm**
+
+    - ランダムサンプリングであれば、**母集団上**の解釈 (最善の線形近似, Best Linear Projection)を有する
+    
+    - 事例数に比べて、パラメタの数が少ないモデルであれば、**上手く推定**できる
+
+## Linear Model
+
+- $Y$ と $X$ のLinear model: $g_Y(X)$ $$g_Y(X)=\beta_0 +\beta_1X_1+..+\beta_LX_L$$
+
+    - $\beta=[\beta_0,..,\beta_L]$ : パラメタ (Parameter)
+
+    - $X=[X_1,..,X_L]$ : 変数 (Variable)
+
+- 注: $X$ については、NonLinearでも良い $$g_Y(X)=\beta_0 +\beta_1X + \beta_2X^2$$
+
+    - $\beta$ についてAdditive (足し算)である必要がある
+
+## Algorithm
+
+- データをモデルに変換する手順
+
+- モデルとAlgorithmは分離して理解すべき
+
+    - Linear Modelを推定するAlgorithmは大量に存在 (OLS, 最尤法, ベイズ法, LASSO, Ridge)
+
+    - OLSは、いくつか望ましい性質を持つ
+
+## OLSアルゴリズム
+
+- 仮定: 多重共線性 ([wiki](https://ja.wikipedia.org/wiki/%E5%A4%9A%E9%87%8D%E5%85%B1%E7%B7%9A%E6%80%A7))が無い
+
+0. **分析者**が、モデル $g_Y(X)=\beta_0 + ..+ \beta_LX_L$ を設定
+
+1. $\beta=[\beta_0,..,\beta_L]$ を二乗誤差の総和を最小にするように決定 $$\min \sum_{i}^N (y_i - g_Y(x_i))^2$$
+
+    - $X := [X_1,..,X_L]$
+
+## 理想的な例
+
+```{r}
+tibble(
+  X = runif(30,0,1),
+  Y = X + rnorm(30,0,0.05)
+) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  )
+```
+
+## 実際
+
+```{r}
+arrow::read_parquet(
+  "Public/Data.parquet"
+)[1:200,] |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Price
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  )
+  
+```
+
+
+## 実際
+
+```{r, dev='ragg_png'}
+arrow::read_parquet(
+  "Public/Data.parquet"
+)[1:200,] |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Reform
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  ylab(
+    "Reform: 1 = 改築ずみ, 0 = 改築前"
+  )
+  
+```
+
+## データの要約
+
+- $Y$ に極力合うように推定 $=$ "Yの要約モデル" として紹介されることも多いが、
+
+    - $Y$ のモデルに"見えない"応用も多い
+
+        - 多くの応用で、$X$ 以外の$Y$の決定要因が大量に存在し、観察できない個体差が顕著
+        
+- 有力な別解釈が存在
+
+## OLSアルゴリズム (その2)
+
+- 仮定: 多重共線性 ([wiki](https://ja.wikipedia.org/wiki/%E5%A4%9A%E9%87%8D%E5%85%B1%E7%B7%9A%E6%80%A7))が無い
+
+0. **分析者**が、モデル $g_Y(X)=\beta_0 + ..+ \beta_LX_L$ を設定
+
+2. $\beta=[\beta_0,..,\beta_L]$ を二乗誤差の総和を最小にするように決定 $$\min \sum_X(\mu_Y(X) - g_Y(X))^2\times N_x$$
+
+    - $\mu_Y(x)=\sum_{i;X_i=x} y_i/N_{x}$ , $N_x:$ $X_i=x$ を満たす事例数
+
+- $Y$ の**平均値**のモデル
+
+    - OLS Algorithmと同じ推定結果を導く
+
+    
+
+## 実際
+
+```{r}
+arrow::read_parquet(
+  "Public/Data.parquet"
+)[1:200,] |> 
+  mutate(
+    MeanPrice = mean(Price),
+    N = n(),
+    .by = Size
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Price
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    alpha = 0.2
+  ) +
+  geom_point(
+    aes(
+      y = MeanPrice,
+      color = "Mean",
+      size = N
+    )
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  )
+  
+```
+
+## 実際
+
+```{r, dev='ragg_png'}
+arrow::read_parquet(
+  "Public/Data.parquet"
+)[1:200,] |> 
+  mutate(
+    MeanReform = mean(Reform),
+    N = n(),
+    .by = Size
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Reform
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    alpha = 0.2
+  ) +
+  geom_point(
+    aes(
+      y = MeanReform,
+      size = N,
+      color = "Mean"
+    )
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  ylab(
+    "Reform: 1 = 改築ずみ, 0 = 改築前"
+  )
+  
+```
+
+## 実例
+
+- 2022年の不動産取引データを用いて、以下のLinear modelをOLSで推定 $$g(X)=\beta_0+\beta_1\times Size$$ $$+ \beta\times Dummies(District)$$
+
+- Dummies(x): xのダミー変数
+
+- 必ず共通の傾きを持った直線モデルが推定される
+
+## 実例: シンプルモデル
+
+```{r, dev='ragg_png'}
+Data = arrow::read_parquet("Public/Data.parquet") |> 
+  dplyr::filter(
+    TradeYear == 2022
+  )
+
+
+Pred = lm(
+  Price ~ Size + DistrictLarge,
+  Data
+  )$fitted
+
+Data |> 
+  dplyr::mutate(
+    AveragePrice = mean(Price),
+    N = n(),
+    .by = c(
+      Size,
+      DistrictLarge,
+      TradeYear
+    )
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = Size,
+      y = AveragePrice
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_point(
+    ggplot2::aes(
+      size = N,
+      color = "Average"
+    )
+  ) +
+  ggplot2::geom_smooth(
+    ggplot2::aes(
+      y = Pred
+    ),
+    method = "lm",
+    se = FALSE
+  ) +
+  ggplot2::facet_wrap(
+    ~ DistrictLarge,
+    ncol = 3
+  )
+```
+
+## 実例: 最も単純なモデル
+
+- $$g_Y(X)=\beta_0$$
+
+- OLSで推定すると $\beta_0 = Y$ の平均値
+
+## 実例: シンプルモデル
+
+```{r, dev='ragg_png'}
+Data = arrow::read_parquet("Public/Data.parquet") |> 
+  dplyr::filter(
+    TradeYear == 2022
+  )
+
+
+Pred = lm(
+  Price ~ 1,
+  Data
+  )$fitted
+
+Data |> 
+  dplyr::mutate(
+    AveragePrice = mean(Price),
+    N = n(),
+    .by = c(
+      Size,
+      DistrictLarge,
+      TradeYear
+    )
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = Size,
+      y = AveragePrice
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_point(
+    ggplot2::aes(
+      color = "Average",
+      size = N
+    )
+  ) +
+  ggplot2::geom_smooth(
+    ggplot2::aes(
+      y = Pred
+    ),
+    method = "lm",
+    
+    se = FALSE
+  ) +
+  ggplot2::facet_wrap(
+    ~ DistrictLarge,
+    ncol = 3
+  )
+```
+
+## 実例
+
+- より複雑なモデル
+
+$$log(Price)=$$ $$\beta_1\times Size\times Dummies(District)$$ {#eq-int} $$\beta_1\times poly(Size,2)\times Dummies(District)$$ {#eq-int-2nd} $$\beta_1\times poly(Size,15)\times Dummies(District)$$ {#eq-int-15th}
+
+- poly(x,l): $x$ の $l$ 乗まで作る
+
+
+## 実例: 交差項 (@eq-int)
+
+```{r, dev='ragg_png'}
+Data |> 
+  dplyr::mutate(
+    AveragePrice = mean(Price),
+    N = n(),
+    .by = c(
+      Size,
+      DistrictLarge,
+      TradeYear
+    )
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = Size,
+      y = AveragePrice
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_point(
+    ggplot2::aes(
+      size = N,
+      color = "Average"
+    )
+  ) +
+  ggplot2::geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  ggplot2::facet_wrap(
+    ~ DistrictLarge,
+    ncol = 3
+  )
+```
+
+## 実例: 交差項 + 二乗 (@eq-int-2nd)
+
+```{r, dev='ragg_png'}
+
+
+Data |> 
+  dplyr::mutate(
+    AveragePrice = mean(Price),
+    N = n(),
+    .by = c(
+      Size,
+      DistrictLarge,
+      TradeYear
+    )
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = Size,
+      y = AveragePrice
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_point(
+    ggplot2::aes(
+      size = N,
+      color = "Average"
+    )
+  ) +
+  ggplot2::geom_smooth(
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x,2)
+  ) +
+  ggplot2::facet_wrap(
+    ~ DistrictLarge,
+    ncol = 3
+  )
+```
+
+## 実例: 飽和モデル (@eq-int-15th)
+
+```{r, dev='ragg_png'}
+Data |> 
+  dplyr::mutate(
+    AveragePrice = mean(Price),
+    N = n(),
+    .by = c(
+      Size,
+      DistrictLarge,
+      TradeYear
+    )
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = Size,
+      y = AveragePrice
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_point(
+    ggplot2::aes(
+      color = "Average",
+      size = N
+    )
+  ) +
+  ggplot2::geom_smooth(
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x,15),
+    aes(
+      color = "交差項 + 13次項"
+    )
+  ) +
+  ggplot2::facet_wrap(
+    ~ DistrictLarge,
+    ncol = 3
+  )
+```
+
+## まとめ
+
+- $Y$の($X$ 以外の要因による)個人差が大きい応用においては、平均値のモデルであると解釈することが有効
+
+- モデルの設定は研究者が行っていることに注意
+
+    - 複雑なモデルを設定すれば、データと無矛盾なモデルが設定可能
+    
+        - 飽和モデル/丸暗記モデル(Learning by memoraization) とも呼ばれる
+
+# 母集団への含意
+
+- データ分析の目的は、「データの理解」ではなく、その背後にある社会の理解/予測
+
+    - 統計学/機械学習の中核的だが達成困難な目標であり、"丁寧な議論"が必要
+
+## 社会理解への含意
+
+- 独立してデータ収集した研究者は、同じ社会を対象にしていたとしても異なる結論を得る
+
+    - 例: 報道機関による世論調査
+
+- 「自身で再現できるので合意する」ができない
+
+    - 母集団を導入することで乗り越える
+
+## コンセプト: Estimand/Estimator
+
+- 正答(Estimand)と回答(Estimator)を分離する
+
+- Estimand(推定対象): 
+    
+    - 実際には研究課題(含む関心地域)に応じて、研究者が適切に設定
+    
+        - 理論上、すべての研究者が合意可能な答え
+
+    - ただし誰も辿り着けない仮想的な答え
+
+- Estimator(推定結果): データから算出される値
+
+## コンセプト: PopulationとSampling
+
+- Population(母集団): **全ての**事例が属する集団
+
+    - "無限大"の事例数をもつ
+    
+        - 正確には、同時分布として定義される
+        
+    - Estimandが仮想的に定義される
+
+- Sampling(サンプリング): 研究者は母集団の一部を収集する
+
+    - ランダムサンプリング: 収集する事例は、ランダムに選ぶ
+    
+        - 事例間の独立・無相間(IID)の仮定を正当化
+
+## 含意
+
+- 母集団を直接観察できれば、合意可能だが、
+    
+    - **母集団は直接観察できない**
+    
+        - "全数調査"であれば、Hyper-populationを想定
+    
+- 推定値(Estimator): 母集団からサンプリングされたデータから算出
+
+    - 母集団について、**部分的な**情報をもつ
+    
+        - 一般にEstimand $\neq$ Estimator
+
+## 例: 母平均
+
+- 研究課題: 日本社会における賃金の特徴
+
+- データ: 賃金構造基本統計調査
+
+    - 一定数の従業員が所属する事業所をランダム抽出
+
+- Estimand: 平均賃金 (と設定)
+
+    - 観察できない
+
+- Estimator: データから計算した平均賃金
+
+    - $\neq$ 母集団における平均賃金
+
+
+
+## OLSのEstimand
+
+- 代表的なものだけでも複数存在する
+
+- **$Y$ の母平均関数 $E[Y|X]$ の線形近似モデル (Best Linear Projection)**
+
+    - 「誤定式化していない」などの強い仮定のもとで、さらに明確な解釈も有する
+    
+## $E[Y|X]$ の線形近似モデル
+
+- Estimand: **母集団上**で研究者が設定したモデル $g_Y(X)$ にOLSを適用した結果得られるモデル $$g_Y^*(X)=\beta_0^*+\beta_1^*X_1+..$$
+
+- 以下のAlgorithmにより、 **仮想的に** 算出される $$\min\int \Bigr(E[Y|X] - g_Y^*(X)\Bigr)^2\times f(X)dX$$
+
+    - $f(X) :$ 母集団における属性 $X$ を持つ事例の割合
+
+## Estimatorの性質
+
+- **IID(ランダムサンプリング)であれば、** データ上で 同じモデルにOLSを適用し得られるモデル $g_Y(X)$ は、 $g_Y^{*}(X)$ の優れたEstimator
+
+## 例: Population/Estimand
+
+```{r}
+SimData(1000) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      color = "Population Mean"
+    )
+  ) +
+  geom_smooth(
+    aes(
+      y = Y,
+      color = "Estimand = Y ~ X"
+    ),
+    method = "lm",
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = Y,
+      color = "Estimand = Y ~ poly(X,2)"
+    ),
+    method = "lm",
+    se = FALSE,
+    formula = y ~ x + I(x^2)
+  ) +
+  ylab("Y")
+```
+
+## 例: Data/SampleMean
+
+```{r}
+d = 1
+SimData(100,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(30,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      color = "Data"
+    ),
+    alpha = .2
+  ) +
+  geom_point(
+    aes(
+      y = Mean,
+      color = "SampleMean"
+    )
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+
+## 例: 1次
+
+```{r}
+d = 1
+
+SimData(100,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(30,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Mean
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_smooth(
+    aes(
+      y = Pred,
+      color = "OLS"
+    ),
+    se = FALSE,
+    method = "lm"
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+
+## 例: 2次
+
+```{r}
+d = 2
+
+SimData(100,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(30,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Mean
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  geom_smooth(
+    aes(
+      y = Pred,
+      color = "OLS"
+    ),
+    se = FALSE,
+    method = "lm",
+    formula = y ~ x + I(x^2)
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+## OLSによる推定結果の特徴
+
+- IIDであれば、**推定結果のバラツキ方**について、一定の規則性が生じる
+
+- OLSが推定するモデルは
+
+    - $\frac{事例数}{パラメタの数}$ が大きくなれば、Population OLSが推定するモデルに近い値を得られる
+
+        - CausalML (Chap-1 pp-19) とその参考文献を参照
+
+    - $\frac{事例数}{パラメタの数}$ が無限大になれば、Population OLSと一致する (一致推定量; Consistency)
+
+- 詳細は @sec-distribution
+
+# 母平均の正確なモデル
+
+- 伝統的な教科書では、しばしば、OLSは$Y-X$の母集団における"真の"確率的関係性を理解する手法として"説明される"
+
+    - 例えば、 $g_Y(X)$ を 母平均関数 $E[Y|X]$ の良い推定結果であるためには、IID以上の仮定が必要
+
+## Mis-specification
+
+- データ上でのOLSにより得られる$g(X)$ を、母平均 $E[Y|X]$ の良い推定結果であるためには、母平均についてMis-specificationがないことを仮定する必要がある
+
+- パラメタ $\beta_0..$ を**どのように**選んでも、 $$E[Y|X]=g(X)(=\beta_0+\beta_1X_1+..)$$ は達成できない
+
+## 母平均の推定
+
+- Mis-specificationがないと仮定できれば、$g^*(X)=E[Y|X]$
+
+    - データ上でのOLSにより得られる$g(X)$ は、 $g^*(X)$ の一致推定量なので、 $E[Y|X]$ の一致推定量でもある
+
+## 母平均の推定の難しさ
+
+- 実践においては $E[Y|X]$ は非常に複雑な形状をしていることが予想される
+
+    - 大量のパラメタを導入しないと、顕著なMis-specificationが発生する可能性がある
+    
+    - 大量のパラメタを導入すると、推定精度が悪化する
+
+- 事例数とパラメタの数の競争となる
+
+    - 大量の事例があれば、過剰にパラメタを投入してもOK
+
+## 例:
+
+- 真の母平均関数 $E[Y|X]=X^3$
+
+- 真の母平均関数を推定できない
+
+    - $Y\sim X$ または $Y\sim X + X^2$
+
+- 真の母平均関数を推定できる
+
+    - $Y\sim X + X^2 + X^3 +..$
+
+    - ただし事例数が十分にないと、推定誤差が大きい
+
+## 例: 3次 $\& N = 30$
+
+```{r}
+d = 3
+
+SimData(100,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(30,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Mean
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      color = "Data"
+    )
+  ) +
+  geom_smooth(
+    aes(
+      y = Pred,
+      color = "Data OLS"
+    ),
+    se = FALSE
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+## 例: 5次 $\& N = 30$
+
+```{r}
+d = 5
+
+SimData(100,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(30,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Mean
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      color = "Data"
+    )
+  ) +
+  geom_smooth(
+    aes(
+      y = Pred,
+      color = "Data OLS"
+    ),
+    se = FALSE
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+
+## 例: 3次 $\& N=5000$
+
+```{r}
+d = 3
+N = 5000
+SimData(N,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(N,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Mean
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      color = "Data"
+    )
+  ) +
+  geom_smooth(
+    aes(
+      y = Pred,
+      color = "Data OLS"
+    ),
+    se = FALSE,
+    method = "lm",
+    formula = y ~ poly(x,3)
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+## 例: 5次 $\& N=5000$
+
+```{r}
+d = 5
+N = 5000
+SimData(N,i = 1,1) |> 
+  mutate(
+    Pred = TrueY,
+    Y = TrueY,
+    ID = "Population"
+  ) |> 
+  bind_rows(map_dfr(
+  1:3,
+  function(i){SimLM(N,i = i, d=d,sd=100)}
+  )) |> 
+  mutate(
+    Mean = mean(Y),
+    .by = c(
+      "X",
+      "ID"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Mean
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      color = "Data"
+    )
+  ) +
+  geom_smooth(
+    aes(
+      y = Pred,
+      color = "Data OLS"
+    ),
+    se = FALSE,
+    method = "lm",
+    formula = y ~ poly(x,4)
+  ) +
+  ylab("Y") +
+  facet_wrap(
+    ~ ID
+  )
+```
+
+## まとめ
+
+- 最低限の仮定から始める議論を紹介
+
+    - IID(ランダムサンプリング)であれば、**少なくとも**、Population OLSの結果についての推定であると解釈できる
+    
+    - モデルが正しければ、母平均関数の推定結果であると解釈できる
+
+- @angrist2009mostly, @aronow2019foundations などで採用
+    
+- 多くの入門書では、より強い仮定から議論をスタート [@sec-traditional]
+
+# 補論: Sampling Distribution  {#sec-distribution}
+
+## コンセプト: 信頼区間
+
+- 一般にEstimator $\neq$ Estimand
+
+    - 少なくとも無限大の事例数が必要
+    
+        - 全ての研究者が"間違った"結果を得ている
+    
+- 代替的に信頼区間を計算
+
+    - 95 $\%$ の研究者は、Estimandを含んだ区間を得られる
+
+- Sampling Distributionが漸近的に正規分布で近似可能であることを活用
+
+## コンセプト: Sampling Distribution
+
+- データから計算される推定結果の**仮想的な**分布
+
+    - "独立した大量の研究者をイメージし"、それぞれが得られる推定結果の分布を想像する
+    
+- ポイント: 統計的性質の多くは、個別の推定結果ではなく、推定結果のSampling Distributionの性質であることに注意
+
+## 例: IID(+技術的な仮定)が導くOLS Estimatorの性質
+
+```{dot}
+digraph {
+    rankdir=TB;
+    node [shape = none]; 
+    Pop[label = "Population"]
+    Estimand[label = "Estimand: Population OLS"]
+    Data1[label = "データ"]
+    Data2[label = "データ"]
+    Data3[label = "データ"]
+    Stat1[label = "推定値"]
+    Stat2[label = "推定値"]
+    Stat3[label = "推定値"]
+    CAN[label = "事例数が \n ある程度大きければ、\n 正規分布で近似可能\n (中心極限定理)"]
+    Cons[label = "Estimand"]
+    Pop -> Estimand
+    {rank = same; Pop,Estimand}
+    Pop -> Data1[label = "観察",color = "red"]
+    Pop -> Data2,Data3[style=dashed, color=grey]
+    subgraph cluster_1 {
+        label="SamplingDistribution";
+        Data1 -> Stat1[color = "red"]
+        Data2 -> Stat2[style=dashed, color=grey]
+        Data3 -> Stat3[style=dashed, color=grey]
+    }
+    CAN -> Stat1
+    Stat1 -> Cons[label = "無限大の事例数 (一致性)"]
+    Stat2,Stat3 -> Cons
+}
+```
+
+## 例: 信頼区間
+
+```{r}
+
+Temp = map_dfr(
+  1:20,
+  function(i){
+    SimData(200,i=i,1) |> 
+      estimatr::lm_robust(
+        Y ~ X,
+        data =_
+      ) |> 
+      estimatr::tidy() |> 
+      filter(
+        term == "X"
+      ) |> 
+      mutate(
+        N = 200,
+        ID = i
+      ) |> 
+      bind_rows(
+         SimData(2000,i=i,1) |> 
+      estimatr::lm_robust(
+        Y ~ X,
+        data =_
+      ) |> 
+      estimatr::tidy() |> 
+      filter(
+        term == "X"
+      ) |> 
+      mutate(
+        N = 2000,
+        ID = i
+      )
+      ) |> 
+      bind_rows(
+         SimData(10000,i=i,1) |> 
+      estimatr::lm_robust(
+        Y ~ X,
+        data =_
+      ) |> 
+      estimatr::tidy() |> 
+      filter(
+        term == "X"
+      ) |> 
+      mutate(
+        N = 10000,
+        ID = i
+      )
+      ) |> 
+      bind_rows(
+         SimData(50000,i=i,1) |> 
+      estimatr::lm_robust(
+        Y ~ X,
+        data =_
+      ) |> 
+      estimatr::tidy() |> 
+      filter(
+        term == "X"
+      ) |> 
+      mutate(
+        N = 50000,
+        ID = i
+      )
+      )
+  }
+  ) |> 
+  mutate(
+    Observe = case_when(
+      ID == 10 ~ "Observe",
+      ID != 10 ~ "Unobserve"
+    )
+  )
+
+Temp |> 
+  ggplot(
+    aes(
+      y = ID,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      color = N |> factor()
+    )
+  ) +
+  theme_bw() +
+  geom_vline(
+    xintercept = 23.8
+  ) +
+  geom_pointrange(
+    
+  ) +
+  facet_wrap(
+    ~ N
+  ) +
+  ylab("Data ID")
+```
+
+# 補論: 伝統的な議論  {#sec-traditional}
+
+- 伝統的な入門書(の最初の方の章)における議論と比較する
+
+    - @wooldridge2016introductory, @stock2020introduction など
+
+        - 「正しい確率モデルのパラメタを推定する問題」に落とし込まれることが多い
+
+## 確率モデル
+
+- $Y$ の正しい確率モデルを想定する: $$Y=\underbrace{g(X)}_{\beta_0 + \beta_1X_1+..} + \underbrace{u}_{誤差項 = Y - g(X)}$$
+
+- 恒等式として成り立つ
+
+- 誤差項の分布に "仮定" を追加することで $\beta$ を推定する
+
+## $E[u\times X]=0$
+
+- $g(X)^*$ はPopulation OLSの結果であれば、$E[u\times X] =0$ は成り立つ
+
+    - 多くの実践で、 $\beta$ を推定するために用いられているモーメント条件
+
+## $E[u|X]=0$
+
+- 母平均についてMis-specificationがなければ、 $E[u|X]$ は成り立つ
+
+- 分散均一: 誤差項$u$の分散が、$X$に対して一定
+
+    - $E[u^2|X]=E[u^2]$
+
+    - OLSは最善の不偏推定量を提供
+    
+        - ガウス・マルコフの定理 ([wiki](https://ja.wikipedia.org/wiki/%E3%82%AC%E3%82%A6%E3%82%B9%EF%BC%9D%E3%83%9E%E3%83%AB%E3%82%B3%E3%83%95%E3%81%AE%E5%AE%9A%E7%90%86#:~:text=%E3%82%AC%E3%82%A6%E3%82%B9%3D%E3%83%9E%E3%83%AB%E3%82%B3%E3%83%95%E3%81%AE%E5%AE%9A%E7%90%86%EF%BC%88%E3%82%AC%E3%82%A6%E3%82%B9,%E3%83%9E%E3%83%AB%E3%82%B3%E3%83%95%E3%81%AB%E3%82%88%E3%81%A3%E3%81%A6%E7%A4%BA%E3%81%95%E3%82%8C%E3%81%9F%E3%80%82))
+
+    - 古典的な方法で標準誤差 (信頼区間) を計算可能
+
+- 多くの応用で非現実的と判断し、本講義では不採用
+
+## $u\sim N(0,\sigma)$
+
+- 仮定: 誤差項$u$が正規分布に従う (古典的回帰モデル)
+
+    - Estimand $f(Y|X)$ ($Y$ の条件付き分布) の優れたEstimator (最尤法の推定値と一致)
+    
+    - 推定結果は、有限の事例数の元で、正規分布に従う
+
+- より非現実的な仮定
+
+## Reference
