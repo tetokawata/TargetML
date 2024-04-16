@@ -1,0 +1,91 @@
+---
+title: "R入門"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+---
+
+## Why R?
+
+- Pythonと並ぶ人気言語
+
+    - 豊富なIDEの選択肢、盛んなパッケージ開発、無料等々多くの利点
+
+- Reproductivityへの要求がさらに強まる可能性もあり、無料言語になれることの利点は大きい
+
+## コード例
+
+```{r}
+#| echo: true
+library(tidyverse) # <1>
+
+Data = read_csv("Public/Data.csv") # <2>
+
+summary(Data) # <3>
+```
+
+1. パッケージの読み込み
+
+2. データの読み込み、Dataと名づける $\&$ 保存
+
+3. 記述統計量の計算
+
+## 基本文法
+
+- Rの学習 $=$ 作業依頼書(コード)の書き方を学ぶ
+
+    - R語で書く必要がある
+
+- 最重要文法
+
+    - "summary()" 関数: 記述統計量の計算
+
+    - "Data =" : 保存するObjectと"Data"と名付ける
+    
+    - "summary(Data)": "Data objectについて記述統計量を計算せよ"
+
+## よくあるタイポ
+
+- 名前には、**アルファベット** か **数字**　のみ使用
+
+- 大文字と小文字を区別する
+
+- 括弧内のコンマ(,)やdouble quotation ("") に注意
+
+- 極力、空行や空白を入れて読みやすくする
+
+## パイプ演算子
+
+```{r}
+#| eval: false
+#| echo: true
+Data = data("CPS1985", package = "AER")
+
+summary(Data)
+```
+
+- パイプ演算子 (|> または %>%) を用いて、書き換えられる
+
+```{r}
+#| eval: false
+#| echo: true
+data("CPS1985", package = "AER") |> 
+  summary()
+```
+
+- ショットカットはCtrl + Shift(Option) + M
+
+- functionA() |> functionB(): 関数Aの出力を関数Bに入力する
+
+    
