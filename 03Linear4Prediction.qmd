@@ -16,6 +16,7 @@ execute:
   warning: false
   message: false
   eval: true
+  echo: false
 bibliography: "ref.bib"
 ---
 
@@ -37,17 +38,17 @@ bibliography: "ref.bib"
     
 - 代表的なアプローチは、**データ分割**
 
-    - データをTraining/Testデータにランダム分割し、Trainingデータに対してAlgorithを提供し、Testデータで予測精度を推定する
+    - データをTraining/Testにランダム分割し、Trainingに対してAlgorithmを提供し、Testで予測精度を推定する
     
         - 80:20, 95:5などの比率が代表的
 
 ## 予測精度の指標
 
-- 例: 推定されたモデル $\hat g_Y(X)$ について、テストデータから、平均二乗誤差 $E[(Y - \hat g_Y(X))^2]$ を推定
+- 例: 推定されたモデル $\hat g_Y(X)$ について、Testから、平均二乗誤差 $E[(Y - \hat g_Y(X))^2]$ を推定
 
     - 決定係数 (R2) $=1 - (E[(Y - \hat g_Y(X))^2]/var(Y))$ はより解釈しやすい
     
-        - $g_y(X)$ が予測した $Y$ の変動
+        - $g_Y(X)$ が予測した $Y$ の変動
   
 - Linear Modelについては、伝統的な理論的指標であるAIC/BICも候補
     
@@ -66,7 +67,7 @@ bibliography: "ref.bib"
 
 - 無限大の事例数で推定されたモデル $= g_{Y,\infty}(X)$
 
-- 必ずしもEstimandとは一致しない
+- 必ずしも母平均とは一致しない
 
     - 例: Mis-specificationがあれば、 $g_{Y,\infty}(X)\neq E[Y|X]$
 
@@ -76,25 +77,25 @@ bibliography: "ref.bib"
 
 ## 例
 
-- $Y\sim\beta_0 +\beta_1Size$ を$10$事例で推定
+- $Price\sim\beta_0 +\beta_1Size$ を$10$事例で推定
 
 - $$\underbrace{Y-g_Y(X)}_{おそらく大きい}=\underbrace{Y - E[Y|X]}_{Size以外の決定要因があり、おそらく大きい}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}(X)}_{"一直線の関係"ではないので、おそらく大きい}$$ $$+\underbrace{g_{Y,\infty}(X) - g_Y(X)}_{事例数が少なすぎ、大きい可能性が高い}$$
 
 ## 例
 
-- 事例数が$100$万に増やし、同じモデルを推定する
+- 事例数を$100$万に増やし、同じモデルを推定する
 
 - $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変!!!}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}(X)}_{不変!!!}$$ $$+\underbrace{g_{Y,\infty}(X) - g_Y(X)}_{ほとんど0になることが期待できる}$$
 
 ## 練習問題 ([リンク](https://forms.office.com/Pages/ResponsePage.aspx?id=T6978HAr10eaAgh1yvlMhO0_9SUJ_0VKvDH6B82i0qBUNjhYSEMxMjA4NlZGRkIyQURNV1MxT01TTy4u))
 
-- 10事例のまま、$Y\sim\beta_0 +\beta_1p(Size,9)$ を推定した結果、予測性能が大幅に悪化した。何が起こったか?
+- 10事例のまま、$Y\sim\beta_0 +\beta_1\times poly(Size,9)$ を推定した結果、予測性能が大幅に悪化した。何が起こったか?
 
 - $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{Irreducible\ Error}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}^*(X)}_{Approximation\ Error}+\underbrace{g_{Y,\infty}^*(X) - g_Y(X)}_{Estimation\ Error}$$
 
 ## 例
 
-- 10事例のまま、$Y\sim\beta_0 +\beta_1p(Size,9)$ を推定
+- 10事例のまま、$Y\sim\beta_0 +\beta_1\times poly(Size,9)$ を推定
 
 - $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変!!!}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}(X)}_{減少}$$ $$+\underbrace{g_{Y,\infty}(X) - g_Y(X)}_{非常に大きくなる可能性が高い}$$
 
@@ -194,13 +195,13 @@ SimData(9,1) |>
 
 1. 何らかの基準(後述)に基づいて Hyper (Tuning) parameter $\lambda$ を設定
 
-2. 以下の最適化問題を解いて、 Linear model $g(X)=\beta_0 +\beta_1X_1+\beta_2X_1^2+...$ を推定 $$\min\sum (y_i-g(x_i))^2 + \lambda(|\beta_1| + |\beta_2| +..)$$
+2. 以下の最適化問題を解いて、 Linear model $g(X)=\beta_0 +\beta_1X_1+\beta_2X_2+...$ を推定 $$\min\sum (y_i-g(x_i))^2 + \lambda(|\beta_1| + |\beta_2| +..)$$
 
 ## Constrained optimizationとしての書き換え
 
 1. 何らかの基準(後述)に基づいて Hyper parameter $A$ を設定
 
-2. 以下の最適化問題を解いて、 Linear model $g(X)=\beta_0 +\beta_1X_1+\beta_2X_1^2+...$ を推定 $$\min\sum (y_i-g(x_i))^2$$ where $$|\beta_1| + |\beta_2| +..\le A$$
+2. 以下の最適化問題を解いて、 Linear model $g(X)=\beta_0 +\beta_1X_1+\beta_2X_2+...$ を推定 $$\min\sum (y_i-g(x_i))^2$$ where $$|\beta_1| + |\beta_2| +..\le A$$
 
 ## $\lambda$ の役割: OLS
 
@@ -222,7 +223,7 @@ SimData(9,1) |>
 
 - $\lambda=\infty$ と設定すれば、 必ず$\beta_1=\beta_2=..=0$となる
 
-    - $\beta0$ のみ、最小二乗法で推定: $g(X)=$ サンプル平均
+    - $\beta_0$ のみ、最小二乗法で推定: $g(X)=$ サンプル平均
 
 - $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}(X)}_{大きい}+\underbrace{g_{Y,\infty}(X) - g_Y(X)}_{小さい傾向}$$
 
@@ -306,11 +307,9 @@ SimData(9,1) |>
 
 # 交差推定
 
-- 訓練/中間評価にどの程度事例を割くか、についてトレードオフ
+- モデルを中間評価しながら、Tunning Parameterを決定する
 
-    - 訓練に事例を割きすぎると、評価が正確にできない
-
-- 交差検証により緩和: 全ての事例を中間評価に持ちいる
+- **適切に**、全ての事例を中間評価に用いる
 
 ## 交差推定のアイディア
 
@@ -320,19 +319,15 @@ SimData(9,1) |>
 
 - ある $\lambda$ が生み出すモデルの平均的な予測性能がわかれば、最善の $\lambda$ を見つけ出せる
 
-- 全く同じ事例を試作と評価に使うと、複雑なモデルを過大評価してしまう
-
-    - 試作と検証は異なる事例でやりさえすれば良い
-
 ## シンプルなサンプル分割
 
-- ある$\lambda$ のもとで推定されるモデルの平均的な性能を評価する
+- ある$\lambda$ のもとで推定されるモデルの性能を評価する
 
-0. データを訓練/中間評価用(Validation)データに分割
+0. データをTraining/中間評価用(Validation)データに分割
 
-1. 訓練データを用いて、モデルを"試作"する 
+1. Trainingを用いて、モデルを"試作"する 
 
-2. 中間評価用データを用いて、予測性能を評価する
+2. Validationを用いて、予測性能を評価する
 
 - 異なる $\lambda$ について繰り返し、最も性能の良いものを採用
 
@@ -434,9 +429,9 @@ tibble(
   filter(SubGroup != Target)
 ```
 
-- Out-of-data R2: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 4
+- R2 in Validation: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 4
 
-- In-data R2: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 4
+- R2 in Training: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 4
 
 ## 数値例: Step 2
 
@@ -479,9 +474,10 @@ tibble(
   filter(SubGroup != Target)
 ```
 
-- Out-of-data R2: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 4
+- R2 in Validation: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 4
 
-- In-data R2: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 4
+- R2 in Training: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 4
+
 
 ## 数値例: Step 3
 
@@ -524,13 +520,15 @@ tibble(
   filter(SubGroup != Target)
 ```
 
-- Out-of-data R2: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 4
+- R2 in Validation: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group == Target]^2)/var(PopData$Price))) |> round(2)` with 4
 
-- In-data R2: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 4
+- R2 in Training: `r (1 - (mean((PopData$Price - PredOLS)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 0.01, `r (1 - (mean((PopData$Price - PredBest)[PopData$Group != Target]^2)/var(PopData$Price))) |> round(2)` with 4
 
-## 比較
+## 他の評価法との比較
 
-- 全データをモデルの試作と中間評価に使用すると、複雑なモデルを過大評価
+- 全データをTrainigとValidationに使用すると、複雑なモデルを過大評価
+
+    - 過剰適合と区別できない
 
 - データを分割すると、全データを用いた評価はできない
 
@@ -556,7 +554,7 @@ tibble(
 
 - 十分に複雑なモデルを設定できれば、LASSO (+ $\lambda$ のデータ主導の決定)、定式化への依存を減らせる
 
-    - 元々の$X$ について、交差項と連続変数については二乗項を作成など
+    - 例えば、[元々の$X$ について、交差項と連続変数については二乗項を作成](https://github.com/demirermert/MLInference)
 
     - 事例数に応じて $\lambda$ が減少すれば、母平均の一致推定量を得られる
     
@@ -564,9 +562,9 @@ tibble(
 
 ## 実践: 変数の除外
 
-- LASSOで推定した場合、厳密に0となる$\beta$ が出てくる
+- LASSOで推定した場合、$\beta$ は厳密に0になりえる
 
-    - 非常に稀な場合を除いて、 OLSでは厳密に0にならない (非常に小さいはあり得る)
+    - 非常に稀な場合を除いて、 OLSでは厳密に0にならない (非常に小さいのみあり得る)
 
 - $\underbrace{\beta_{1}}_{=0}\times X_1$ であれば、$X_1$ をモデルから変数をデータ主導で除外している、と解釈できる
 
@@ -578,8 +576,6 @@ tibble(
 
 - OLSは人間がモデルを事前に定式化する必要があるが、非常に困難
 
-- ここまでの内容はCausalML Chap 1/3 参照
-
-
+- ここまでの内容はCausalML Chapter 1/3, ISL Chapter 2/3/5/6 参照
 
 ## Reference
