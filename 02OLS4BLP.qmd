@@ -182,7 +182,7 @@ arrow::read_parquet(
 
 0. **分析者**が、モデル $g_Y(X)=\beta_0 + ..+ \beta_LX_L$ を設定
 
-2. $\beta=[\beta_0,..,\beta_L]$ を二乗誤差の総和を最小にするように決定 $$\min \sum_X(\mu_Y(X) - g_Y(X))^2\times N_x$$
+2. $\beta=[\beta_0,..,\beta_L]$ を二乗誤差の総和を最小にするように決定 $$\min \sum_X(\mu_Y(X) - g_Y(X))^2\times N_X$$
 
     - $\mu_Y(x)=\sum_{i;X_i=x} y_i/N_{x}$ , $N_x:$ $X_i=x$ を満たす事例数
 
@@ -267,9 +267,9 @@ arrow::read_parquet(
 
 ## 実例
 
-- 2022年の不動産取引データを用いて、以下のLinear modelをOLSで推定 $$g(X)=\beta_0+\beta_1\times Size$$ $$+ \beta\times Dummies(District)$$
+- 2022年の不動産取引データを用いて、以下のLinear modelをOLSで推定 $$g(X)=\beta_0+\beta_1\times Size + \beta\times D(District)$$
 
-- Dummies(x): xのダミー変数
+- $D(x)$: xのダミー変数
 
 - 必ず共通の傾きを持った直線モデルが推定される
 
@@ -384,9 +384,9 @@ Data |>
 
 - より複雑なモデル
 
-$$log(Price)=$$ $$\beta_1\times Size\times Dummies(District)$$ {#eq-int} $$\beta_1\times poly(Size,2)\times Dummies(District)$$ {#eq-int-2nd} $$\beta_1\times poly(Size,15)\times Dummies(District)$$ {#eq-int-15th}
+$$log(Price)=\beta_1\times Size\times D(District)$$ {#eq-int} $$log(Price)=\beta_1\times p(Size,2)\times D(District)$$ {#eq-int-2nd} $$log(Price)=\beta_1\times p(Size,15)\times D(District)$$ {#eq-int-15th}
 
-- poly(x,l): $x$ の $l$ 乗まで作る
+- $p(x,s)$: $x$ の $s$ 乗まで作る
 
 
 ## 実例: 交差項 (@eq-int)

@@ -16,6 +16,7 @@ execute:
   warning: false
   message: false
   eval: true
+  echo: false
 bibliography: "ref.bib"
 ---
 
@@ -64,7 +65,7 @@ library(recipes)
         
         - $\Pr(D=1|X\ge 1 | X \le -1)=0.1$
 
-## 例: OLS
+## 例: OLS (独立の場合)
 
 ```{r}
 set.seed(1)
@@ -120,7 +121,7 @@ Temp |>
 ```
 
 
-## 例: OLS
+## 例: OLS (相関の場合)
 
 ```{r}
 set.seed(1)
