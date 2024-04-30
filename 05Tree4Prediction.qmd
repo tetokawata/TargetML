@@ -1,0 +1,703 @@
+---
+title: "Tree Model for Prediction"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# Regression Tree
+
+```{r}
+set.seed(111)
+library(tidyverse)
+library(recipes)
+library(mlr3verse)
+
+Dummy = po("encode")
+
+Data = read_csv("Public/Data.csv") |> 
+  filter(
+    TradeYear %in% c(2017,2022)
+  ) |> 
+  mutate(
+    Price = Price |> log(),
+    DistrictLarge = DistrictLarge |> factor()
+  )
+
+Task = as_task_regr(
+  Data |> select(
+    Price,
+    Size,
+    DistrictLarge
+  ),
+  target = "Price"
+)
+
+Partition = partition(
+  Task,
+  ratio = 0.05
+)
+
+Tree3 = lrn(
+  "regr.rpart",
+  maxdepth = 3,
+  cp = 0)$
+  train(
+    Task,
+    Partition$train
+  )$predict(
+    Task
+  )
+
+Tree30 = lrn(
+  "regr.rpart",
+  maxdepth = 30,
+  minsplit = 1,
+  minbucket = 1,
+  cp = 0)$
+  train(
+    Task,
+    Partition$train
+  )$predict(
+    Task
+  )
+
+OLS = lrn(
+  "regr.lm"
+  )$
+  train(
+    Task,
+    Partition$train
+  )$predict(
+    Task
+  )
+
+RF = lrn(
+  "regr.ranger"
+  )$
+  train(
+    Task,
+    Partition$train
+  )$predict(
+    Task
+  )
+
+Boost = Dummy %>>%
+  lrn("regr.xgboost",
+  nrounds = 1000
+  ) |> 
+  as_learner()
+
+Boost = Boost$
+  train(
+    Task,
+    Partition$train)$
+  predict(Task)
+```
+
+- 一般に線形モデルとは大きく異なるモデルを構築
+
+- サブグループの平均値を予測値とする
+
+    -   伝統的方法: 人間がサブグループを決定
+
+    -   本講義: データがサブグループを決定
+
+## 動機
+
+- Social Outcome の平均値を良く近似するモデルを、"安定して生み出せるアルゴリズム"は、（知る限り）存在しない
+
+    - 複数のアルゴリズムの予測結果を集計することが実践的
+
+- Linear Modelとは、異なるモデルを生み出すアルゴリズムも用いることが必要
+
+    - Tree Modelは重要な要素
+
+
+## 実例: 価格予測
+
+```{r, dev='ragg_png'}
+rpart::rpart(
+  Price ~ ., 
+  Data[Partition$train,] |> 
+    select(Size,DistrictLarge,Price),
+  control = rpart::rpart.control(
+    cp = 0,
+    maxdepth = 3
+  )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+## 実例: VS OLS
+
+```{r, dev='ragg_png'}
+Data[Partition$test,] |> 
+  mutate(
+    Tree = Tree3$response[Partition$test],
+    OLS = OLS$response[Partition$test]
+    ) |> 
+  mutate(
+    AvePrice = mean(Price),
+    N = n(),
+    .by = c("Size","DistrictLarge")
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Tree
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      y = AvePrice,
+      size = N,
+      color = "Population Mean"
+    )
+  ) +
+  geom_line(
+    aes(
+      color = "Tree"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = OLS,
+      color = "OLS: Y ~ Size + District"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  )
+```
+
+## (伝統的)サブグループ法
+
+1. $Y,X$ を指定する
+
+2. **研究者が** $X$ についてサブグループを定義する
+
+3. $Y$ のサブグループ平均を計算する
+
+
+## データ主導のサブグループ設定
+
+1. $Y,X$ を指定する
+
+2. **データによって** $X$ についてサブグループを定義する
+
+3. $Y$ のサブグループ平均を計算する
+
+## "貪欲な"予想木アルゴリズム
+
+- 2.1.  分割の停止条件(最大分割数、サブグループの最小サンプル数など)を設定
+
+- 2.2.  データへの適合度が最大（平均二乗誤差が最小）になるように最初の分割を決定
+
+- 2.3.  停止条件に達するまで、分割を繰り返す
+
+## 停止条件の設定
+
+- 停止条件さえ設定すれば、予測木はデータに適合するように自動構築できる
+
+    - 停止条件をどのように設定する？
+
+-   停止条件を"緩く"すれば、分割は永遠と進む
+
+    -   予測モデルが複雑化し、データと完全に適合する
+
+        -   各サブグループは、１事例のみになるため
+
+    - 一般に過剰適合し、予測性能が悪化
+
+## 性質
+
+- "深い木"(最大分割数多い/最小事例数が少ない)を生成すると
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{Irreducible\ Error}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}^*(X)}_{Approximation\ Error\rightarrow 減少}+\underbrace{g_{Y,\infty}^*(X) - g_Y(X)}_{Estimation\ Error\rightarrow 増加}$$
+
+## 実例: 浅い木
+
+```{r, dev='ragg_png'}
+rpart::rpart(
+  Price ~ ., 
+  Data |> 
+    select(Price:Size),
+  control = rpart::rpart.control(
+    cp = 0,
+    maxdepth = 2
+  )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 実例: 深い木
+
+```{r, dev='ragg_png'}
+rpart::rpart(
+  Price ~ ., 
+  Data |> 
+    select(Price:Size),
+  control = rpart::rpart.control(
+    cp = 0,
+    minsplit = 1,
+    minbucket = 1,
+    maxdepth = 5
+  )
+  ) |> 
+  rpart.plot::rpart.plot()
+```
+
+
+## 実例: VS
+
+```{r, dev='ragg_png'}
+Data[Partition$test,] |> 
+  mutate(
+    TreeShort = Tree3$response[Partition$test],
+    TreeLong = Tree30$response[Partition$test]
+    ) |> 
+  mutate(
+    AvePrice = mean(Price),
+    N = n(),
+    .by = c("Size","DistrictLarge")
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = TreeShort
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      y = AvePrice,
+      size = N,
+      color = "Population Mean"
+    )
+  ) +
+  geom_line(
+    aes(
+      color = "Tree with depth 4"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = TreeLong,
+      color = "Tree with depth 30"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  )
+```
+
+## まとめ
+
+- データ主導の変数選択を導入
+
+    - 停止条件の設定に強く依存
+    
+- 対策としては
+
+    - LASSOと同様に、複雑なモデル(巨大な決定木)を推定し、単純化する (剪定 ISL Chap 8.1 参照)
+
+    - 本講義では、モデル集計を紹介
+
+        - 上手くいくことが多いため
+
+# Bootstrap Model Averaging
+
+- データ分析の基本アイディア: 事例を集計することで、母集団の特徴を捉える
+
+- 予測モデル自体も集計できる
+
+    - シンプルかつ強力な戦略
+
+## 予測木への応用
+
+- 分割回数を増やすと
+
+    - 母平均が大きく乖離しているサブグループへの分割が期待できる
+    
+    - サブグループの事例数が増え、データに含まれるハズレ値の影響を強く受けやすい
+    
+## 解決策
+
+- 問題: 平均値に近づけたいのに、複雑なモデルは、（平均から大きく乖離した）ハズレ値の影響を受けやすい
+
+- 解決: 大量の提案
+
+    - 代表的な戦略は、モデルの適切な単純化
+    
+        - **モデル集計**
+
+## Bootstrap model averaging
+
+- 深い決定木は、外れ値に大きな影響を受ける可能性がある
+
+    - 外れ**予測値**が生成される可能性
+
+- **複製データ** から大量の決定木を推定し、平均をとる
+
+    - 外れ予測値の影響を緩和する
+    
+    - $\simeq$ 分散投資で、外れイベントの影響を緩和
+
+## 例: ４つのモデルの集計
+
+```{r}
+a = 0.4
+TempData = Data[sample(1:nrow(Data),2000),]
+
+TempGroup = sample(
+  1:4,
+  nrow(TempData),
+  replace = TRUE
+)
+
+TempParam = rpart::rpart.control(
+  cp = 0,
+  maxdepth = 30,
+  minsplit = 5,
+  minbucket = 5
+)
+
+TempData |> 
+  mutate(
+    Tree1 = rpart::rpart(
+      Price ~ Size + DistrictLarge,
+      TempData[TempGroup == 1,],
+      control = TempParam) |> 
+      predict(TempData),
+    Tree2 = rpart::rpart(
+      Price ~ Size + DistrictLarge,
+      TempData[TempGroup == 2,],
+      control = TempParam) |> 
+      predict(TempData),
+    Tree3 = rpart::rpart(
+      Price ~ Size + DistrictLarge,
+      TempData[TempGroup == 3,],
+      control = TempParam) |> 
+      predict(TempData),
+    Tree4 = rpart::rpart(
+      Price ~ Size + DistrictLarge,
+      TempData[TempGroup == 4,],
+      control = TempParam) |> 
+      predict(TempData)
+  ) |> 
+  mutate(
+    Aggregate = (Tree1 + Tree2 + Tree3 + Tree4)/4
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Tree1
+    )
+  ) +
+  theme_bw() +
+  geom_line(
+    aes(
+      y = Tree1,
+      color = "Model1"
+    ),
+    alpha = a
+  ) +
+  geom_line(
+    aes(
+      y = Tree2,
+      color = "Model2"
+    ),
+    alpha = a
+  ) +
+  geom_line(
+    aes(
+      y = Tree3,
+      color = "Model3"
+    ),
+    alpha = a
+  ) +
+  geom_line(
+    aes(
+      y = Tree4,
+      color = "Model4"
+    ),
+    alpha = a
+  ) +
+  geom_line(
+    aes(
+      y = Aggregate,
+      color = "Aggregate"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  )
+```
+
+## 擬似的なモデル複製
+
+- 独立して抽出したデータから得られる予測モデルを集計できれば、性能は**必ず**改善する
+
+    - 現実には不可能
+    
+- 擬似的に行う
+
+    - ブートストラップの活用
+
+## ブートストラップ
+
+- データと同じ事例数の複製データを作成
+
+    - 復元抽出(被りありの抽選)を行う
+
+## 理想のモデル集計
+
+```{dot}
+digraph {
+    rankdir=TB;
+    node [shape = none]; 
+    Pop[label = "母集団"];
+    Data1[label = "事例1,2,3"];
+    Data2[label = "事例4,5,6"];
+    Data3[label = "事例7,8,9"];
+    Model1[label = "モデル1"];
+    Model2[label = "モデル2"];
+    Model3[label = "モデル3"];
+    Final[label = "最終モデル"]
+    Pop -> Data1,Data2
+    Pop -> Data3[label = "Sampling"]
+    Data1 -> Model1
+    Data2 -> Model2
+    Data3 -> Model3
+    Model1,Model2,Model3 -> Final
+}
+```
+
+## Bootstrap Model Averaging
+
+```{dot}
+digraph {
+    rankdir=TB;
+    node [shape = none]; 
+    Pop[label = "母集団"];
+    Data[label = "事例1,2,3"];
+    Copy1[label = "事例1,1,3"];
+    Copy2[label = "事例2,3,3"];
+    Copy3[label = "事例1,3,3"];
+    Model1[label = "モデル1"];
+    Model2[label = "モデル2"];
+    Model3[label = "モデル3"];
+    Final[label = "最終モデル"]
+    Pop -> Data[label = "Sampling"]
+    Data -> Copy1,Copy2
+    Data -> Copy3[label = "Bootstrap"]
+    Copy1 -> Model1
+    Copy2 -> Model2
+    Copy3 -> Model3
+    Model1,Model2 -> Final
+    Model3 -> Final[label = "Aggregation"]
+}
+```
+
+
+## De-correlation
+
+- ブートストラップでは、複製データ間で同じ事例が使用されうる
+
+    - データの特徴間に相関が生じる
+
+    - 同じような予測値を集計したとしても、あまり予測精度は改善しない
+
+- 事例数が限られている場合、強力な予測力をもつ変数のみが使用され、そこそこの予測力変数が使用されない
+
+    - 分割に使用する変数もランダムに決める
+
+## Random Forest
+
+1. $\{Y,X\}$ を決める
+
+2. ブートストラップにより、データを複製 (可能な限り多く、 rangerのdefaultは500)
+
+3. 各複製データについて、Regression Treeを推定
+
+- RandomForestでは、分割時に使用できる変数はランダムに選ぶ
+
+## 性質
+
+- 深すぎるRegression Treeを集計すると
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{Irreducible\ Error}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}^*(X)}_{Approximation\ Error \approx 0 (注)}+\underbrace{g_{Y,\infty}^*(X) - g_Y(X)}_{Estimation\ Error= 大\rightarrow 減少}$$
+
+- 注: Tree系のアルゴリズムについての理論的性質(大表本性質) は、現状でも盛んに研究されている
+
+    - @klusowski2024large など
+
+
+## 実例: VS Tree
+
+```{r, dev='ragg_png'}
+Data[Partition$test,] |> 
+  mutate(
+    Tree = Tree30$response[Partition$test],
+    RF = RF$response[Partition$test]
+    ) |> 
+  mutate(
+    AvePrice = mean(Price),
+    N = n(),
+    .by = c("Size","DistrictLarge")
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Tree
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      y = AvePrice,
+      size = N,
+      color = "Population Mean"
+    )
+  ) +
+  geom_line(
+    aes(
+      color = "Tree"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = RF,
+      color = "RandomForest"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  )
+```
+
+# Boosting
+
+- 代替的なモデル集計方法
+
+    - こちらも大人気の手法
+
+- シンプルすぎるモデルを複雑にしていく
+
+## Algorithm: アイディア
+
+1. $X,Y$ を指定
+
+2. $Y$ を予測する"浅い木"を推定し、予測誤差 $R=Y-g_0(X)$ を算出
+
+3. $R$ を予測する"浅い木"を推定し、予測モデル $g(X)$, 予測誤差 $R=Y - g(X)$ を更新
+
+4. 3を一定回数繰り返し、最終予測モデル $g(X)$ を算出
+
+## 性質
+
+- 浅すぎるとRegression Treeからスタートするので
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{Irreducible\ Error}$$ $$+\underbrace{E[Y|X] - g_{Y,\infty}^*(X)}_{Approximation = 大 \rightarrow 減少}+\underbrace{g_{Y,\infty}^*(X) - g_Y(X)}_{Estimation\ Error= 小\rightarrow 増加?}$$
+
+## Tuning Parameter
+
+- 繰り返す回数 $=$ 多くし過ぎると、データに完全に(過剰)適合する
+
+    - Random Forestとの大きな違い
+    
+- よく用いられるTuninging 方法は、Early Stopping
+
+    - データの一部を検証用に分割し、モデルの検証データへの当てはまりが低下したら、停止
+    
+## "ゆっくり学ぶ"
+
+- 一回でデータへの当てはまりを大きく    改善すると、過剰適合する可能性が高まる
+
+- "学習速度"を落とす
+
+    - Regression Tree の分割回数を減らす
+    
+    - 予測モデルの更新速度を落とす
+    
+        - $g(X)=g(X) + \lambda g_0(X)$
+    
+    
+
+
+## 実例: VS RandomForest
+
+```{r, dev='ragg_png'}
+Data[Partition$test,] |> 
+  mutate(
+    Boost = Boost$response[Partition$test],
+    RF = RF$response[Partition$test]
+    ) |> 
+  mutate(
+    AvePrice = mean(Price),
+    N = n(),
+    .by = c("Size","DistrictLarge")
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = Boost
+    )
+  ) +
+  theme_bw() +
+  geom_point(
+    aes(
+      y = AvePrice,
+      size = N,
+      color = "Population Mean"
+    )
+  ) +
+  geom_line(
+    aes(
+      color = "Boost"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = RF,
+      color = "RandomForest"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  )
+```
+
+## まとめ
+
+- Regression Treeは、Linear Modelの有力な代替案
+
+    - Stackingにおける重要な構成要素
+
+    - Linear Modelほど、Data Clearningが必要ない
+    
+        - とりあえずRandomForestかBoostingを試してみる（人が企業では多いそうです）
+
+- まだまだ理論的によくわかっていないことが多い(そうです)
+
+    - Causal ML (Chap 9) を参照
+
+## Reference
