@@ -1,0 +1,206 @@
+---
+title: "hdmパッケージを用いたLASSO/Double Selectionの実装"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  echo: true
+---
+
+# 流れ
+
+1. Set up
+
+2. Import Data (arrow)
+
+3. PreProcess (recipes)
+
+4. LASSO/Double selection (hdm)
+
+
+## Set up
+
+```{r}
+#| echo: true
+set.seed(111)
+
+library(tidyverse)
+library(arrow) # <1>
+library(hdm)
+```
+
+1. parquet形式(大規模データに比較優位)によるデータの保存/読み込み
+
+## Install package
+
+- 基本、通常のやり方でOKだが、
+
+    - 現時点では、arrowをMacにインストール際には以下を実行
+
+```{r}
+#| echo: true
+#| eval: false
+install.packages("arrow", repos = c("https://apache.r-universe.dev"))
+```
+
+## Import Data
+
+- csv形式の導入
+
+```{r}
+Raw = read_csv("Public/Data.csv")
+```
+
+- parquet形式の導入
+
+```{r}
+Raw = read_parquet("Public/Data.parquet")
+```
+
+## データの形式
+
+- 多くの選択肢が存在 ([R for Data Science 20-23 参照](https://r4ds.hadley.nz/import))
+
+- 個人的には、parquet形式が最もバランスが良い印象
+
+    - Sizeが小さくなる/読み込みが早い/メモリを使わない操作が可能/DataBaseよりも初学者にとって簡単?
+
+- csv形式をparquet形式に変換して保存
+
+```{r}
+open_csv_dataset("Public/Data.csv") |> 
+  write_parquet("Data.parquet")
+```
+
+## Pipe
+
+- inputを、名前をつけずに、outputとして利用可能
+
+- 例
+
+```{r}
+#| eval: false
+Raw = read_parquet("Public/Data.parquet")
+summary(Raw)
+```
+
+- 以下は同じ結果を出す
+
+```{r}
+#| eval: false
+read_parquet("Public/Data.parquet") |> 
+  summary()
+```
+
+- Shortcut: command(control) + m
+
+    - Tools -> Global option -> Code -> Use native pipe oepratorをチェック
+
+## PreProcess: dplyr
+
+- 基本はdplyr(tidyverseに含まれる)の使用を推奨 ([R for Data Science 4章](https://r4ds.hadley.nz/data-transform)参照)
+
+```{r}
+Data = Raw |> 
+  filter(TradeYear == 2022,
+         TradeQ == 4) |> 
+  select(
+    Size:Reform,
+    Price,
+    District
+  )
+```
+
+## LASSO
+
+```{r}
+Group = sample(
+  1:2,
+  nrow(Data),
+  replace = TRUE,
+  prob = c(0.8,0.2))
+
+Model = rlasso(
+  Price ~ .^2 + I(Size^2) + I(Distance^2) + I(Youseki^2),
+  Data[Group == 1,],
+  post = FALSE
+)
+```
+
+## LASSO: Selected variable
+
+```{r}
+Model$index
+```
+
+## LASSO: Evaluation
+
+```{r}
+PredLASSO = Model |> 
+  predict(
+    Data)
+
+PredOLS = lm(
+  Price ~ .,
+  Data[Group == 1,]) |> # 比較のためにOLSを推定
+  predict(Data)
+
+1 - mean((Data$Price - PredLASSO)[Group == 2]^2)/var(Data$Price)
+
+1 - mean((Data$Price - PredOLS)[Group == 2]^2)/var(Data$Price)
+```
+
+
+## Double Selection
+
+- サンプル分割は不要
+
+```{r}
+Y = Data$Price
+D = Data$Reform
+
+X = model.matrix(
+  ~ 0 + .^2 + I(Size^2) + I(Distance^2) + I(Tenure^2) + I(Youseki^2),
+  Data |> 
+    select(
+      -Price,
+      -Reform
+    )
+)
+
+Model = rlassoEffect(
+  x = X,
+  y = Y,
+  d = D)
+
+Model |> summary() # 推定結果
+```
+
+## OLS
+
+```{r}
+estimatr::lm_robust(Price ~ .,
+                    Data) |> 
+  estimatr::tidy() |> 
+  filter(
+    term == "Reform"
+  )
+```
+
+
+## Double Selection: Selected Variable
+
+```{r}
+Model$selection.index
+```
