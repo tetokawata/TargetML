@@ -27,4 +27,8 @@ Public folderから、講義資料と実習用データをダウンロードで�
     
     - [データの格納](https://youtu.be/f2EU44WFyQM)
     
+    - [hdmの使い方: 設定](https://youtu.be/ReSQk39QwwU)
+    
+    - [hdmの使い方: 本番](https://youtu.be/5SaGBAvmg5A)
+    
 - 2023年の講義アーカイブリンクは2023/LinkArxivに記載してます
