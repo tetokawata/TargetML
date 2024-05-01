@@ -1,0 +1,21 @@
+---
+title: "Reference list: OLS as Balancing Weight"
+format:
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+bibliography: "ref.bib"
+---
+
+- まずはサクッと読める以下のサイトがおすすめ
+
+    - https://hdsr.mitpress.mit.edu/pub/1ybwbmlw/release/2
+    
+- 講義では、以下の論文の内容を紹介
+
+    - [@chattopadhyay2023implied](https://scholar.googleusercontent.com/scholar.bib?q=info:rH5RkiJvyT4J:scholar.google.com/&output=citation&scisdr=ClEtO2YEEIijyaPqjdw:AFWwaeYAAAAAZjHsldymbFxq42tWxOqpN_fILVE&scisig=AFWwaeYAAAAAZjHslZjWDxi9AEnEnqTzV0s3lmY&scisf=4&ct=citation&cd=0&hl=ja)
+    
+## Reference
