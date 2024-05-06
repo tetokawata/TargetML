@@ -10,6 +10,8 @@
         - Rであれば、hdmパッケージを使用
         
         - Pythonであれば、sklernを使用しLASSOを行い自身で変数選択を行う
+        
+    - PCの環境に応じて、データを2022年第四四半期のみに限定しても良い
 
 2. 変数選択を行う利点を述べよ。その際にIrreducible Error, Approximation Error, Estimation Errorを用語として用いること
 
