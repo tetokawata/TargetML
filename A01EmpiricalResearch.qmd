@@ -1,0 +1,372 @@
+---
+title: "中間まとめ"
+subtitle: "Machine Learning require sophisticated research roadmap"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# 研究/学習のコツ
+
+- RoadMap(工程表)を見失わない
+
+    - 研究: 今何をやっていて、何をやりたかったか
+    
+    - 学習: 何を、何のために勉強しているのか
+
+- 機械学習を含む様々な手法はRoadMapの中に埋め込んで整理すべき
+
+## Research DesignのRoadMap: Recap
+
+- 利用可能なデータの特徴 (事例数、変数、可能であれば欠損値の数など)を把握
+
+- **Research question**: 研究課題の設定
+
+- **Identification/Summary Strategy**: 研究課題に回答できるEstimand (推定対象)の定義
+
+    - 含むPopulation (母集団) の定義
+
+    - **人間**によるモデル化(変数選択も含む)が必要
+
+- **Estimation Strategy**: Estimandを近似するEstimator (推定結果)を得る方法を検討
+
+    - **データ**によるモデル化(変数選択も含む)が利用可能
+
+## Estimation Strategy
+
+- 予測: Estimand $E[Y|X]$ に対して、データから近似結果 (Estimator) $g_Y(X)\simeq E[Y|X]$ を計算する
+
+    - 例えばLASSO
+
+- 記述: Estimand $\tau=E[Y|d,X]-E[Y|d',X]$ に対して、データからEstimator $\beta_D\simeq \tau$ を計算する
+
+    - 例えばDouble Selection
+
+- 「Estimandを決めた**後に**、どのようにEstimatorを得るのか?」を(今後も)議論
+
+## Quiz
+
+- 以下の研究計画の問題箇所を選べ
+
+- "本講義への参加が30歳時点での所得に与える因果効果を推定したい。データからは、事例数500、変数としては講義への参加、30歳時点での所得に加えて、$X=\{$講義への参加、30歳時点での所得、生まれ年、所属学部、初職の企業規模、初職の職種$\}$が活用できる。Double Selectionを用いて、**Xから重要な変数Zを選択**し、**Y~ D+ZをOLSで推定**し、**Dの係数値を通常の信頼区間**ともに報告する。"
+
+- [回答ページ](https://forms.office.com/Pages/ResponsePage.aspx?id=T6978HAr10eaAgh1yvlMhO0_9SUJ_0VKvDH6B82i0qBUNjhYSEMxMjA4NlZGRkIyQURNV1MxT01TTy4u)
+
+## Recap: Double LASSO algorithm
+
+- 限れた事例数で、 $\tau$ をどのように近似するか?
+
+    - 適切な推定モデルを構築する
+
+        - $X$ を十分に複雑化する
+    
+        - 近似する上での有用ではない変数を排除する
+    
+            - $\tau\sim E[Y|d,Z]-E[Y|d',Z]$ となるような部分集合 $Z\subset X$ を探す
+        
+- 注意点: 推定目標(Estimand)はあくまでも $\tau=E[Y|d,X]-E[Y|d,X]$
+
+## Recap: Why "Double"?
+
+- $Y=\tau D + \beta_XX + u$ を想定
+
+- $$E[Y|D=1] - E[Y|D=0]$$ $$=\tau +\underbrace{\beta_X\times \{E[X|D=1]- E[X|D=0]\}}_{Confounding\ term}$$
+
+- Biasの大きさは、 $\beta_X$ と $E[X|D=1]- E[X|D=0]$ **双方に**依存
+
+## Recap: Why "Double"?
+
+- 例: 以下は同じ推定結果をもたらす
+
+    - $\beta_X=5\ \&\ E[X|D=1]- E[X|D=0]=0.1$
+    
+        - $D$ の予測モデルのみでは、$X$は除外されやすい
+    
+    - $\beta_X=1\ \&\ E[X|D=1]- E[X|D=0]=0.5$
+
+        - $Y$ の予測モデルのみでは、$X$は除外されやすい
+
+- $Y/D$ の予測モデルを用いて、double checkする必要がある
+
+## Recap: Approximation
+
+- (くどいが)あくまでも $E[Y|D=1,X]-E[Y|D=0,X]$ の近似が目標
+
+    - $E[Y|D=1,Z]-E[Y|D=0,Z]$ ではない
+
+- Bias-Variance Tradeoff を解く
+
+    - 事例数が少なければ、より多くの変数を落とさざる得ない
+
+    - 無限大の事例数があれば、$X$ が有限である限り、$Z=X$ でOK
+
+# Estimandの設定
+
+- 現代的研究において、特に強調され、多くの労力を注ぎ込む。
+
+    - 因果推論、潜在結果(Potential Outcome;PO), Directed Acyclical Graphs (DAG) を活用する場面
+    
+    - Estimandを**定義**するために、変数を選択する
+
+- 「$Y$ に関係していそうなものを全てを$X$として活用する」は、ほとんどの応用で不適切
+
+## 例: 格差研究 (記述研究)
+
+- Estimand $=$ 何を社会的に問題のある"差"と考えるのか、価値判断への(論文内での)"コミット" [@rose2023constructivist]
+
+- 「Racial group W/B $(=D)$ の間で、交通違反の検挙率 $(=Y)$ にどのような差が存在するのか」
+
+    - $X$ 候補 $=$ 違反速度
+
+## Estimandの設定: 格差研究
+
+- 警察による差別研究: $\tau = E[Y|B,違反速度] - E[Y|W,違反速度]$ が妥当なEstimand
+
+    - 同じ"罪"を犯したとしても、Race間で司法判断に差が存在するのであれば、差別の証拠
+    
+- Race間の格差研究: $\tau = E[Y|B,違反速度] - E[Y|W,違反速度]$ ?
+
+    - Raceによって違法速度での運転に"追い込まれている"人の割合は異なるかもしれない
+
+    - $\tau = E[Y|B] - E[Y|W]$ が妥当
+
+
+## 例: 因果効果 (記述研究)
+
+- $Y$ について観察される差は、何が原因で生じたのか?
+
+- ある変数$D$を変化させた場合、$Y$ にどのような差をもたらすのか?
+
+    - 重要だが不毛な議論になりやすい
+    
+        - 有益な概念装置 (PO,DAG)が、複数提案され、補完的に活用できる状況になっている (Chap 2, 4-8 in CausalML 参照、他には @heckman2024econometric)
+        
+    - 共通見解: $X$ の選択 $=$ 仮想的な実験結果 (Target Trial)へのコミットとして(も)解釈できる
+
+## 例: 本講義の因果効果
+
+- 本講義を受講することが、30歳時点での所得にどの程度影響を与えるのか?
+
+    - $E[Income|Attend] - E[Income|Not Attend] =$ 因果効果?
+    
+    - 本講義は何の付加価値をもたらさなかったとしても、他の変数についての差があり、参加者と非参加者の間で賃金格差は観察されうる
+    
+        - 所得につながりやすい学部・大学院出身/ない
+        
+        - データ分析について関心がある/ない
+
+## 例: 本講義の因果効果
+
+- DAGによる表現 (Chap 7 in CausalML 参照)
+
+    - 矢印 $=$ "因果効果"
+
+```{dot}
+digraph {
+    rankdir=RL;
+    node [shape = none]; 
+    Y[label = "Y = Income at age 30"]
+    D[label = "D = EconML Class"]
+    X[label = "Observable Background (出身分野)"]
+    C[label = "Unobservable Background (興味関心)"]
+    M[label = "Observable/Unobservable Post-Treatment (初職)"]
+    D -> Y[label = "Causal Effect?"]
+    X -> D[label = "Confound?"]
+    X -> Y
+    C -> D[label = "Confound?"]
+    C -> Y
+    D -> M
+    M -> Y[style = "dotted"]
+    Y -> M[style = "dotted"]
+    {rank = same; D;X;M}
+    {rank = same; Y;C}
+}
+```
+
+## Estimand as Target Trial
+
+- 矢印はどのように決まるのか?
+
+    - Estimandの決定には、実用的な定義が必要
+
+        - 母集団上での(仮想的な)実験結果(Target Trial)
+
+## Randomized Controlled Trial (RCT)
+
+- 最も有名なTarget Trial (Chap 2 in CausalML 参照)
+
+- 無限大の被験者について、相互作用がない状態で、$D$ を被験者にランダムに割り振る
+
+    - $Y$ の差を $D$ 因果効果と"見做す"
+
+    - Observable/Unobservable 問わず、Backgroundの分布は$D$間でバランスする
+    
+    - Post-Treatmentはバランスしないが、因果効果の一部(Mediation Effect)として解釈する
+
+## 例: RCTの実行した場合
+
+- 赤線を因果効果と定義する
+
+```{dot}
+digraph {
+    rankdir=RL;
+    node [shape = none]; 
+    Y[label = "Y = Income"]
+    D[label = "D = EconML Class"]
+    X[label = "Observable Background (出身分野)"]
+    C[label = "Unobservable Background (興味関心)"]
+    M[label = "Observable/Unobservable Post-Treatment (初職)"]
+    D -> Y [color = "red"]
+    X -> D[style = "dotted", label = "Balacne by RCT", shape = "none"]
+    C -> D[style = "dotted", label = "Balacne by RCT", shape = "none"]
+    X -> Y
+    C -> Y
+    D -> M [color = "red", label = "Not Balacne"]
+    M -> Y [label = "CausalEffect", color = "red"]
+    Y -> M[style = "dotted"]
+    {rank = same; D;X;M}
+    {rank = same; Y;C}
+}
+```
+
+## 推定への含意
+
+- 現実に実験できたとしても、被験者数は有限
+
+    - **偶然**、背景属性はズレる
+
+    - 推定手法で対処可能 (信頼区間等)
+
+## $X$ の選択への含意
+
+- Observable Background を選び、 $X$ に加える
+
+    - Post-Treatmentは除外
+
+- Unobservable backgroundは加えたいができない (Omitted variable bias を引き起こす)
+
+    - Sensitivty 分析などを検討
+    
+        - @ding2023sensitivity, Section 16-19 in [@ding2023first](https://sites.google.com/site/pengdingpku/teaching?authuser=0) などを参照
+
+## 例: コントロール変数による識別
+
+- 赤線を因果効果と定義する
+
+    - $\tau=$ 赤 (Causal Effect) + 青 (Confound)
+
+```{dot}
+digraph {
+    rankdir=RL;
+    node [shape = none]; 
+    Y[label = "Y = Income"]
+    D[label = "D = EconML Class"]
+    X[label = "Observable Background (出身分野)"]
+    C[label = "Unobservable Background (興味関心)"]
+    M[label = "Observable/Unobservable Post-Treatment (初職)"]
+    D -> Y [color = "red"]
+    X -> D[style = "dotted", label = "Balacne by Control", shape = "none"]
+    C -> D[shape = "none", color = "blue", label = "Omitted variable bias"]
+    X -> Y
+    C -> Y[color = "blue"]
+    D -> M [color = "red"]
+    M -> Y [label = "CausalEffect", color = "red"]
+    Y -> M[style = "dotted"]
+    {rank = same; D;X;M}
+    {rank = same; Y;C}
+}
+```
+
+## データによるEstimandの定義
+
+- Double Selectionに選択された $Z\subset X$ を用いて、Estimandを定義するのであれば、事例数に応じて推定対象が変化することを受け入れる必要がある
+
+- "Post-treatment/Background"/"問題のある差か否か"、が分析に用いる事例数に依存する
+
+    - ???
+
+## データによるEstimandの定義: 悪例
+
+- 例:本講義の因果効果研究: データに含まれる(Y,D以外の)すべての変数 $X$ から、Double selection で$Z$を選択
+
+    - 事例数が増えれば、$X=Z$ に含まれる
+    
+        - 事例数が増えれば、**母集団(あるいは社会)において**、初職によって
+、本講義への参加**が**変化するようになる
+        
+            - ???
+
+## まとめ: Research Design
+
+```{dot}
+digraph {
+    compound=true;
+    rankdir=LR;
+    node [shape = none]; 
+    subgraph cluster_1 {
+        label="頭の中";
+        Q[label = "Reserch Question \n (Dの因果効果)"]
+        I[label = "Identification \n (Target trialへのコミット)"]
+        S[label = "Summary \n (平均効果にフォーカス)"]
+        E[label = "Estimation \n (Double Selection)"]
+        Q -> I -> S -> E
+        E -> S[style = "dotted"]
+        S -> I -> Q[style = "dotted"]
+        {rank = same; Q;I;S;E}
+    };
+    B[label = "背景知識 \n 含む 入手可能なデータ \n (事例数、変数)"];
+    D[label = "データ収集 \n Coding \n 結果の出力"];
+    B -> I [lhead = cluster_1]
+    I -> D [lhead = cluster_1,label = "極力逆流しない"]
+}
+```
+
+## まとめ
+
+- Estimandを定義する議論と推定する議論(Estimation)を分離する
+
+    - "CausalInference/因果推論入門"系は、定義を議論
+    
+    - "統計学/機械学習入門"系は、推定を議論
+    
+        - 本講義の力点もこちら
+        
+    - "経済学"系は、研究課題を議論
+
+## まとめ
+
+- 私見：推定方法の進歩（含む機械学習の導入）により、信頼できるEstimationを得やすくなっている
+
+    - 方法論の進歩を取り込むことが重要
+    
+        - 研究者は、Estimandの定義により注力できる
+
+## 発展
+
+- 因果推論において、Unobservable background (Unobservable confounders) への対処は難しい課題
+
+- 大量のアプローチが提案
+
+    - Instrumental Variable, Pallarel Trend (Panel Data), Regression-Discontinuity, Senstivity
+    
+        - Chap 12,13,16,17 in CausalML, @ding2023first 参照
+
+- 大量の変数の中から、因果関係を発見する方法 (Causal Discovery) も研究されているが、現状、(私見では)あまりにも強すぎる仮定を要求する [@Daoud2023Statistical]
+
+## Reference
+
