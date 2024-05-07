@@ -3,6 +3,8 @@
 .Rapp.history
 # qmd.file
 .qmd
+# html.file
+.html
 # Session Data files
 .RData
 # User-specific files
