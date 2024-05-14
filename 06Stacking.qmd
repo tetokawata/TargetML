@@ -1,0 +1,350 @@
+---
+title: "Stacking for Prediction"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# Stacking
+
+```{r}
+library(tidyverse)
+library(mlr3verse)
+library(mlr3extralearners)
+library(mlr3pipelines)
+
+Data = read_csv("Public/Data.csv") |> 
+  filter(
+    TradeYear %in% c(2022),
+    TradeQ == 2
+    )
+```
+
+- **異なるアルゴリズム**が生み出すモデルを集計する
+
+    - **同じアルゴリズム(決定木)**よりも、より多様なモデルを集計できる
+
+## 予測モデルの性能
+
+- 一貫して優れた予測を生み出せるAlgorithmは、現状、存在しない
+
+- 母集団の構造に応じて、適したアルゴリズムは異なる
+
+    - 母集団の構造はBlackBoxなので、事前にはわからない
+    
+- 例: Liner VS Tree Model
+
+    - $X$ と $Y$ の間に"なめらかな"関係性があれば、Linear Modelの方が性能が良い
+
+## 実践
+
+- どれを使えば良いか?
+
+1. モデルを試作 $\&$ 検証し、最も性能が良いものを使う
+
+    - アルゴリズム選択
+
+2. モデルを集計する
+
+    - アルゴリズム選択 や Random Forest の一般化
+    
+- ともに(Training) dataをランダムに分割することで、実装できる
+
+## アルゴリズム選択
+
+1. (Training) dataを2分割し、Training/Validation dataに分割
+
+2. Training dataのみを使用し、異なるAlgorithmを用いて、予測モデル群を試作
+
+3. Validation dataで予測性能を評価し、最善のAlgorithmを選ぶ
+
+4. Training/Validation dataを合体し、最善のAlgorithmを用いて、最終予測モデルを推定
+
+## Example: Data
+
+```{r}
+TempData = Data[1:6,] |> 
+  select(Price,Size,Distance) |> 
+  mutate(
+    Group = c(1,1,1,2,2,2)
+  )
+```
+
+```{r}
+#| echo: true
+
+TempData
+```
+
+## Example: モデルの試作
+
+```{r}
+#| echo: true
+
+TempData$OLS = lm(
+  Price ~ Size + Distance,TempData,
+  subset = Group == 1) |> 
+  predict(TempData)
+
+TempData$LASSO = hdm::rlasso(
+  Price ~ Size + Distance,TempData,
+  subset = Group == 1,
+  post = FALSE) |> 
+  predict(TempData)
+
+TempData
+```
+
+## Example: 中間評価
+
+```{r}
+#| echo: true
+TempData |> 
+  mutate(
+    Error_OLS = (OLS - Price)^2 |> round(),
+    Error_LASSO = (LASSO - Price)^2 |> round()) |> 
+  mutate(
+    MSE_OLS = Error_OLS |> mean() |> sqrt(),
+    MSE_LASSO = Error_LASSO |> mean() |> sqrt(),
+    .by = c(Group))
+```
+
+## Example: 最終モデル
+
+- LASSOが性能が良かったので
+
+```{r}
+#| echo: true
+hdm::rlasso(
+  Price ~ Size + Distance,
+  TempData,
+  post = FALSE
+)
+```
+
+## モデル集計
+
+- ここではLinear Modelとして集計する
+
+- $$g(X)=\beta_0+\beta_{OLS}\times\underbrace{g_{OLS}(X)}_{OLS}+\beta_{RF}\times\underbrace{g_{RF}(X)}_{RandomForest}$$ $$+\beta_{LASSO}\times \underbrace{g_{LASSO}(X)}_{LASSO}$$
+
+- $\beta =$ 予測結果へのWeight
+
+    - 独立したデータへの適合度を最大にするように決定
+
+## モデル集計
+
+1. (Training) dataを2分割し、Training/Validation dataに分ける
+
+2. Training dataのみを使用し、異なるAlgorithmを用いて、予測モデル群を試作する
+
+3. **Validation dataで、$Y$ と予測値を回帰し、$\beta$ を決定**
+
+4. **Training/Validation dataを合体し、$g(X)$ を推定し、最終予測モデルを算出**
+
+
+## Example: Weight推定
+
+```{r}
+#| echo: true
+TempData
+
+Weight = hdm::rlasso(
+  Price ~ OLS + LASSO,
+  TempData,
+  subset = Group == 2,
+  post = FALSE)
+
+Weight$coefficients
+```
+
+## Example: 最終モデル
+
+```{r}
+#| echo: true
+OLS = lm(Price ~ Size + Distance, TempData)
+LASSO = hdm::rlasso(Price ~ Size + Distance, TempData, post = FALSE)
+
+Test = tibble(Size = 80,Distance = 15)
+
+predict(OLS,Test)
+
+predict(LASSO,Test)
+
+Weight$coefficients[1] + 
+  Weight$coefficients[2]*predict(OLS,Test) +
+  Weight$coefficients[3]*predict(LASSO,Test)
+```
+
+## 交差推定の活用
+
+- 交差推定を活用し、Weight推定の精度を高めることもできる
+
+## Example: Data
+
+```{r}
+TempData = Data[1:6,] |> 
+  select(Price,Size,Distance) |> 
+  mutate(
+    Group = c(1,1,2,2,3,3)
+  )
+```
+
+```{r}
+#| echo: true
+TempData
+```
+
+## Example
+
+```{r}
+#| echo: true
+Target = 1
+PredOLS = lm(Price ~ Size + Distance, TempData, 
+         subset = Group != Target) |> predict(TempData)
+
+PredLASSO = hdm::rlasso(Price ~ Size + Distance, TempData, post = FALSE,
+                    subset = Group != Target) |> predict(TempData)
+
+TempData = TempData |> 
+  mutate(
+    OLS = case_when(Group == Target ~ PredOLS, .default = 0),
+    LASSO = case_when(Group == Target ~ PredLASSO, .default = 0))
+
+TempData
+```
+
+## Example
+
+```{r}
+#| echo: true
+Target = 2
+PredOLS = lm(Price ~ Size + Distance, TempData, 
+         subset = Group != Target) |> predict(TempData)
+
+PredLASSO = hdm::rlasso(Price ~ Size + Distance, TempData, post = FALSE,
+                    subset = Group != Target) |> predict(TempData)
+
+TempData = TempData |> 
+  mutate(
+    OLS = case_when(Group == Target ~ PredOLS, .default = OLS),
+    LASSO = case_when(Group == Target ~ PredLASSO, .default = LASSO))
+
+TempData
+```
+
+## Example
+
+```{r}
+#| echo: true
+Target = 3
+PredOLS = lm(Price ~ Size + Distance, TempData, 
+         subset = Group != Target) |> predict(TempData)
+
+PredLASSO = hdm::rlasso(Price ~ Size + Distance, TempData, post = FALSE,
+                    subset = Group != Target) |> predict(TempData)
+
+TempData = TempData |> 
+  mutate(
+    OLS = case_when(Group == Target ~ PredOLS, .default = OLS),
+    LASSO = case_when(Group == Target ~ PredLASSO, .default = LASSO))
+
+TempData
+```
+
+## Example
+
+```{r}
+#| echo: true
+Weight = lm(
+  Price ~ OLS + LASSO,
+  TempData)
+
+Weight$coefficients
+```
+
+
+## Example: 最終モデル
+
+```{r}
+#| echo: true
+OLS = lm(Price ~ Size + Distance, TempData)
+LASSO = hdm::rlasso(Price ~ Size + Distance, TempData, post = FALSE)
+
+Test = tibble(Size = 80,Distance = 15)
+
+predict(OLS,Test)
+
+predict(LASSO,Test)
+
+Weight$coefficients[1] + 
+  Weight$coefficients[2]*predict(OLS,Test) +
+  Weight$coefficients[3]*predict(LASSO,Test)
+```
+
+
+## まとめ
+
+- Stackingにより予測性能が劇的に改善することは少ない
+
+    - ”良い予測を生み出すAlgorithmを見逃す”リスクを減らせる
+    
+    - 一致性およびある程度の収束性能を確保することが重要な比較研究の応用においても重要
+
+- 実証家向けのガイド: @phillips2023practical
+
+    - 理論的性質 [@chen2023error とその引用] 
+    
+        - Stackingに使った最善のAlgorithmよりも、(漸近的に)予測性能が高い
+
+- Chap 9 in CausalML参照
+
+# 実例: 価格予測
+
+## Algorithm
+
+- データ: Data.csvの2022年第三四半期 (2877事例)
+
+    - Y = 取引価格
+    
+    - X = 広さ、築年数、駅からの距離、容積率、改築の有無、立地(23区)、最寄駅
+
+- Algorithm
+
+    - OLS: Linear Model $=$ 47変数
+
+    - LASSO: Interaction + 2nd order polynomial $=$ 747変数
+    
+    - Random Forest
+    
+    - Stacking
+    
+## Peformance
+
+```{r}
+read_csv("Result/Comparison.csv",show_col_types = FALSE)
+```
+
+## Weight in Stacking
+
+```{r}
+read_csv("Result/StackingWeight.csv",show_col_types = FALSE)
+```
+
+
+## Reference
