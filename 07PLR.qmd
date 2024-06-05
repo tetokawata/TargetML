@@ -1,0 +1,533 @@
+---
+title: "Estimation with Partial Linear Model"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# Moment推定への応用
+
+```{r}
+library(tidyverse)
+```
+
+
+- @chernozhukov2018double; @chernozhukov2022locally
+
+    - gentile introduction [@ichimura2022influence; @fisher2021visually; @hines2022demystifying]
+    
+    - Chap 10 in CausalML
+
+- 大枠: 大表本理論 $+$ Neyman's orthogonal condition $+$ Cross fitting
+    
+## 学習への動機
+
+- 多くの応用: Panel data [see @sant2020doubly; @roth2023s], Instrumental variable (Chap 13 in CausalML), Causal (Heterogeneity) Learning (Chap 15 in CausalML), Cause of Effect [@cuellar2020non], Mediation Analysis [@opacic2023disparity]
+
+- 多くの実装: [DoubleML (R/Python)](https://docs.doubleml.org/stable/index.html), [EconML (Python)](https://econml.azurewebsites.net/), [causalml (Python)](https://causalml.readthedocs.io/en/latest/index.html), [DDML (STATA/R)](https://www.statalist.org/forums/forum/general-stata-discussion/general/1698990-new-stata-package-ddml-for-double-debiased-machine-learning)
+
+##  一般的手順
+
+- データを2分割(auxiliary/main data)し、2段階の推定を行う
+
+    - 交差推定も可
+
+1. Estimandを母集団上で[モーメント条件](https://ja.wikipedia.org/wiki/%E4%B8%80%E8%88%AC%E5%8C%96%E3%83%A2%E3%83%BC%E3%83%A1%E3%83%B3%E3%83%88%E6%B3%95)として定義
+
+2. Auxiliary dataを用いて、"補助的な"予測モデルを(機械学習で)推定し、main dataに適用する
+
+3. Main dataと予測モデルを用いて、OLS/平均値の推定を行う
+
+## R(obinson/siduals) learner
+
+1. $Y,D$ を予測するモデル $g_Y(X),g_D(X)$ をauxiliary dataで推定し、main dataに適用
+
+2. main dataで以下をOLSし、"通常"の信頼区間を報告 $$Y - g_Y(X) \sim D - g_D(X)| Auxiliary\ data$$
+
+- 注: $g_D,g_Y$ のUncetainlyを無視している
+
+## 直感
+
+- キャチーに言うと、AIに補助を受けながら、古典的な回帰をしている
+
+    - $g_Y(X),g_D(X)$ を機械学習により推定している
+    
+- 大きな論点は、$\beta_D$ の推定誤差を生み出す二つの要因
+
+    - Main Dataによって、 $Y,D$ の分布が異なる (古典的要因)
+    
+    - Auxiliary Data によって、 $g_Y(X),g_D(X)$ が異なる ("AIのミス")
+    
+        - 処理しにくく、扱いに工夫が必要
+
+# 性質: 一致推定量
+
+- Auxiliary/main dataの事例数 $\{N_{A},N_{M}\}$ が無限大になると、どのような値が推定されるか？
+
+## AIのミス
+
+- 重要概念: $$e_Y=\underbrace{E[Y|X]}_{=\mu_Y(X)}-g_Y(X),$$ $$e_D=\underbrace{E[D|X]}_{=\mu_D(X)} - g_D(X)$$
+
+    - 本講義では以降、"AIのミス"、と呼ぶ
+
+## 重要な仮定
+
+- auxiliary dataの事例数 $N_{A}$ が無限大になれば、 $g_Y(X),g_D(X)$ は、 $\mu_Y(X),\mu_D(X)$ に収束する: $$\{e_Y(X),e_D(X)\} \rightarrow 0, n_A\rightarrow\infty$$
+
+- 以下の議論で仮定
+
+    - SimpleなLinear modelの推定では、満たされない.
+
+    - 機械学習が有効
+
+## 性質: 一致推定量
+
+- $N_A,N_M\rightarrow\infty$ となると
+
+- Step 1で用いる機械学習アルゴリズムが一致性を満たすとすると、$\{g_Y(X),g_D(X)\}\rightarrow \{\mu_Y(X),\mu_D(X)\}$
+
+- Step 2 は、以下のPopulation OLSと一致 $$\underbrace{Y - \mu_Y(X)}_{Irreducible\ error} \sim \underbrace{D - \mu_D(X)}_{Irreducible\ error}$$
+
+- Irreducible errorのPopulation OLSと一致
+
+## Estimand
+
+- R-leanrerは、Partial linear model [@robinson1988root] 上で定義されるEstimand $\tau$ の推定方法と見做せる
+
+- $$E[Y|D,X]=\underbrace{\tau}_{Constant\ effect}\times D + f(X)$$
+    
+    - 次回、 $\tau(X)$ に拡張
+    
+## 性質: 書き換え
+
+- $$Y = \tau D + f(X) + \underbrace{U}_{E[U|D,X]=0}$$
+
+- $$\underbrace{E[Y|X]}_{\mu_Y(X)} = \tau \underbrace{E[D|X]}_{\mu_D(X)} + f(X) + \underbrace{E[U|X]}_{=0}$$
+
+- 片片を引くと $$Y-\mu_Y(X)=\tau (D-\mu_D(X)) + U$$
+
+    - $\tau=$ Irreducible error同士をPopulation OLSした結果
+
+## OLS/Double selectionとの接続
+
+- FWL定理を用いれば、OLS推定の一般化として解釈可能
+
+- OLS推定は、以下のAlgorithmと一致
+
+0. Double selectionを用いて、$Z\subset X$ を選ぶ
+
+1. **全データとOLS**を用いて、$g_Y(Z),g_D(Z)$ を推定
+
+2. **全データとOLS**を用いて、$Y-g_Y(Z)\sim D-g_D(Z)$ を推定
+
+- 違いは、データ分割と予測モデルの柔軟な推定
+
+## まとめ
+
+- Estimand: Irreducible errorのPopulation OLSの結果 $$\tau=\frac{E[(Y - \mu_Y(X)(D - \mu_D(X))]}{E[(D - \mu_D(X))^2]}$$
+
+- Estimator: $$\frac{\sum_i[(Y_i - g_Y(X_i))(D_i - g_D(X_i))]}{\sum_i(D_i - g_D{X_i})^2}$$
+
+- AIのミス $(g\neq\bar \mu)$ を無視し、 信頼区間を計算している
+
+# Local robustness
+
+- R leanerは、Neymanの直行条件 (次回説明)を満たすので、1段階目の推定誤差("AIのミス")の影響は軽減される
+
+    - 事例数が増えればより軽減される
+
+## 比較対象: Single Model
+
+- 繰り返し期待値の法則より、Estimandは書き換えられる $$\tau=\frac{E[(Y - \mu_Y(X))(D - \mu_D(X))]}{E[(D - \mu_D(X))^2]}$$ $$=\underbrace{\frac{E[Y(D - \mu_D(X))]}{E[(D - \mu_D(X))^2)]}}_{D\ model\ based\ approach}$$
+
+- $Y\sim D-g_D(X)$ (Single Model) を回帰してもいいのは?
+
+    - $\beta_D \rightarrow \tau, \{N_A,N_M\}\rightarrow\infty$、は保証される
+
+## 現実の予測値
+
+- 有限のデータで推定する限り、 AIのミス $e_Y(X),e_D(X)$ は常に発生する $$\mu_Y(X) = g_Y(X) + e_Y(X),$$ $$\mu_D(X) = g_D(X) + e_D(X)$$
+
+- 以下$D$を予測するAIのミス $e_D(X)$が $\beta_D$ に与える影響を議論
+
+    - $e_Y(X)$ についても同様の議論が適用できる
+
+## 例
+
+- $X=$ 立地(23区)のみとする
+
+- **I**tabashiについての$D$ の予測ミス $e_D(I)$ の影響
+
+## 例
+
+- R - learner: $$\frac{\sum (Y_i - g_Y(X_i))(D_i - \mu_D(X_i) - e_D(X_i))/N_M}{\sum(D_i - \mu_D(X_i) - e_D(X_i))^2/N_M}$$
+
+- 分子への影響は、 $$\sum_{i|X_i=I} (Y_i -  g_Y(I))\times e_D(I)/N$$
+
+    - 分母への影響についても、以下と同じような議論が適用可能
+
+## 例
+
+- 分子への影響は、 $$\underbrace{\underbrace{N_{M}(I)/N_M}_{X=Iの割合}\times \Bigr(\underbrace{\sum_{i|X_i=I} Y_i/N_{M}(I)}_{=\bar\mu_Y(I)} - g_Y(I)\Bigr)}_{AIのミスの影響を緩和}\times e_D(I)$$
+
+- サンプル平均 $\bar\mu_Y(I)$ と $g_Y(I)$ が近づくと、$e_D(I)$の影響は伝わりにくくなる
+
+## 例: 事例数の影響
+
+- $\{N_A,N_M\}$ が増えると、1段階目の悪影響が、２重に削減される
+
+    - $$\{\bar\mu_Y(X),g_Y(X)\}\rightarrow \mu_Y(X)$$
+
+    - $$e_D(X)\rightarrow 0$$
+
+- $D$を予測するAIと $Y$ を予測するAIがダブルチェックしている
+
+## 例: 事例数の影響
+
+- よって $$-N_{M}(I)/N_M\times \underbrace{(\bar\mu_Y(I) - g_Y(I))}_{\rightarrow 0}\times \underbrace{e_D(I)}_{\rightarrow 0},$$ $$ \{N_A,N_M\}\rightarrow\infty$$
+
+- 事例数の増加は、$D$ の予測モデルを改善しつつ、**同時に**、ダブルチェック機能も改善する
+
+## 例: Single Model
+
+- Single Model: $$\frac{\sum Y_i(D_i - g_D(X_i) - e_D(X_i))}{\sum(D_i - g_D(X_i) - e_D(X_i))^2}$$
+
+- 分子への影響は、 $$\sum_{i|X_i=Itabashi} Y_i\times e_D(I)$$
+
+- AIのミス $e_D$ の影響をもろに受ける
+
+## まとめ
+
+- R-Learnerは、AIのミスを緩和する仕組みが内蔵されている　$$(\bar\mu_Y(I) - g_Y(I))\times e_D(I)$$
+
+    - $Y$ の予測モデルの性能が良く、Main Dataの事例数が十分であれば、 $D$ の予測モデルのミス $e_D(X)$ の悪影響を削減できる
+
+## まとめ
+
+- 性能の良いアルゴリズム (Stackingなど) や Auxiliary dataの増加は、２重の利点をもたらす
+
+    - 注意: 予測性能が悪く $\bar\mu(X) - g(X)$ が１を超える場合が多ければ、予測誤差を"増幅"する可能性がある
+
+# 数値例
+
+- $X\in\{-1,0,1\}$
+
+- $D = X^2 + \underbrace{U_D}_{\sim N(0,1)}$
+
+- $Y = 2D - X^2 + \underbrace{U_D}_{\sim N(0,1)}$
+
+- とりあえず $N_{Main}=N_{Auxiliary}= 200$
+
+```{r}
+SimData <- function(seed, n) {
+  set.seed(seed)
+  temp <- tibble(
+    X = sample(
+      -1:1,
+      n,
+      replace = TRUE
+    ),
+    D = X^2 + rnorm(n, 0, 1),
+    Y = (2 * D) - X^2 + rnorm(n, 0, 1)
+  )
+  return(temp)
+}
+
+SimError <- function(N, OLS = FALSE) {
+  MainData <- SimData(1, N)
+  ArxiliaryData <- SimData(100, N)
+
+  HatY <- hdm::rlasso(
+    Y ~ poly(X, 2),
+    ArxiliaryData,
+    post = FALSE
+  ) |>
+    predict(MainData) |>
+    as.numeric()
+
+  HatD <- hdm::rlasso(
+    Y ~ poly(X, 2),
+    ArxiliaryData,
+    post = FALSE
+  ) |>
+    predict(MainData) |>
+    as.numeric()
+
+  if (OLS) {
+    HatY <- lm(
+      Y ~ X,
+      ArxiliaryData
+    ) |>
+      predict(MainData) |>
+      as.numeric()
+
+    HatD <- lm(
+      Y ~ X,
+      ArxiliaryData
+    ) |>
+      predict(MainData) |>
+      as.numeric()
+  }
+
+  ResY <- MainData$Y - HatY
+  E_D <- (MainData$X)^2 - HatD
+
+  Result <- tibble(
+    ResY,
+    E_D,
+    X = MainData$X
+  ) |>
+    mutate(
+      `mu_Y - g_Y` = mean(ResY),
+      E_D = mean(E_D),
+      .by = X
+    ) |>
+    distinct(
+      `mu_Y - g_Y`,
+      E_D,
+      X
+    ) |>
+    mutate(
+      `E_D*(mu_Y - g_Y)` = E_D * `mu_Y - g_Y`,
+      N
+    )
+  return(Result)
+}
+
+
+MainData = SimData(1,200)
+ArxiliaryData = SimData(100,200)
+```
+
+## 計算結果
+
+- $g_D(X)=X^2$ と推定できたとすると
+
+- $g_Y(X)$ は $Y\sim poly(X,2)$ をLASSO推定
+
+```{r}
+#| echo: true
+HatY = hdm::rlasso(
+  Y ~ poly(X,2), 
+  ArxiliaryData,
+  post = FALSE) |> 
+  predict(MainData) |> 
+  as.numeric()
+
+MainData$ResY = MainData$Y - HatY
+MainData$ResD = MainData$D - (MainData$X)^2
+
+ModelR = lm(ResY ~ ResD, MainData)
+
+ModelS = lm(Y ~ ResD, MainData)
+```
+
+## 計算結果: 推定結果
+
+```{r}
+tibble(
+  Est = ModelR$coefficients[2],
+  Method = "R"
+  ) |> 
+  bind_rows(
+    tibble(
+      Est = ModelS$coefficients[2],
+      Method = "Single"
+    )
+  ) |> 
+  ggplot(
+    aes(
+      x = 0,
+      y = Est,
+      color = Method
+    )
+  ) +
+  geom_point() +
+  geom_hline(
+    yintercept = 2
+  ) +
+  theme_bw()
+```
+
+## 推定結果: AIのミス
+
+- $g_D(X)=X^2 + \underbrace{a\times X^2}_{e_D(X)}$ と誤って推定された場合、AIのミスの影響は、 $e_D(X)\times (\bar\mu_Y(X) - g_Y(X))$
+
+- $a=0.5$ の場合は、
+
+```{r}
+MainData |> 
+  mutate(
+    `mu_Y - g_Y` = mean(ResY),
+    .by = X
+  ) |> 
+  distinct(
+    X,
+    `mu_Y - g_Y`
+  ) |> 
+  mutate(
+    `e|a=0.5` = 0.5*X^2,
+    `(e|a=0.5)*(mu_Y - g_Y)` = `e|a=0.5`*`mu_Y - g_Y`
+  )
+```
+
+
+## 推定結果: AIのミス
+
+```{r}
+N = 200
+
+Result <- map_dfr(
+  seq(0, 0.5, 0.1),
+  function(a) {
+    MainData = SimData(1,N)
+    ArxiliaryData = SimData(100,N)
+    HatY = hdm::rlasso(
+      Y ~ poly(X,2), 
+      ArxiliaryData,
+      post = FALSE) |> 
+      predict(MainData)
+    MainData$ResY = MainData$Y - HatY
+    MainData$ResD = MainData$D - (MainData$X)^2
+    ModelR = lm(ResY ~ ResD, MainData)
+    ModelS = lm(Y ~ ResD, MainData)
+    MainData$ResD <- MainData$D - (1 + a) * (MainData$X)^2
+    ModelR <- lm(ResY ~ ResD, MainData)
+    ModelS <- lm(Y ~ ResD, MainData)
+
+    Temp <- tibble(
+      Est = ModelR$coefficients[2],
+      Method = "R"
+    ) |>
+      bind_rows(
+        tibble(
+          Est = ModelS$coefficients[2],
+          Method = "Single"
+        )
+      ) |>
+      mutate(
+        a
+      )
+    return(Temp)
+  }
+) |> 
+  mutate(
+    N
+  )
+
+Result |>
+  ggplot(
+    aes(
+      x = a,
+      y = Est,
+      color = Method
+    )
+  ) +
+  geom_point() +
+  geom_hline(
+    yintercept = 2
+  ) +
+  theme_bw()
+```
+
+
+## 計算結果: 事例数の増加
+
+- $g_Y,g_D$ をLASSOで推定
+
+- 事例数が、 $200$ から $1000$まで増加
+
+```{r}
+SimError(200) |> 
+  bind_rows(
+    SimError(500)
+  ) |> 
+  select(
+    X,
+    N,
+    E_D,
+    `mu_Y - g_Y`,
+    `E_D*(mu_Y - g_Y)`
+  ) |> 
+  arrange(
+    X,
+    N
+  ) |> 
+  mutate(
+    Average = mean(`E_D*(mu_Y - g_Y)`),
+    .by = N
+  )
+```
+
+- $e_D(X)$ の悪影響をより緩和
+
+    - 個別の$X$で見れば、悪化しうるが、全体平均としては削減されている
+
+## 計算結果: 低品質のアルゴリズム
+
+- $g_Y(X)$ を $Y\sim X$ をOLS推定して獲得
+
+```{r}
+SimError(1000) |> 
+  mutate(
+    Method = "LASSO"
+  ) |> 
+  bind_rows(
+    SimError(1000, OLS = TRUE) |> 
+      mutate(
+        Method = "OLS"
+      )
+  ) |> 
+  select(
+    N,
+    X,
+    Method,
+    E_D,
+    `mu_Y - g_Y`,
+    `E_D*(mu_Y - g_Y)`
+  ) |> 
+  mutate(
+    Average = mean(`E_D*(mu_Y - g_Y)`),
+    .by = Method
+  ) |> 
+  arrange(
+    X,
+    Method
+  )
+```
+
+- $e_D(X)$ の悪影響が緩和されない
+
+# 補論
+
+## 補論: 分母への影響
+
+$$\sum_{i|X_i=I}(D_i - \mu_D(I)-e_D(I))^2$$
+
+$$=\sum_{i|X_i=I}(D_i - \mu_D(I))^2$$ $$-2\underbrace{\sum_{i|X_i=I}e_D(D_i-\mu_D(X_i))}_{N_{M}(I)\times e_D\times \underbrace{[\bar\mu_D(I)-\mu_D(I)]}_{\rightarrow 0\ ,\ N_{M}\rightarrow\infty}}+\underbrace{e_D^2}_{<e_D\ if\ e_D<1}$$
+
+## 補論: $e_Y$の影響
+
+$$\frac{\sum_{i|X_i=I}(D_i - g_D(I))(Y_i-\mu_Y(I)-e_Y(I))}{\sum (D-g_D(I))^2}$$
+
+$$=\frac{1}{\sum (D-g_D(I))^2}\times\underbrace{\sum_{i|X_i=I}(D_i - g_D(I))}_{\rightarrow 0\ ,\ \{N_{M
+},N_{A}\}\rightarrow\infty}\times e_Y(I)$$
+
+
+## Reference
+
