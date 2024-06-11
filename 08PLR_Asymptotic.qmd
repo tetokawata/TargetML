@@ -1,0 +1,1041 @@
+---
+title: "Estimation with Partial Linear Model: Asymptotics"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# 大標本性質: without nuisance
+
+- 事例数が無限大に大きい時に成り立つ性質を、事例数が十分に大きことを前提に**近似**的に用いる
+
+    - サンプリング方法に"強い"仮定 $=$ "ランダムサンプリング"
+
+    - 教科書的な最尤法やベイズ法に比べて、母集団へのparametric assumptionが少ない
+
+```{r}
+library(tidyverse)
+```
+
+
+## イメージ: 近似に基づく議論
+
+```{r}
+map_dfr(
+  seq(10,5000,10),
+  function(n){
+    temp = tibble(
+      est = 1/sqrt(n),
+      method = "A_N",
+      N = n
+    ) |> 
+      bind_rows(
+        tibble(
+          est = 10/n,
+          method = "B_N",
+          N = n
+        )
+      )
+    return(temp)
+  }
+) |> 
+  ggplot(
+    aes(
+      x = N,
+      y = est,
+      color = method
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_hline(
+    yintercept = 0
+  )
+```
+
+- 十分大きい $N$ を前提に、近似的に"0"として議論
+
+    - $B_N$ の方が近似精度が良い
+
+## 例: 平均値の推定
+
+- Estimand: $Y$ の母平均 $\theta_0=E[Y]=\int Y f(Y)dY$
+
+    - Estimator: サンプル平均 $\theta=\sum_i Y_i/N$ 
+
+        - Moment法 ("置き換え法")
+
+- Estimatorは、データ上の$Y$の分布に依存するので、研究者によって異なる
+
+    - 一般に $\theta_0 \neq \theta$
+    
+    - 多くの実証研究では、点推定量だけでなく信頼区間 (ないし代替指標 [@imbens2021statistical]) を報告し、対処する
+
+## 例: 平均値の推定
+
+- 平均値の推定
+
+```{r}
+#| echo: true
+readr::read_csv("Public/Data.csv") |> 
+  estimatr::lm_robust(
+    Price ~ 1,
+    data = _)
+```
+
+- 何を根拠に、どのような解釈ができるのか?
+
+## 大標本性質: ざっくり
+
+- 事例数が無限大になると、Estimatorの分布について、以下の性質が成り立つ
+
+    - サンプル平均は、母平均 $\theta_0$ に収束する $$\theta_0 - \theta\rightarrow, N\rightarrow\infty$$
+    
+    - $\theta$ の分布は、正規分布 $N(\theta_0,\sigma^2/N)$に収束する (中心極限定理)
+    
+        - $\sigma^2= Y$ の母分散
+
+## 応用上の含意
+
+- 事例数が**十分に大きい**と
+
+    - 点推定量は、ほぼほぼ母平均と一致する
+    
+    - 信頼区間は、ほぼほぼ $95\%$ の"確率"で母平均を含む
+
+- ただし、十分に大きい、の水準は違う
+
+## 平均値: $N = 2000$
+
+```{r}
+b = 0.6
+N = 2000
+
+TempSimData = function(i,n){
+  set.seed(i)
+  Y = sample(
+    0:1,
+    n,
+    replace = TRUE,
+    prob = c(1-b,b)
+  )
+  temp = estimatr::lm_robust(
+    Y ~ 1,
+    se_type = "classical"
+  ) |> 
+    estimatr::tidy() |> 
+    dplyr::mutate(
+      ID = i,
+      N = n
+    )
+  return(temp)
+}
+
+purrr::map_dfr(
+  1:50,
+  function(i){
+    TempSimData(i,N)
+  } |> 
+    dplyr::mutate(
+      ID = i
+    )
+  ) |> 
+  dplyr::mutate(
+    Error = dplyr::case_when(
+      conf.low > b | conf.high < b ~ "Error",
+      .default = "Correct"
+    ),
+    estimate = estimate - b,
+    conf.low = conf.low - b,
+    conf.high = conf.high -b
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      y = ID,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      color = Error
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_vline(
+    xintercept = 0
+  ) +
+  ggplot2::geom_pointrange() +
+  xlab("theta_0 - theta") +
+  xlim(-0.2,0.2)
+```
+
+## 平均値: $N = 200$
+
+```{r}
+N = 200
+
+purrr::map_dfr(
+  1:50,
+  function(i){
+    TempSimData(i,N)
+  } |> 
+    dplyr::mutate(
+      ID = i
+    )
+  ) |> 
+  dplyr::mutate(
+    Error = dplyr::case_when(
+      conf.low > b | conf.high < b ~ "Error",
+      .default = "Correct"
+    ),
+    estimate = estimate - b,
+    conf.low = conf.low - b,
+    conf.high = conf.high -b
+  ) |> 
+  ggplot2::ggplot(
+    ggplot2::aes(
+      y = ID,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      color = Error
+    )
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::geom_vline(
+    xintercept = 0
+  ) +
+  ggplot2::geom_pointrange() +
+  xlab("theta_0 - theta") +
+  xlim(-0.2,0.2)
+```
+
+## 大標本性質
+
+- $N^{a(<0.5)}(\theta_0 - \theta)\rightarrow 0, N\rightarrow\infty$
+
+- $N^{a(>0.5)}(\theta_0 - \theta)\rightarrow ?, N\rightarrow\infty$
+
+- $$N^{0.5}(\theta_0 - \theta)\rightarrow Normal(0,\sigma^2), N\rightarrow\infty$$
+  
+  - よって $\theta_0 - \theta\sim N(0,\sigma^2/N)$
+  
+      - $\sigma$ を推定し、信頼区間を計算できる
+
+## 収束速度
+
+- $\{a,b\}\rightarrow 0, N\rightarrow\infty$ である時に、 $$\frac{a}{b}\rightarrow 0, N\rightarrow\infty$$ であれば、 "a は bよりも早く(確率)収束する" と呼ぶ
+
+    - $N$ が十分に大きくなれば、 $a < b$ が(高い確率)で成り立つ
+
+- 平均値は、$N^{-a(<0.5)}$ よりも早く収束する
+
+## 例: $\theta - \theta_0$
+
+```{r}
+B = 50
+library(tidyverse)
+
+map_dfr(
+  seq(1, 100),
+  function(i) {
+    set.seed(i)
+    n <- 50
+    Temp <- tibble(
+      Est = (mean(sample(0:1, n, replace = TRUE)) - 1 / 2),
+      N = n,
+      ID = i
+    )
+  }
+) |>
+  bind_rows(
+    map_dfr(
+      seq(1, 100),
+      function(i) {
+        set.seed(i)
+        n <- 500
+        Temp <- tibble(
+          Est = (mean(sample(0:1, n, replace = TRUE)) - 1 / 2),
+          N = n,
+          ID = i
+        )
+      }
+    )
+  ) |>
+  bind_rows(
+    map_dfr(
+      seq(1, 100),
+      function(i) {
+        set.seed(i)
+        n <- 5000
+        Temp <- tibble(
+          Est = (mean(sample(0:1, n, replace = TRUE)) - 1 / 2),
+          N = n,
+          ID = i
+        )
+      }
+    )
+  ) |>
+  ggplot(
+    aes(
+      x = Est,
+      y = ID
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  facet_wrap(
+    ~N
+  )
+```
+
+## 例: $\sqrt{N}(\theta - \theta_0)$
+
+```{r}
+map_dfr(
+  seq(1, 100),
+  function(i) {
+    set.seed(i)
+    n <- 50
+    Temp <- tibble(
+      Est = (mean(sample(0:1, n, replace = TRUE)) - 1 / 2),
+      N = n,
+      ID = i
+    )
+  }
+) |>
+  bind_rows(
+    map_dfr(
+      seq(1, 100),
+      function(i) {
+        set.seed(i)
+        n <- 500
+        Temp <- tibble(
+          Est = (mean(sample(0:1, n, replace = TRUE)) - 1 / 2),
+          N = n,
+          ID = i
+        )
+      }
+    )
+  ) |>
+  bind_rows(
+    map_dfr(
+      seq(1, 100),
+      function(i) {
+        set.seed(i)
+        n <- 5000
+        Temp <- tibble(
+          Est = (mean(sample(0:1, n, replace = TRUE)) - 1 / 2),
+          N = n,
+          ID = i
+        )
+      }
+    )
+  ) |>
+  mutate(
+    Est = sqrt(N)*Est
+  ) |> 
+  ggplot(
+    aes(
+      x = Est,
+      y = ID
+    )
+  ) +
+  theme_bw() +
+  geom_point() +
+  facet_wrap(
+    ~N
+  )
+```
+
+
+
+## 拡張: 合成指標
+
+- Estimand: 複数の変数 $\boldsymbol{O}=\{X_1,..,X_L\}$によって、定義される指標 $m(\boldsymbol{O})$ の平均値 $\theta_0=E[m(\boldsymbol{O})]$
+
+    - サンプル平均値 $\theta = \sum m(\boldsymbol{O})/N$ で置き換える
+    
+    - ただし関数 $m(\boldsymbol{O})$ は既知であり、全ての研究者が同じ式を用いる必要がある
+    
+- 例: 国語 $X$ と算数 $Y$ の合計点の平均値 $$m(\boldsymbol{O}=\{X,Y\})=X+Y$$
+    
+## 拡張: Implicit function
+
+- 隠関数の平均値として、Estimandは定義できるのであれば、以上の議論を適用できる
+
+- Estimand: 以下の関数を満たす $\theta_0$ $$E[m(\theta_0,\boldsymbol{O})]=0$$
+
+    - 一意に$\theta$ は定まり、微分可能性
+
+- Estimator $=$ サンプル平均 $0=\sum m(\theta,\boldsymbol{O})$ を満たす $\theta$
+
+## 例
+
+- サンプル平均: $m(\theta_0,\boldsymbol{O})=\theta_0 - Y$
+
+- OLS: $m(\boldsymbol{O},\theta_0)=X(Y-\theta_0 X)$
+
+    - Estimand $=\min E[(Y-\theta_0 X)^2]$ を達成する $\theta_0$
+
+## 注意点
+
+- 以上の議論は同じ関数 $m$ をEstimandの定義と推定に用いているが、分離できることに注意
+
+- 同じ $\theta$ を定義する関数は、一般に"無数"に存在する
+
+    - 例: $m=\theta - E[Y]$ と $m=(\theta - E[Y])^2$ は同じ$\theta$
+    
+    - 推定上、"便利"な定義を使えば良い
+
+## 補論: 正規分布への収束
+
+- Berry-Esseen's Centraol Limit Theorem 
+
+    - (see Chap 1 in CausalML)
+
+- 任意の 標準化された $X$ (平均0, 分散1) について $$\underbrace{\sup_{x\in R}}_{"最大値"}|\Pr[X \le x] - \Pr[N(0,1) \le x]|\le K E[|X|^3]/\sqrt{N}$$
+
+- $K=$ 何らかのパラメタ $(< 0.5)$
+
+# 大標本性質: with nuisance function
+
+## R-leaner
+
+- Estimand $=$ 以下を満たす $\theta_0$ $$0=E[m_R(\boldsymbol{O},\theta_0)]$$ where $$\boldsymbol{O}=\{X,D,Y\}$$ $$\boldsymbol{\mu}(X)=\{\mu_D(X),\mu_Y(X)\}$$ $$m_R=(D-\mu_D(X))\times[Y-\mu_Y(X) - \theta_0 (D - \mu_D(X))]$$
+
+## Single-leaner
+
+- 一般に複数の $m$ 関数が、同じestimandの一致推定量を提供する。
+
+- 例えば、 $$m_S=(D-\mu_D(X))\times[Y - \theta_0 (D - \mu_D(X))]$$
+
+- どれを使えばいいのか?
+
+    - 一つの指針は、大標本性質
+
+## Estimator
+
+- データ上で置き換えると、$\sum m(\boldsymbol{O}_i,\boldsymbol{g}(X),\theta)=0$ 、ただし $\boldsymbol{g}(X)=\{g_D(X),g_Y(X)\}$ はAuxiliary dataを用いて推定された関数
+
+- 一見するとMoment法がそのまま適用できそうだが、$\boldsymbol{g}(X)$ に依存していることに注意
+
+    - $\boldsymbol{\mu(X)}\neq \boldsymbol{g}(X)$ (AIのミス)
+
+## 分解
+
+- 肝は、$\sqrt{N}(\theta_0 - \theta), N\rightarrow\infty$ の保証
+
+- 仮想的なEstimator $\theta^*$ を考える $$\sum m(\boldsymbol{O}_i,\boldsymbol{\mu}(X),\theta^*)=0$$
+
+- AIがミスを犯さないケースの推定値
+
+## 分解
+
+- $\sqrt{N}(\theta_0 - \theta)=\underbrace{\underbrace{\sqrt{N}(\theta_0 - \theta^*)}_{\boldsymbol{O}に依存}}_{\rightarrow N(0,\sigma^2), N\rightarrow\infty} + \underbrace{\underbrace{\sqrt{N}(\theta^* - \theta)}_{AIのミスに起因}}_{\rightarrow?, N\rightarrow\infty}$
+
+- 一項目に対しては、中心極限定理を適用できる
+
+- 二項目は、
+
+    - Single learerであれば発散する恐れがある
+
+    - R learnerであれば、AIのミスの影響が削減できる
+    
+        - $\rightarrow 0, N\rightarrow\infty$
+
+## イメージ
+
+```{r}
+SimData <- function(seed, n) {
+  set.seed(seed)
+  temp <- tibble(
+    X = sample(
+      -1:1,
+      n,
+      replace = TRUE
+    ),
+    D = X^2 + rnorm(n, 0, 1),
+    Y = (2 * D) - X^2 + rnorm(n, 0, 1)
+  )
+  return(temp)
+}
+```
+
+- Auxiliary data
+
+```{r}
+SimData(1,4)
+```
+
+- Main data with prediction (by random forest)
+
+```{r}
+Main = SimData(10,4) |> 
+  mutate(
+    PredictY = ranger::ranger(
+      Y ~ X,
+      SimData(1,4)
+    ) |> 
+      predict(SimData(10,4)) |> 
+      magrittr::extract2("predictions") |> 
+      as.numeric(),
+    PredictD = ranger::ranger(
+      D ~ X,
+      SimData(1,4)
+    ) |> 
+      predict(SimData(10,4)) |> 
+      magrittr::extract2("predictions") |> 
+      as.numeric(),
+    TrueY = X^2,
+    TrueD = X^2
+  ) |> 
+  mutate(
+    ResY = Y - PredictY,
+    ResD = D - PredictD,
+    ResTrueY = Y - TrueY,
+    ResTrueD = D - TrueD
+  )
+
+Main
+```
+
+## イメージ
+
+- データは、$X = U(-1,1), D = X^2 + N(0,1),Y=2D-X^2 + N(0,1)$
+
+- $\theta_0 = 2$
+
+- $\theta= (Y-g_Y(X))\sim (D-g_D(X))$
+
+- $\theta^*= (Y-\mu_Y(X))\sim (D-\mu_D(X))$
+
+    - $\sqrt{4}*(\theta_0 - \theta^*)=$ `r (2 - lm(ResY ~ 0 + ResD, Main)$coefficients)`
+
+    - $\sqrt{4}*(\theta^* - \theta)=$ `r (lm(ResY ~ 0 + ResD, Main)$coefficients - lm(ResTrueY ~ 0 + ResTrueD, Main)$coefficients)`
+
+## 仮定
+
+- $\sqrt{N}(\theta_0 - \theta)=\underbrace{\sqrt{N}(\theta_0 - \theta^*)}_{\rightarrow N(0,\sigma^2), N\rightarrow\infty} + \underbrace{\sqrt{N}(\theta^* - \theta)}_{\rightarrow 0, N,N\rightarrow\infty}$ を保証したい
+
+    - 第２項(AIのミス)の影響は、(信頼区間を計算できる程度に)事例数が十分に大きければ、無視できる
+
+- R-learnerを前提とした場合、主要な十分条件は
+
+    - サンプル分割
+    
+    - $\boldsymbol{g}$ が十分な速度で収束する
+
+
+## イメージ: R learner
+
+```{r}
+SimData <- function(seed, n) {
+  set.seed(seed)
+  X <- runif(n, -10, 10)
+  D <- X^2 + rnorm(n, 0, 1)
+  Y <- (2 * D) - X^2 + rnorm(n, 0, 1)
+  temp <- tibble(
+    X,
+    D,
+    Y
+  )
+  return(temp)
+}
+
+SimOLS <- function(i, n) {
+  Data <- SimData(i, n)
+  Y <- Data$Y
+  D <- Data$D
+  X <- Data |>
+    model.matrix(~ 0 + poly(X, 6, raw = TRUE), data = _) |>
+    scale()
+  Group <- sample(
+    1:2,
+    n,
+    replace = TRUE
+  )
+
+  HatY <- hdm::rlasso(
+    Y ~ poly(X, 6),
+    Data,
+    subset = Group == 1,
+    post = FALSE
+  ) |>
+    predict(Data)
+
+  HatD <- hdm::rlasso(
+    D ~ poly(X, 6),
+    Data,
+    subset = Group == 1,
+    post = FALSE
+  ) |>
+    predict(Data)
+
+  ResY <- Y - HatY
+  ResD <- D - HatD
+
+  ResOracleY <- Y - (Data$X)^2
+  ResOracleD <- D - (Data$X)^2
+
+  Est <- estimatr::lm_robust(
+    ResY ~ ResD,
+    subset = Group == 2
+  )$coef[2]
+
+  OracleEst <- estimatr::lm_robust(
+    ResOracleY ~ ResOracleD,
+    subset = Group == 2
+  )$coef[2]
+
+  Result <- tibble(
+    Error = (Est - 2),
+    Type = "Acutual"
+  ) |>
+    bind_rows(
+      tibble(
+        Error = (OracleEst - 2),
+        Type = "theta_0 - theta^*"
+      )
+    ) |>
+    bind_rows(
+      tibble(
+        Error = (Est - OracleEst),
+        Type = "theta^* - theta"
+      )
+    ) |>
+    mutate(
+      N = n,
+      ID = i
+    )
+  return(Result)
+}
+
+map_dfr(
+  seq(1, B),
+  function(i) {
+    SimOLS(i, 50)
+  }
+) |>
+  bind_rows(
+    map_dfr(
+      seq(1, B),
+      function(i) {
+        SimOLS(i, 500)
+      }
+    )
+  ) |>
+  bind_rows(
+    map_dfr(
+      seq(1, B),
+      function(i) {
+        SimOLS(i, 5000)
+      }
+    )
+  ) |>
+  filter(
+    Type != "Acutual"
+  ) |> 
+  ggplot(
+    aes(
+      x = Error,
+      y = ID,
+      color = Type,
+      group = ID
+    )
+  ) +
+  theme_bw() +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_line() +
+  facet_grid(~N)
+```
+
+## イメージ: Normalized
+
+```{r}
+map_dfr(
+  seq(1, B),
+  function(i) {
+    SimOLS(i, 50)
+  }
+) |>
+  bind_rows(
+    map_dfr(
+      seq(1, B),
+      function(i) {
+        SimOLS(i, 500)
+      }
+    )
+  ) |>
+  bind_rows(
+    map_dfr(
+      seq(1, B),
+      function(i) {
+        SimOLS(i, 5000)
+      }
+    )
+  ) |>
+  filter(
+    Type != "Acutual"
+  ) |>
+  mutate(
+    Error = Error*sqrt(N)
+  ) |> 
+  ggplot(
+    aes(
+      x = Error,
+      y = ID,
+      color = Type,
+      group = ID
+    )
+  ) +
+  theme_bw() +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_line() +
+  facet_grid(~N)
+```
+
+
+## AIのミスの影響への保障: Recap
+
+- AIのミスの影響が$N^{1/4}$ 以上の速度で減少
+
+- 例: $g_D(X=I)$ のミスの影響 $$ \Bigr(\sum_{i|X_i=I} Y_i/N_{M}(I) - g_Y(I)\Bigr)\times  \underbrace{e_D(I)}_{\mu_D(I) - g_D(I)}$$
+
+    - $g_Y,g_D$ が十分な速度で$\mu_Y,\mu_D$ に収束
+
+    - $g_D$ と $\sum_{i|X_i=I} Y_i/N_M(I)$ が無相間
+
+## 仮定: 収束速度
+
+- 十分条件の一つは、$$\Biggr\{N^{1/4}\sqrt{E[(\mu_Y(X) - g_Y(X))^2]},$$ $$N^{1/4}\sqrt{E[(\mu_D(X) - g_D(X))^2]}\Biggr\}\rightarrow 0, N\rightarrow\infty$$
+
+    - $N^{1/4}$ よりも収束速度が速い
+
+## 補論: 収束速度
+
+- $g$ を正しいモデルでOLS推定できれば、 $$N^{a (< 0.5)}\sqrt{E[(\mu(X) - g(X))^2]}\rightarrow 0, N\rightarrow\infty$$
+
+    - $N^{1/4}$ よりも 確実に収束速度が速い
+
+- 誤定式化を犯しているOLSでは、そもそも収束しない
+
+- 多くの機械学習は、 $N^{1/2}$ よりも収束速度が**遅い**
+
+    - R learnerは、機械学習(含むNonparametric estimation)の収束の遅さを補完
+    
+## 前提: サンプル分割
+
+- サンプル分割しないと予測モデルとMain dataの平均値との間に相関が生じ、収束速度が低下する
+
+    - 相関の影響は(個人的に)わかりにくい
+    
+        - 個人的おすすめは、外れ値がデータに紛れ込んだ時の影響を想像する
+
+## 数値例
+
+- 同じデータで $\boldsymbol{g}$ を(random forestで)推定する
+
+```{r}
+set.seed(1)
+
+N = 8
+
+Data = tibble(
+  X = sample(-1:1, N, replace = TRUE),
+  D = X^2 + rnorm(N),
+  Y = 2*D - X^2 + rnorm(N)
+)
+
+DataNoise = Data |> 
+  bind_rows(
+    tibble(
+      X = 0,
+      D = 40,
+      Y = 2*40
+    )
+  )
+
+HatNaiveY = ranger::ranger(
+  Y ~ X,
+  Data
+  ) |> 
+  predict(Data) |> 
+  magrittr::extract2("predictions")
+
+HatNaiveD = ranger::ranger(
+  D ~ X,
+  Data
+  ) |> 
+  predict(Data) |> 
+  magrittr::extract2("predictions")
+
+HatNaiveNoiseY = ranger::ranger(
+  Y ~ X,
+  DataNoise
+  ) |> 
+  predict(DataNoise) |> 
+  magrittr::extract2("predictions")
+
+HatNaiveNoiseD = ranger::ranger(
+  D ~ X,
+  DataNoise
+  ) |> 
+  predict(DataNoise) |> 
+  magrittr::extract2("predictions")
+
+
+Data |> 
+  mutate(
+    PredictY = HatNaiveY,
+    PredictD = HatNaiveD
+  ) |> 
+  mutate(
+    MeanY = mean(Y),
+    .by = X
+  )
+```
+
+## 数値例: Add outliear
+
+- $D$ (例: 部屋の広さ)が非常に大きな事例が混入
+
+    - $Y$ (例: 取引価格)も同時に大きい
+
+```{r}
+DataNoise |> 
+  mutate(
+    PredictY = HatNaiveNoiseY,
+    PredictD = HatNaiveNoiseD
+  ) |> 
+  mutate(
+    MeanY = mean(Y),
+    .by = X
+  )
+```
+
+- $\sum Y/N - g_Y$ も $g_Y - \mu_Y$ も同時増加
+
+## 補論: 収束速度
+
+- $g$ を正しいモデルでOLS推定できれば、 $$N^{a (< 0.5)}\sqrt{E[(\mu(X) - g(X))^2]}\rightarrow 0, N\rightarrow\infty$$
+
+    - $N^{1/4}$ よりも 確実に収束速度が速い
+
+- 誤定式化を犯しているOLSでは、そもそも収束しない
+
+- 多くの機械学習は、 $N^{1/2}$ よりも収束速度が**遅い**
+
+    - R learnerは、機械学習(含むNonparametric estimation)の収束の遅さを補完
+
+## Single learner
+
+- $g_D(X)$ が、$N^{1/2}$ よりも速い速度で収束する必要がある
+
+    - 正しいモデルをOLS推定する必要がある
+    
+        - 実質"不可能"
+
+
+## イメージ: Single Model
+
+```{r}
+SimData <- function(seed, n) {
+  set.seed(seed)
+  X <- runif(n, -10, 10)
+  D <- X^2 + rnorm(n, 0, 1)
+  Y <- (2 * D) - X^2 + rnorm(n, 0, 1)
+  temp <- tibble(
+    X,
+    D,
+    Y
+  )
+  return(temp)
+}
+
+SimOLS <- function(i, n) {
+  Data <- SimData(i, n)
+  Y <- Data$Y
+  D <- Data$D
+  X <- Data |>
+    model.matrix(~ 0 + poly(X, 6, raw = TRUE), data = _) |>
+    scale()
+  Group <- sample(
+    1:2,
+    n,
+    replace = TRUE
+  )
+
+  HatY <- hdm::rlasso(
+    Y ~ poly(X, 6),
+    Data,
+    subset = Group == 1,
+    post = FALSE
+  ) |>
+    predict(Data)
+
+  HatD <- hdm::rlasso(
+    D ~ poly(X, 6),
+    Data,
+    subset = Group == 1,
+    post = FALSE
+  ) |>
+    predict(Data)
+
+  ResY <- Y
+  ResD <- D - HatD
+
+  ResOracleY <- Y
+  ResOracleD <- D - (Data$X)^2
+
+  Est <- estimatr::lm_robust(
+    ResY ~ ResD,
+    subset = Group == 2
+  )$coef[2]
+
+  OracleEst <- estimatr::lm_robust(
+    ResOracleY ~ ResOracleD,
+    subset = Group == 2
+  )$coef[2]
+
+  Result <- tibble(
+    Error = (Est - 2),
+    Type = "Acutual"
+  ) |>
+    bind_rows(
+      tibble(
+        Error = (OracleEst - 2),
+        Type = "theta_0 - theta^*"
+      )
+    ) |>
+    bind_rows(
+      tibble(
+        Error = (Est - OracleEst),
+        Type = "theta^* - theta"
+      )
+    ) |>
+    mutate(
+      N = n,
+      ID = i
+    )
+  return(Result)
+}
+
+map_dfr(
+  seq(1, B),
+  function(i) {
+    SimOLS(i, 50)
+  }
+) |>
+  bind_rows(
+    map_dfr(
+      seq(1, B),
+      function(i) {
+        SimOLS(i, 500)
+      }
+    )
+  ) |>
+  bind_rows(
+    map_dfr(
+      seq(1, B),
+      function(i) {
+        SimOLS(i, 5000)
+      }
+    )
+  ) |>
+  filter(
+    Type != "Acutual"
+  ) |>
+  mutate(
+    Error = Error*sqrt(N)
+  ) |> 
+  ggplot(
+    aes(
+      x = Error,
+      y = ID,
+      color = Type,
+      group = ID
+    )
+  ) +
+  theme_bw() +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_line() +
+  facet_grid(~N)
+```
+
+
+# Neyman's ohtogonal condition
+
+- R learnerへの議論は、より一般的な状況に適用可能
+
+## Estimand
+
+- $$E[m(\theta_0,\boldsymbol{O},\boldsymbol{\mu})]$$ として、Estimand $\theta_0$ を定義
+
+- $m$ については、
+
+    - $\theta$ について一意に定まり、かつ微分可能
+    
+    - Neyman の直行条件を満たす
+    
+    - サンプル分割、$N^{-1/4}$ よりも収束速度が速いのであれば、 $\boldsymbol{\mu}$ は機械学習の推定結果で置き換えられる
+    
+        - 機械学習で推定できる必要はある
+    
+## Neyman's ohthgonal condition
+
+- AIの微妙なミスに対して、estimatorが影響を受けない
+
+    - $\partial m/\partial\mu=0$
+    
+        - 関数で微分するとは？？？
+
+- $$\frac{\partial E[m(\theta_0,\boldsymbol{X},\boldsymbol{g(t)})]}{\partial t}\Biggr|_{t=0}=0$$
+
+    - $g_Z(t)=t g_Z(X) + (1-t)\mu_Z(X), t\in [0,1]$
+    
+        - 母平均を、何らかの関数に少し移動させる
+
+        - [ガトー微分](https://ja.wikipedia.org/wiki/%E3%82%AC%E3%83%88%E3%83%BC%E5%BE%AE%E5%88%86)
+
+## 実装
+
+- Neyman の直行条件を満たす $m$ 関数は、以下の方法で導出できる
+
+    - テイラー近似(手計算) [@hines2022demystifying がわかりやすい入門]
+    
+    - データから"自動計算"する [@chernozhukov2022automatic]
+    
+        - 現状、大衆的な実装方法はない
+
+## 仮定の検討
+
+- $n^-{1/4}$ よりも速い収束の保証は、現状強い仮定
+
+    - $X$ の数が多い場合に特に怪しい
+    
+        - 現状は、「正しいモデルを仮定」するよりもマシなので、とりあえず目をつぶって応用している印象
+        
+        - Best practiceとして、Stackingを利用
+
+    - 本質的な代替案としては、高次近似の利用 [@bonvini2024doubly とその引用文献] だが、まだ基礎的理論研究が続いている印象
+
+## Reference
+
+
