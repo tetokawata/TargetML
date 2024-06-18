@@ -1,0 +1,563 @@
+---
+title: "Inference on heterogeneity aware estimand"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# Conditional Average Difference
+
+```{r}
+library(tidyverse)
+```
+
+
+- Conditional average difference $\tau(X)=\underbrace{\mu_Y(1,X)}_{=E[Y|1,X]}-\underbrace{\mu_Y(0,X)}_{=E[Y|0,X]}$ の"特徴"としてEstimandを定義
+
+    - 因果推論ではConditional average treatment effect (CATE)と呼ばれる
+
+## Conditional Average Difference
+
+- 一般に $D\in\{0,1\}$ 間での差は、他の変数 $X$ に依存していると考えられる: 
+
+    - 自然なEstimandは $$\tau(x)=\mu_Y(1,x)-\mu_Y(0,x)$$
+
+- $X=x$ を満たすサブサンプルサイズが十分にあれば、ただのサブサンプル平均差を推定値にできる
+
+- ほとんどの応用で、大量の$X$を用いるので、サブサンプルサイズは不足する
+
+## Estimand: Weighted average difference
+
+- 現実的なEstimandの第一候補は、$\tau(X)$ の平均値: $$\theta_0= \int_{X}\tau(X)\times \omega(X)dX$$
+
+- $\omega(X)=$ "研究者"が暗黙のうちに設定する集計用Weight
+
+- **重要ポイント:** Estimandは $Y,D,X$ のみならず、$\omega(X)$ にも依存して定義される
+
+    - かつてはそれほど意識されてこなかった
+
+## Estimand: Proportion weight
+
+- $\omega(X)=f(X)$
+
+    - 因果推論では Average Treatment Effect と呼ばれる
+
+- $$\theta_0=\int \tau(X)\times f(X)dX$$
+
+## 単純平均との比較
+
+- $$\theta_0= \int_{X}\mu_Y(1,X)\times \omega(X)dX$$ $$- \int_{X}\mu_Y(0,X)\times \omega(X)dX$$
+
+- $$E[Y|1] - E[Y|0]= \int_{X}\mu_Y(1,X)\times f(X|1)dX$$ $$- \int_{X}\mu_Y(0,X)\times f(X|0)dX$$
+
+# Estimation
+
+- $g_Y(d,X),g_D(X)$ が中心的な役割を果たす
+
+    - $g_D(X)=$ Propensity scoreと呼ばれる
+
+## Propensity scoreをめぐる混乱
+
+- 「Propensity score では因果効果を識別できない」
+
+    - 正しいが identificationの手法ではなく、estimationの手法であり、議論が噛み合っていない場合が多い
+    
+- OLSとの違いがわからない
+
+    - 本章の主要論点: OLSやR learnerでは proportion weightを用いた平均効果を推定できない
+
+## 推定手順
+
+```{dot}
+digraph D {
+  A [label = "Define Estimand", shape=box]
+  B [label = "Define Population Moment: E[m(O,theta)]=0", shape=box]
+  C [label = "Estimate g by using ML", shape=box]
+  D [label = "Replace Sample Average: sum[m(O,g,theta)] =0", shape=box]
+  A -> B -> C -> D
+}
+```
+
+## Moment condition
+
+- 複数存在する: $0=E[m(\theta_0,\boldsymbol{O})]$ where
+
+    - $$m(\theta_0,\boldsymbol{O})=\theta_0 - \mu_Y(1,X) + \mu_Y(0,X)$$
+    
+        - g method, plugin method などと呼ばれる
+    
+    - $$m(\theta_0,\boldsymbol{O})=\theta_0 - \frac{DY}{\mu_D(X)} + \frac{(1-D)Y}{1 - \mu_D(X)}$$
+
+        - inverse propensity score などと呼ばれる
+
+## Argumented inverse propensity score [@robins1995semiparametric]
+
+- おすすめのMoment condition
+
+- $$m(\theta_0,\boldsymbol{O}) = \theta_0 - \mu_Y(1,X) + \mu_Y(0,X)$$ $$- \underbrace{\frac{D(Y - \mu_Y(1,X))}{\mu_D(X)} + \frac{(1-D)(Y - \mu_Y(0,X))}{1 - \mu_D(X)}}_{Adjustment}$$
+
+- Neyman's orthogonal conditionを満たす
+
+## Psude-outcome
+
+- 以下のように書き換えられる: $\theta_0=E[\phi(\boldsymbol{O})]$ where $$\phi(\boldsymbol{O})=\mu_Y(1,X) - \mu_Y(0,X)$$ $$+ \frac{D(Y - \mu_Y(1,X))}{\mu_D(X)} - \frac{(1-D)(Y - \mu_Y(0,X))}{1 - \mu_D(X)}$$
+
+- $\phi(\boldsymbol{O})=$ Psude-outcomeと呼ばれる
+
+    - $\phi$ の平均 $=$ $\tau$ の平均
+
+## Estimator
+
+- $0=\sum \phi(\boldsymbol{O},\boldsymbol{g})/N$ where $$\phi(\boldsymbol{O},\boldsymbol{g}) = g_Y(1,X) - g_Y(0,X)$$ $$+ \frac{D(Y - g_Y(1,X))}{g_D(X)} - \frac{(1-D)(Y - g_Y(0,X))}{1 - g_D(X)}$$
+
+## Algorithm
+
+1. データ分割(auxiliary/main data)
+
+2. $\mu_Y,\mu_D$ を auxiliary data (+ 機械学習) で推定する
+
+3. main dataを用いて、$\phi(\boldsymbol{O},\boldsymbol{g})$ の平均値を計算し、信頼区間とともに報告する
+
+## Example: R VS AIPW
+
+```{r}
+Temp = arrow::read_parquet("TempResult/R_AIPW.parquet") |> 
+  mutate(
+    ResY = Y - Y_Pool_Stack,
+    ResD = D - D_Stack,
+    AIPW_D1 = Y_D1_Stack + case_when(
+      D == 1 ~ (Y - Y_D1_Stack)/D_Stack,
+      D == 0 ~ 0
+    ),
+    AIPW_D0 = Y_D0_Stack + case_when(
+      D == 0 ~ (Y - Y_D0_Stack)/(1 - D_Stack),
+      D == 1 ~ 0
+    ),
+  ) |> 
+  mutate(
+    AIPW = AIPW_D1 - AIPW_D0,
+    Overlap = D_Stack*(1 - D_Stack),
+    ATTE = case_when(
+      D == 1 ~ (Y - Y_D0_Stack)/mean(D),
+      D == 0 ~ -(D_Stack*(Y - Y_D0_Stack))/((1 - D_Stack)*mean(D))
+    ),
+    ATTC = case_when(
+      D == 0 ~ -(Y - Y_D1_Stack)/(1-mean(D)),
+      D == 1 ~ ((1-D_Stack)*(Y - Y_D1_Stack))/(D_Stack*(1 - mean(D)))
+    )
+  )
+
+Temp |> 
+  estimatr::lm_robust(
+    ResY ~ 0 + ResD,
+    data = _
+    ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Method = "R"
+  ) |> 
+  bind_rows(
+    Temp |> 
+      estimatr::lm_robust(
+        AIPW ~ 1,
+        data = _
+        ) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Method = "AIPW"
+        )
+  ) |> 
+  bind_rows(
+    Temp |> 
+      select(
+        Y,
+        D,
+        Size:District_墨田区
+      ) |> 
+      estimatr::lm_robust(
+        Y ~ D + .,
+        data = _
+        ) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Method = "OLS"
+        ) |> 
+      filter(
+        term == "D"
+      )
+  ) |> 
+  bind_rows(
+    Temp |> 
+      estimatr::lm_robust(
+        Y ~ D,
+        data = _
+        ) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Method = "No Control"
+        ) |> 
+      filter(
+        term == "D"
+      )
+  ) |> 
+  ggplot(
+    aes(
+      y = Method,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange()
+```
+
+## R VS AIPW
+
+- R learnerも heterogeneity aware estimandとして解釈できる
+
+- 異なる集計用Weightを用いたEstimand
+    
+    - AIPW: $\omega(X)=f(X)$
+        
+    - R: $\omega(X)=\frac{\mu_D(X)(1 - \mu_D(X))f(X)}{\int \mu_D(X)(1 - \mu_D(X))f(X)dX}$
+    
+        - Overlap Weight
+        
+        - $\mu_D(X)=0.5$ (バランスよく$D=1,0$が混在しているサブグループ)の平均差をより強く反映している
+
+## Exmaple. Overlap weight
+
+```{r}
+Temp  |> 
+  ggplot(
+    aes(
+      x = Overlap
+    )
+  ) +
+  theme_bw() +
+  geom_histogram()
+```
+
+- 最大で6倍以上の格差が存在
+
+## Example. Overlap weight
+
+- Lowest/Largest Overlap weight
+
+```{r}
+Temp  |> 
+  select(
+    Size:Youseki,
+    Overlap
+  ) |> 
+  arrange(
+    Overlap
+  ) |> 
+  head()
+```
+
+```{r}
+Temp  |> 
+  select(
+    Size:Youseki,
+    Overlap
+  ) |> 
+  arrange(
+    -Overlap
+  ) |> 
+  head()
+```
+
+## まとめ
+
+- R learnerとは異なるEstimand (異なる集計用Weight)を推定している
+
+- 一般に、R learnerよりも解釈しやすい
+
+    - Overlap weightとは?
+    
+    - $\tau(X),\mu_D(X)$ の異質性が大きい場合、乖離幅が大きくなる
+    
+- $D$ がカテゴリカルであり、positivityの問題(後述)がなければ、AIPWを用いることを推奨
+
+## 補論: Marginal means
+
+- $X$ の分布をバランスさせた$Y$ の平均値 $$\theta_0(d)=\int \mu_Y(d,X)\times f(X)dX$$ を $D=1,0$ ごとに提示することもできる 
+
+    - 差 $+$ 絶対水準を示すことができ、誤解が減らせる
+
+- Average difference $= \theta_0(1) - \theta_0(0)$ 
+
+## 補論: Marginal means
+
+- Estimatorは、 $$\theta(1)=E\Biggr[g_Y(1,X) + D\frac{Y-g_Y(1,X)}{g_D(X)}\Biggr]$$ $$\theta(0)=E\Biggr[g_Y(0,X) + (1-D)\frac{Y-g_Y(0,X)}{1 - g_D(X)}\Biggr]$$
+
+## Example
+
+```{r}
+Temp |> 
+  estimatr::lm_robust(
+    AIPW_D1 ~ 1,
+    data = _
+    ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    D = "1",
+    Method = "AIPW"
+  ) |> 
+  bind_rows(
+    Temp |> 
+  estimatr::lm_robust(
+    AIPW_D0 ~ 1,
+    data = _
+    ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    D = "0",
+    Method = "AIPW"
+  )
+  ) |> 
+  bind_rows(
+    Temp |> 
+  estimatr::lm_robust(
+    Y ~ 1,
+    data = _,
+    subset = D == 1
+    ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    D = "1",
+    Method = "No control"
+  )
+  ) |> 
+  bind_rows(
+    Temp |> 
+  estimatr::lm_robust(
+    Y ~ 1,
+    data = _,
+    subset = D == 0
+    ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    D = "0",
+    Method = "No control"
+  )
+  ) |> 
+  ggplot(
+    aes(
+      y = D,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      color = Method
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange(
+    position = position_dodge(width = 0.5)
+  )
+```
+
+
+# Best Lienar Projection for CATE
+
+- 平均差では、$X$ との関係性について、含意を持たない
+
+    - 信頼区間もしっかり推定しつつ、CATEの持つ特徴を、もう少し理解することを目指す
+    
+- $\tau(X)$ を近似するシンプルな線形近似モデル $g_{\tau}(Z)=\beta_0 +\beta_1Z_1+..$ を推定する
+
+## Algorithm
+
+1. データ分割(auxiliary/main data)
+
+    - 交差推定も活用可能
+
+2. $\mu_Y,\mu_D$ を auxiliary data (+ 機械学習) で推定する
+
+3. main dataを持ちいてAIPWと同じpsude-outcomeを回帰する: $\phi(\boldsymbol{O},\boldsymbol{g})\sim Z$をOLSで推定、信頼区間とともに推定する
+
+## Best Linear projection
+
+- Estimand: $$\min_{\beta} E[(\tau(X) - g_{\tau}(Z))^2]$$ where $Z \subset X$ and $$g_{\tau}=\beta_0 + \beta_1Z_1+..+\beta_LZ_L$$
+
+- 注: Average Differenceは特殊ケース: $g_{\tau}(Z)=\beta_0$
+
+## 補論: Normalization
+
+- $g_{\tau}$ は"記述"のために推定する
+
+    - 全ての$Z$を事前に標準化 $(Z - mean(Z))/sd(Z)$ することがおすすめ
+
+- $\beta_0$ は通常、解釈を持たない
+
+    - 全ての$Z$ が0における $\tau$ の近似値
+    
+        - 通常、そのような事例がないので、近似モデルを作る際に無視されるサブグループ
+        
+- 標準化すれば、$\beta_0=$ 全ての$Z$が平均値であった時の$\tau$の近似値と解釈できる
+
+# Proportional weightの問題点と対策
+
+- 比較研究(含む格差、因果)における根本的な仮定は、Positivity: $$1 > E[D=d,X] > 0$$
+
+- 実践においては、しばしば満たされない
+
+    - 推定、識別に対して、解決困難な問題をもたらす
+
+## Assumption: Positivity for identification
+
+- 任意の$d$について $$1 > \Pr[D=d|X] > 0$$
+
+    - 直感: $X$ の中での比較研究をしているので、$D=1$ または $0$ のサブグループが存在する場合、比較不可能
+
+- 因果推論であれば、Positivity $+$ 因果効果の識別用の仮定 (Conditonal independence, No interferenceなど)
+
+## Assumption: Positivity for estimation
+
+- 任意の$d$について $0$ ないし $1$ に非常に近い $$\Pr[D=d|X]$$ が存在する場合、推定が難しくなる
+
+    - "推定が上手くいっているのであれば"、 $g_D(X)$ が1ないし0に近いサブグループが出てくる
+
+## Trouble with AIPW
+
+- $\theta=\sum m(\boldsymbol{O},\boldsymbol{g})/N$ where $$m(\boldsymbol{O},\boldsymbol{g}) = g_Y(1,X) - g_Y(0,X)$$ $$+ \frac{D(Y - g_Y(1,X))}{g_D(X)} - \frac{(1-D)(Y - g_Y(0,X))}{1 - g_D(X)}$$
+
+- Adjust termの分母が"0" に近づく事例が出てくる
+
+    - 推定誤差が非常に大きくなる
+
+## Overlap weight
+
+- R learnerであれば、estimandは $\int \tau(X)\times\omega(X)dX$ where $$\omega(X)=\frac{\mu_D(X)(1 - \mu_D(X))f(X)}{\int \mu_D(X)(1 - \mu_D(X))f(X)dX}$$
+
+- 定義上、$\mu_D(X)$ が1または0に近いグループは、"無視"する
+
+    - より安定的な推定が可能
+    
+    - Average Differenceとの乖離が大きくなり、より解釈が難しくなる...
+
+## Propensity score weight
+
+- $\mu_D(X)$ が0に近いグループが存在すること**のみ**が問題であれば、解釈と推定を両立するEstimandが存在
+
+- Propensity score weight $\int \tau(X)\times\omega(X)dX$ where $$\omega(X)=\frac{\mu_D(X)f(X)}{\int \mu_D(X)f(X)dX}$$
+
+- 推定が難しい $g_D(X)\simeq 0$ となるサブグループは、定義上、無視する
+
+## Average treatment effect on treated
+
+- 以下のように書き換えられる $\int \tau(X)\times f(X|1)dX$
+
+- 解釈が容易
+
+    - 男女間格差研究: $D=1$ が女性であれば、$X$ の分布を男女ともに女性と揃えた時の、男女間格差
+
+    - 因果推論: $D=1$ における平均因果効果
+    
+        - Average Treatment Effect on Treatedと呼ばれる
+
+
+## Example: ATE VS Overlap VS ATTE
+
+```{r}
+Temp |> 
+  estimatr::lm_robust(
+    ResY ~ 0 + ResD,
+    data = _
+    ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Method = "R"
+  ) |> 
+  bind_rows(
+    Temp |> 
+      estimatr::lm_robust(
+        AIPW ~ 1,
+        data = _
+        ) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Method = "AIPW"
+        )
+  ) |> 
+  bind_rows(
+    Temp |> 
+      estimatr::lm_robust(
+        ATTE ~ 1,
+        data = _
+        ) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Method = "ATTE"
+        )
+  ) |> 
+  bind_rows(
+    Temp |> 
+      select(
+        Y,
+        D,
+        Size:District_墨田区
+      ) |> 
+      estimatr::lm_robust(
+        Y ~ D + .,
+        data = _
+        ) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Method = "OLS"
+        ) |> 
+      filter(
+        term == "D"
+      )
+  ) |> 
+  ggplot(
+    aes(
+      y = Method,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange()
+
+```
+
+## まとめ
+
+- 平均差をestimandとする場合は、どのような集計用weightを用いるかも定義する必要がある
+
+- proportion weightが最も直感的なので、 ($D$ がカテゴリカルであれば)、最有力候補
+
+    - $\mu_D(X)$ が0や1に近いグループが存在する(positivityに問題がある)場合、推定困難
+    
+## まとめ
+
+- $D=1$ が少ないことが問題であれば、propensity score weightが解釈も容易な解決策
+
+    - $D=0$ の場合は、”ひっくり返せば良い"だけ
+
+- $\mu_D(X)\simeq 0$ と $\simeq 1$ が両方存在する場合は?
+
+    - overlap weightは有力だが、$\tau(X)$が同質でない限り、解釈が難しい 
+    
+    - 他には Trimming [@yang2018asymptotic] や Balancing weight [@ben2021balancing], Targetted learning [@van2011targeted] などを活用する提案もあるが、万能薬は現状ない
+
+## Reference
