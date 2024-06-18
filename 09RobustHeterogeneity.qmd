@@ -133,6 +133,12 @@ digraph D {
 
 3. main dataを用いて、$\phi(\boldsymbol{O},\boldsymbol{g})$ の平均値を計算し、信頼区間とともに報告する
 
+## Example.
+
+- $Y=$ Price, $D=$ Reform, $X=$ Size,District,Tenure,Youseki,TradeQ
+
+    - 2022年の全データを使用
+
 ## Example: R VS AIPW
 
 ```{r}
@@ -398,6 +404,39 @@ Temp |>
 - Estimand: $$\min_{\beta} E[(\tau(X) - g_{\tau}(Z))^2]$$ where $Z \subset X$ and $$g_{\tau}=\beta_0 + \beta_1Z_1+..+\beta_LZ_L$$
 
 - 注: Average Differenceは特殊ケース: $g_{\tau}(Z)=\beta_0$
+
+## Example
+
+```{r}
+Temp |> 
+  estimatr::lm_robust(
+    AIPW ~ scale(Size) + scale(Distance) + scale(Tenure),
+    data = _
+  ) |> 
+  estimatr::tidy() |> 
+  ggplot(
+    aes(
+      y = term,
+      x = estimate,
+      xmin = estimate - qnorm(1 - 0.05/(2*4))*`std.error`,
+      xmax = estimate + qnorm(1 - 0.05/(2*4))*`std.error`
+    )
+  ) +
+  geom_pointrange() +
+  geom_pointrange(
+    aes(
+      xmin = conf.low,
+      xmax = conf.high
+    ),
+    linewidth = 1.5
+  ) +
+  theme_bw() +
+  geom_vline(
+    xintercept = 0
+  )
+```
+
+- 多重検定補正ずみ信頼区間を報告 (Benferroni法 [Chap 13 in ISRL](https://www.statlearning.com/))
 
 ## 補論: Normalization
 
