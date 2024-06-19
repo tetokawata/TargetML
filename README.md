@@ -31,4 +31,6 @@ Public folderから、講義資料と実習用データをダウンロードで�
     
     - [hdmの使い方: 本番](https://youtu.be/5SaGBAvmg5A)
     
+    - [mlr3verseを使った予測モデル](https://youtu.be/jCrRpNk_hHU)
+    
 - 2023年の講義アーカイブリンクは2023/LinkArxivに記載してます
