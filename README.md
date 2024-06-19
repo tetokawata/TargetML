@@ -33,4 +33,6 @@ Public folderから、講義資料と実習用データをダウンロードで�
     
     - [mlr3verseを使った予測モデル](https://youtu.be/jCrRpNk_hHU)
     
+    - [DoubleMLを使った因果/格差推定](https://youtu.be/BCEVt-QgNko)
+    
 - 2023年の講義アーカイブリンクは2023/LinkArxivに記載してます
