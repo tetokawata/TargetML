@@ -16,6 +16,10 @@ Public folderから、講義資料と実習用データをダウンロードで�
         - [Tidyverse Style Guide](https://style.tidyverse.org/)
         
         - [R for Data Science](https://r4ds.had.co.nz/)
+        
+- 日本語の参考書としては、以下をお勧めします
+
+    - [データ駆動型回帰分析](https://www.nippyo.co.jp/shop/book/9267.html)
 
 - R実習についての講義アーカイブは以下です。
 
