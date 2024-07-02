@@ -1,0 +1,243 @@
+---
+title: "Applications: Sensitvitiy Analysis"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+# Sensitivity Analysis
+
+- 識別に必要な変数が観察できない問題 (Omitted variable problem) に対して、推定結果の頑健性を評価する手法
+
+    - Debiased Machine Learning を使用することで、Model specification に依存しない推定が可能になる
+    
+- サーベイとしては、 @ding2023first の 17-19章など
+
+## Omitted variable problem
+
+- 研究課題に応える理想のEsitmand は、 $E[m(\theta_0,O,U)]=0$ だが、$U$ はデータから観察できない
+
+- 本スライドでは、平均差におけるOmitted variable problemを考える: 理想のEstimandは $$\theta_{+}=E[E[Y|1,X,U] - E[Y|0,X,U]]$$
+
+- $U$ もバランスさせたいが、観察できない....
+
+## 例: OSの因果効果
+
+- $$E[Y|1,X,プログラミングへの関心]$$ $$- E[Y|0,X,プログラミングへの関心]$$
+
+- 多くの応用で、プログラミングへの関心はomitted variable
+
+## 例: 同一学歴内賃金格差
+
+- $$E[Y|1,X,出身学部/大学]$$ $$- E[Y|0,X,出身学部/大学]$$
+
+- 多くの応用で、出身学部/大学はomitted variable
+
+
+## 論点整理
+
+- $E[E[Y|1,X,U] - E[Y|0,X,U]]$ を推定する際の問題として
+
+    - 定式化問題: $Y\sim D,X,U$ の関係性がよくわからない
+    
+        - ここまでの議論を活用することで、緩和できる
+        
+    - 観測問題: $U$ が観察できない
+    
+        - 新しいアプローチが必要
+
+## Sensitivity model
+
+- Omitted variable の推定結果への影響について、上/下限を"想定する"
+
+- 本スライドでは、 Effect difference model [@mcclean2024calibrated]を紹介
+
+- 因果効果の上限/下限は $$\{\theta + c_{U},\theta - c_{L}\}$$ where $\theta=E[Y|1,X]- E[Y|0,X]$
+
+    - 問題はSensitivity parameter $\{c_U,c_L\}$ の設定
+
+## Calibrated sensitivity model
+
+- **観察可能** な $X$ の影響を、Sensitivity parameterの設定に用いる
+
+    - $X$ の一部 $X_{-}$ のみを残して平均差を定義する $$\theta_{-}=E[E[Y|1,X_{-}] - E[Y|0,X_{-}]]$$
+
+    - $U$ の影響は、落とした変数の影響 $\theta - \theta_{-}$ の一定割合 $\gamma$ 以内であると仮定する
+
+## Example
+
+- 出身大学/学部はわからないが、教育年数はわかる
+
+- 知りたいのは、 $X=\{教育年数、年齢\}$ と $U=出身大学/学部$ をバランスさせた平均差
+
+- "最善"の推定値でも、$X$ のみをバランスさせた平均差
+
+    - Calibrationのために、$X_{-}=年齢$ のみをバランスさせた推定を行う
+
+- "出身大学の"追加的な影響"は、教育年数の影響よりも小さい"と想定できるのであれば、$|\theta_{+}-\theta| < |\theta - \theta_{-}|$
+
+## Identification
+
+- 任意の$\gamma$ のもとで、 $\tau_{+}$ の上限/下限は、以下のように識別される $$\tau_{+}\in\{\tau + \gamma\times |\tau - \tau_{-}|,\tau - \gamma\times |\tau - \tau_{-}|\}$$
+
+## Estimation
+
+- @mcclean2024calibrated にて、 Neyman's ohthogonalityを満たすモーメント条件が提案されている
+
+- Psude-outcomeを用いる $$\phi(X)=g_Y(1,X) - g_Y(0,X)$$ $$+\frac{D(Y - g_Y(1,X))}{g_D(X)} - \frac{(1 - D)(Y - g_Y(1,X))}{1 - g_D(X)}$$
+
+## Estimation
+
+- $\sum \phi(X)/N>\sum\phi(X_{-})/N$ ならば、上限は、$$\frac{\sum\phi(X) + \gamma (\phi(X) - \phi(X_{-}))}{N}$$
+
+- 下限は $$\frac{\sum\phi(X) - \gamma (\phi(X) - \phi(X_{-}))}{N}$$
+
+## 他のやり方との関係性
+
+- Selection-on-Observableを仮定 $\iff \gamma=0$ 
+
+- OLSのみを用いた分析でも、同様のsenstivity分析は行われてきた [@oster2019unobservable; @cinelli2020making]
+
+    - 機械学習も活用することで、定式化問題も削減できる
+
+- 注意: Sensitivity分析として、Main estimationに変数を加える分析が見られるが、望ましくない
+
+## 発展
+
+- @mcclean2024calibrated では全$X$について、逐次除外し、その中で最も影響が大きいものを使用する方法を紹介
+
+    - Maximum leave-one-out
+
+- Effect difference model 以外の定式化も提案され、今でも議論が続いている
+
+    - @ding2023first などを参照
+
+# Practical Example
+
+## Simple example
+
+- 改築前/後の中古マンション取引価格を、広さ、築年数、容積率、と**立地**をバランスさせた上で比較したい
+
+- 立地については、区、駅からの距離、ゾーニングしかわからない。
+
+    - 立地の詳細はOmitted variable
+
+## Simple example
+
+```{r}
+#| echo: true
+
+set.seed(111)
+library(tidyverse)
+library(DoubleML)
+library(mlr3verse)
+
+lgr::get_logger("mlr3")$set_threshold("warn")
+
+Data = read_csv("Public/Data.csv")
+
+Y = Data$Price |> log()
+
+D = Data$Reform
+
+X = Data |> 
+  select(
+    Size,
+    Tenure,
+    Youseki,
+    Distance,
+    District,
+    Area
+  ) |> 
+  mutate(
+    District = District |> 
+      factor(
+        labels = "Dist"
+      ),
+    Area = Area |> 
+      factor(
+        label = "Area"
+      )
+  )
+
+X_ = Data |> 
+  select(
+    Size,
+    Tenure,
+    Youseki 
+  ) # Drop geographical parameters
+
+Task = double_ml_data_from_matrix(
+  y = Y,
+  d = D,
+  X = X
+)
+
+Task_ = double_ml_data_from_matrix(
+  y = Y,
+  d = D,
+  X = X_
+)
+
+PLR = DoubleMLIRM$new(
+  Task,
+  lrn("regr.ranger"),
+  lrn("classif.ranger"),
+  n_folds = 2
+  )$fit()
+
+PLR_ = DoubleMLIRM$new(
+  Task_,
+  lrn("regr.ranger"),
+  lrn("classif.ranger"),
+  n_folds = 2
+  )$fit()
+```
+
+
+## Simple example
+
+```{r}
+#| echo: true
+PLR$summary()
+
+PLR_$summary()
+```
+
+## Simple example
+
+```{r}
+#| echo: true
+
+Phi = PLR$psi_b[,1,1] # Get Psude-outcome
+
+Phi_ = PLR_$psi_b[,1,1]
+
+Gamma = 1 # Set parameters
+
+Phi_U = Phi + Gamma*(Phi - Phi_)
+
+Phi_L = Phi - Gamma*(Phi - Phi_)
+
+estimatr::lm_robust(Phi_U ~ 1)
+
+estimatr::lm_robust(Phi_L ~ 1)
+```
+
+
+## Reference
