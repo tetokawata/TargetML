@@ -1,0 +1,611 @@
+---
+title: "平均差の機械学習による推定"
+subtitle: "異質性分析"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+bibliography: ref.bib
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+---
+
+# 平均差の機械学習による推定
+
+```{r}
+library(tidyverse)
+```
+
+- Chap 13 and 14 in CausalML参照
+
+## 条件付き平均差の近似モデル
+
+- Estimand: $$\tau(X)=E[Y|D=1,X]-E[Y|D=0,X]$$ の近似モデル $g_{\tau}(X)$
+    
+- 中心極限定理などにはこだわらず、近似精度 $E[(\tau(X) - g_{\tau}(X))^2]$ の最小化を目標とする
+
+## 応用: 個人因果効果の予測
+
+- 潜在結果の枠組み[@imbens2022causality]を用いると、個人因果効果を定義できる
+
+    - $D=0$ の世界線における結果 $Y_i(0)$ と $D=1$ の結果 $Y_i(1)$ の差 $\tau_i=Y_i(1)-Y_i(0)$
+
+        - "合理的"意思決定の基礎情報 (限界効果)
+
+- 異なる世界線は原理的に観察不可能なので、 $\tau_i$ を推定することは"不可能"
+
+    - 因果推論の根本問題
+
+## 応用: 個人因果効果の予測
+
+- 通常の枠組みに収められる
+
+- $$E[(\tau_i-g_{\tau}(X_i))^2]$$ を最小にする関数 $g_{\tau}$ を推定する
+
+    - 理想の予測モデル: $$g_{\tau}(X_i)=E_P[\tau_i|X_i]$$
+    
+    - $\tau_i$ が観察できないので、直接的な推定はできない
+
+## 分解
+
+$$\tau_i-g_{\tau}(X_i)=\underbrace{\tau_i - E_P[\tau|X]}_{IrreducibleError}$$
+
+$$+\underbrace{E_P[\tau|X]-g_{\tau,\infty}(X)}_{ApproximationError}+ \underbrace{g_{\tau,\infty}(X)-g_{\tau}(X)}_{EstimationError}$$
+
+## 分解: BLP
+
+- $g_{\tau}(X)\sim\beta_0 + .. +\beta_LX_L$ の推定法は、前々回議論
+
+$$\tau_i-g_{\tau}(X_i)=\underbrace{\tau_i - E_P[\tau|X]}_{IrreducibleError}$$
+
+$$+\underbrace{E_P[\tau|X]-g_{\tau,\infty}(X)}_{ApproximationError\neq 0}+ \underbrace{g_{\tau,\infty}(X)-g_{\tau}(X)}_{EstimationError\sim N(0,\sigma^2)}$$
+
+- Approximation errorが大きい可能性がある
+
+## 分解: ここからの手法
+
+$$\tau_i-g_{\tau}(X_i)=\underbrace{\tau_i - E_P[\tau|X]}_{IrreducibleError}$$
+
+$$+\underbrace{E_P[\tau|X]-g_{\tau,\infty}(X)+ g_{\tau,\infty}(X)-g_{\tau}(X)}_{同時に最小化を目指す}$$
+
+## T Learner [@kunzel2019metalearners]
+
+- @varian2014big
+
+1. $E[Y|1,X]\sim g_{Y}(1,X),E[Y|0,X]\sim g_{Y}(0,X)$ を教師付き学習で推定
+
+2. $g_{\tau}(X)=g_Y(1,X)-g_Y(0,X)$
+
+## 数値例
+
+- $E[Y|D,X]=X + X^2 + X^3$
+
+    - $D=1/0$ のサブグループごとにLASSOを用いて、 $Y\sim X + X^2 + X^3$ を推定
+    
+    - $\Pr[D==1]=0.1$
+    
+    - $\Pr[D==0]=0.9$
+
+## 数値例
+
+```{r}
+set.seed(1)
+n = 200
+
+X = sample(
+  -2:2,
+  n,
+  replace = TRUE
+  )
+
+D = sample(
+  0:1,
+  n,
+  prob = c(0.9,0.1),
+  replace = TRUE
+)
+
+Y = X + X^2 + X^3 + rnorm(n, 0, 10)
+
+Temp = tibble(
+  X,
+  D,
+  Y
+  ) |> 
+  mutate(
+    TrueY = X + X^2 + X^3
+  )
+
+Temp |> 
+  ggplot(
+    aes(
+      x = X,
+      y = Y,
+      color = D |> factor()
+    )
+  ) +
+  theme_bw() +
+  geom_point()
+```
+
+## 数値例
+
+```{r}
+
+Temp$HatY_D0 = hdm::rlasso(
+  Y ~ poly(X,3,raw = TRUE),
+  Temp[Temp$D == 0,]
+  ) |> 
+  predict(
+    Temp
+  )
+
+Temp$HatY_D1 = hdm::rlasso(
+  Y ~ poly(X,3,raw = TRUE),
+  Temp[Temp$D == 1,]
+  ) |> 
+  predict(
+    Temp
+  )
+
+Fig1 = Temp |> 
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    aes(
+      color = "Population"
+    ),
+    method = "lm",
+    formula = y ~ poly(x,3,raw = TRUE),
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = HatY_D1,
+      color = "g(1,X)"
+    ),
+    method = "lm",
+    formula = y ~ poly(x,3,raw = TRUE),
+    se = FALSE
+  )+
+  geom_smooth(
+    aes(
+      y = HatY_D0,
+      color = "g(0,X)"
+    ),
+    method = "lm",
+    formula = y ~ poly(x,3,raw = TRUE),
+    se = FALSE
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  ylab("Y")
+
+Fig2 = Temp |> 
+  mutate(
+    HatTau = HatY_D1 - HatY_D0
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = HatTau
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    aes(
+    ),
+    method = "lm",
+    formula = y ~ poly(x,3,raw = TRUE),
+    alpha = 0.2,
+    se = FALSE
+  )  +
+  geom_hline(
+    yintercept = 0
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  ylab("g(1,X) - g(0,X)")
+
+cowplot::plot_grid(Fig1,Fig2)
+```
+
+## Regulization bias
+
+- 教師付き学習は、"適切に単純化する"はずだが、過剰に複雑化させている
+
+    - $D$ の分布が偏っているケースにおいて、非常に深刻
+
+- 問題点: 最適化問題の設定ミス
+
+    - $\min E[(\tau_i-g_{\tau}(X))^2]$ ではなく、 $\min E[(Y_i-g_{\tau}(X))^2]$ を目指して単純化が行われるため
+    
+## DR-learner
+
+- 母集団にモデルを適合できれば、$E[Y|1,X] - E[Y|0,X]$ を識別できる最適化問題を解く
+
+- AIPWを応用: Psude-outcomeを定義 $$\phi(X)=g_Y(1,X) - g_Y(0,X)$$ $$+\frac{D(Y - g_Y(1,X))}{g_D(X)} - \frac{(1 - D)(Y - g_Y(0,X))}{1 - g_D(X)}$$
+
+- $E[\phi(X)|X]=\tau(X)$ なので、 $\phi(X)$ の近似モデルは平均差の良い近似モデルであることが期待できる
+
+## DR-learner [@kennedy2020towards]
+
+1. $g_{Y}(d,X)\sim E[Y|d,X],g_D(X)\sim E[D|X]$ を交差推定
+
+2. Psude outcome $\phi(X)$ を計算
+
+3. $\phi(X)\sim X$ をなんらかのAlgorithmで推定
+
+    - 機械学習も使用可能
+
+## R-learner [@nie2021quasi]
+
+- Partialling Outの一般化 $$\min E[(Y-E[Y|X]-\tau(X)\times [D-E[D|X]])^2]$$
+
+- PartialingOutした$Y$と$D$について、　母集団における誤差を最小化するように $\tau(X)$ を定義
+
+    - 最も母集団に適合する $g(X)$ 関数を推定
+
+## R-learner [@nie2021quasi]
+
+1. $g_Y(X)\sim E[Y|X],g_D(X)\sim E[D|X]$ を交差推定
+
+2. $E[(Y-g_Y(X)-\tau(X)\times [D-f_D(X)])^2]$ を近似的に最小化するよう $\tau$ を推定
+
+- 2段階目にも、教師付き学習も活用可能
+
+    - 前回はOLS
+
+
+
+## Causal Forest
+
+- R learnerの特殊ケース
+
+- 2段階目をRandomForestで実装
+
+- 様々な工夫 (Chap 14.4 in CausalML 参照)
+
+## 数値例: Causal Forest VS T-Learner
+
+```{r}
+Temp$FitTauGRF = grf::causal_forest(
+  X = X |> as.matrix(),
+  W = D,
+  Y = Y
+  ) |> 
+  predict(
+    X |> as.matrix()
+  ) |> 
+  magrittr::extract2("predictions")
+
+Temp |> 
+  mutate(
+    HatTau = HatY_D1 - HatY_D0
+  ) |> 
+  ggplot(
+    aes(
+      x = X,
+      y = HatTau
+    )
+  ) +
+  theme_bw() +
+  geom_smooth(
+    aes(
+      color = "T-leaner"
+    ),
+    method = "lm",
+    formula = y ~ poly(x,3,raw = TRUE),
+    alpha = 0.2,
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = FitTauGRF,
+      color = "Causal Forest"
+    ),
+    se = FALSE
+  ) +  
+  theme(
+    legend.position = "bottom"
+  ) +
+  ylab("g(1,X) - g(0,X)")
+
+```
+
+
+## 推定誤差
+
+- 2段階目も教師付き学習で推定した場合、一般に推定誤差(母平均との乖離リスク)を推定することは困難
+
+- Causal Forestは例外的に可能
+
+    - ただし$X$の数は少ない必要がある
+    
+    - (川田の経験上)、信頼区間がかなり大きくなる
+
+## Example. @britto2022effect
+
+- 大規模(整理)解雇 $=D$ は、犯罪 $=Y$ を増加するか?
+    
+    - 司法データ(裁判日誌)と雇用データ(Employee-Employer matched data)を名寄せ !!! したパネルデータ (Difference-in-Difference)
+    
+        - ブラジルの男性について、平均効果 $23\%$
+
+## Example. @britto2022effect
+
+- BLP分析より、若年・短い勤続年数の労働者において大きい
+
+- 98 $\%$ の労働者について、"有意"な効果が検出
+
+    - 幅広い犯罪の拡大効果をもつ
+
+## 補論: 予測性能
+
+- 色々な提案
+
+    - Rank Average Treatment Effect [@Yadlowsky2021EvaluatingTP] は grfに実装ずみ
+    
+## 補論: Stacking
+
+- $g_{\tau(X)}$ 自体も集計できる
+
+1. サンプルをPrediction/Confirm データに分割
+
+2. Prediction データのみを用いて、 $g_{\tau,1}(X),..,g_{\tau,L}(X)$ を推定する
+
+3. Confirmデータを用いて、psud-outcome $\phi(X)$を推定し、 $\phi(X)\sim g_{\tau,1}(X) +.. +g_{\tau,L}(X)$ をOLS回帰する
+
+# 異質性の発見
+
+- 機械学習により推定された関数について、安定的な統計的推論は難しい
+
+    - Causal forestでも、 $X$ の数が多い、ないしRandom Forestが適さない母集団である可能性がある
+    
+- "顕著な効果"をもつグループの存在を示すのみであれば、より選択肢が広がる
+
+## Motivaing example
+
+| X | Tau(X) | Pr[X] |
+|:----:|:----:|:----:|
+| 1      | 10   | 0.1 |
+| 2     | 1  | 0.8 |
+| 3       | -2    | 0.1 |
+
+- 平均効果: $10\times 0.1 + 1\times 0.8 - 2\times 0.1=0.7$
+
+- 上位10 $\%$ の平均効果 $=$ 10
+
+- 下位10 $\%$ の平均効果 $=$ -2
+
+## Group average treatment effect [@chernozhukov2018generic]
+
+- Estimand: $E[Y|1,X] - E[Y|0,X]$ の予測値 $g_\tau(X)$ を"前提"として、 $$E[\tau(X)|g_{\tau}(X)\in\{\tau_{-},\tau_{+}\}]$$
+
+- 予測モデルは、因果効果の異質性を探索するための、シグナルとしてのみ用いる
+
+     - 予測モデルについての統計的推論は"不要"
+
+## Algorithm
+
+1. サンプルをPrediction/Confirm データに分割
+
+2. Prediction データのみを用いて、 $g_{\tau}(X)$ を推定する
+
+3. Confirmデータを用いて、Nuisance関数およびGATEを推定する
+
+- 交差推定を行う場合は、sequential test が必要 [@wager2024sequential]
+
+## Example. @fukai2021describing
+
+- 2019/2020年 $=D$ の就業状態 $=Y$ を比較
+
+    - COVIDの"効果"
+
+- 過去の就業状態や年齢など $=X$ についてGATEを推定
+
+    - COVIDの"効果"は一部の層に集中している
+
+## Example. SetUp
+
+```{r}
+#| echo: true
+set.seed(111)
+
+library(tidyverse)
+library(mlr3verse)
+library(DoubleML)
+
+Data = read_csv("Public/Data.csv") |> 
+  filter(TradeYear == 2022)
+
+Group = sample(
+  1:2,
+  nrow(Data),
+  replace = TRUE
+)
+
+Y = Data$Price |> log()
+
+D = Data$Reform
+
+Z = Data |> 
+  model.matrix(
+    ~ Size + Distance + Tenure ,
+    data = _
+  )
+
+Z = Z[,-1]
+
+X = Data |> 
+  model.matrix(
+    ~ poly(Size,2) + poly(Distance,2) + poly(Tenure,2),
+    data = _
+  )
+
+X = X[,-1]
+```
+
+## Nuisance
+
+```{r}
+#| echo: true
+
+TaskPrediction = double_ml_data_from_matrix(
+  y = Y[Group == 1],
+  d = D[Group == 1],
+  X = X[Group == 1,]
+)
+
+TaskConfirm = double_ml_data_from_matrix(
+  y = Y[Group == 2],
+  d = D[Group == 2],
+  X = X[Group == 2,]
+)
+
+ModelPrediction = DoubleMLPLR$new(
+  TaskPrediction,
+  lrn("regr.cv_glmnet", s = "lambda.min"),
+  lrn("classif.cv_glmnet", s = "lambda.min"),
+  n_folds = 2
+)
+
+ModelConfirm = DoubleMLIRM$new(
+  TaskConfirm,
+  lrn("regr.cv_glmnet", s = "lambda.min"),
+  lrn("classif.cv_glmnet", s = "lambda.min"),
+  n_folds = 2
+)
+
+lgr::get_logger("mlr3")$set_threshold("warn")
+
+ModelPrediction$fit(store_predictions = TRUE)
+
+ModelConfirm$fit(store_predictions = TRUE)
+```
+
+## Example. Prediction
+
+```{r}
+#| echo: true
+FitTau = grf::causal_forest(
+  X = Z[Group == 1,],
+  W = D[Group == 1],
+  Y = Y[Group == 1],
+  Y.hat = ModelPrediction$predictions$ml_l,
+  W.hat = ModelPrediction$predictions$ml_m
+  ) |> 
+  predict(Z)
+```
+
+## Example. GATE
+
+```{r}
+#| echo: true
+Cutoff = FitTau$predictions[Group == 2] |> quantile(probs = c(1/3,2/3))
+
+Cutoff
+
+Score = ModelConfirm$psi_b[,1,1]
+
+estimatr::lm_robust(
+  Score ~ 1, 
+    subset = FitTau$predictions[Group == 2] > Cutoff[2])
+```
+
+## Example. GATE
+
+```{r}
+estimatr::lm_robust(Score ~ 1, subset = FitTau$predictions[Group == 2] > Cutoff[2]) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Group = "Tau >= quantile(Tau,2/3)"
+  ) |> 
+  bind_rows(
+    estimatr::lm_robust(Score ~ 1, subset = FitTau$predictions[Group == 2] > Cutoff[1]) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Group = "Tau >= quantile(Tau,1/3)"
+      )
+  ) |> 
+  bind_rows(
+    estimatr::lm_robust(Score ~ 1) |> 
+      estimatr::tidy() |> 
+      mutate(
+        Group = "All"
+      )
+  ) |> 
+  ggplot(
+    aes(
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      y = Group
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange()
+```
+
+## Classification analysis
+
+- @chernozhukov2018generic
+
+- どのようなサブグループについて、効果が大きい/小さいか?
+
+- Estimand: ある背景変数 $X_l$ について $$E[X_l|g_{\tau}(X)>Q(q)]-E[X_l|g_{\tau}(X)\le Q(q)]$$
+
+    - $$Q(q)=$$ qth quantile of $q_{\tau}(X)$
+
+
+## Example. Classification analysis
+
+```{r}
+#| echo: true
+Data |> 
+  filter(
+    Group == 2
+  ) |> 
+  select(
+    Size,
+    Distance,
+    Tenure
+  ) |> 
+  mutate(
+    Group = FitTau$predictions[Group == 2] > Cutoff[2]
+  ) |> 
+  gtsummary::tbl_summary(by = Group)
+```
+
+
+## 付論: Treatment effect risk
+
+- @kallus2023treatment により提案
+
+- $$E_P[\tau(X)|\tau(X)\le Q(q)]$$
+
+    - $$Q(q)=$$ qth quantile of $\tau(X)$
+    
+    - Estimandが完全に母集団上で定義できており、解釈がより明確
+
+    - **Neymanの直行条件**を満たすので、$g$ の推定誤差は漸近分布を計算する際に無視できる
+
+## Reference

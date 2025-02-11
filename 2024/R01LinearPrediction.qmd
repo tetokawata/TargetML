@@ -1,0 +1,220 @@
+---
+title: "R"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  echo: true
+---
+
+# 流れ
+
+1. Set up
+
+2. Import Data (arrow)
+
+3. PreProcess (recipes)
+
+4. LASSO/Double selection (hdm)
+
+
+## Set up
+
+```{r}
+#| echo: true
+set.seed(111)
+
+library(tidyverse)
+library(arrow) # <1>
+library(recipes) # <2>
+library(hdm)
+```
+
+1. parquet形式(大規模データに比較優位)によるデータの保存/読み込み
+
+2. データ整備用の関数を提供
+
+## Install package
+
+- 基本、通常のやり方でOKだが、
+
+    - 現時点では、arrowをMacにインストール際には以下を実行
+
+```{r}
+#| echo: true
+#| eval: false
+install.packages("arrow", repos = c("https://apache.r-universe.dev"))
+```
+
+## Import Data
+
+- csv形式の導入
+
+```{r}
+Raw = read_csv("Public/Data.csv")
+```
+
+- parquet形式の導入
+
+```{r}
+Raw = read_parquet("Public/Data.parquet")
+```
+
+## データの形式
+
+- 多くの選択肢が存在 ([R for Data Science 20-23 参照](https://r4ds.hadley.nz/import))
+
+- 個人的には、parquet形式が最もバランスが良い印象
+
+    - Sizeが小さくなる/読み込みが早い/メモリを使わない操作が可能/DataBaseよりも初学者にとって簡単?
+
+- csv形式をparquet形式に変換して保存
+
+```{r}
+open_csv_dataset("Public/Data.csv") |> 
+  write_parquet("Data.parquet")
+```
+
+## Pipe
+
+- inputを、名前をつけずに、outputとして利用可能
+
+- 例
+
+```{r}
+#| eval: false
+Raw = read_parquet("Public/Data.parquet")
+summary(Raw)
+```
+
+- 以下は同じ結果を出す
+
+```{r}
+#| eval: false
+read_parquet("Public/Data.parquet") |> 
+  summry()
+```
+
+- Shortcut: command(control) + m
+
+    - Tools -> Global option -> Code -> Use native pipe oepratorをチェック
+
+## PreProcess: dplyr
+
+- 基本はdplyr(tidyverseに含まれる)の使用を推奨 ([R for Data Science 4章](https://r4ds.hadley.nz/data-transform)参照)
+
+```{r}
+Data = Raw |> 
+  filter(District == "文京区")
+
+Y = Data$Price
+D = case_when(
+  Data$TradeYear == 2022 ~ 1,
+  Data$TradeYear == 2017 ~ 0)
+```
+
+## PreProcess: recipes
+
+- 伝統的な方法に比べて、$X$ に対して、より多くの処理が必要
+
+    - recipeを活用すると、コード量を減らし、ミスを減らせる
+
+```{r}
+X = recipe(
+  ~  Size + Distance + Tenure + Youseki + Reform + TradeQ + Area,
+  Data
+  ) |> # DataからXを指定 
+  step_interact(
+    ~ all_predictors():all_predictors()
+    ) |> # すべてのXについて交差項を作成
+  step_poly(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    TradeQ,
+    degree = 2
+  ) |> # ２乗項まで作成
+  step_dummy(
+    all_nominal_predictors()
+  ) |> # 文字/ファクター変数について、ダミーを作成
+  step_zv(
+    all_predictors()
+  ) |> # 全ての変数について、定数であれば排除
+  step_normalize(
+    all_predictors()
+  ) |> # 全ての変数について、標準化
+  prep() |> 
+  bake(
+    new_data = NULL,
+    composition = "matrix"
+  ) # matrix、として出力 (defaultはdata.frame)
+```
+
+## LASSO
+
+```{r}
+Group = sample(
+  1:2,
+  length(Y),
+  replace = TRUE,
+  prob = c(0.8,0.2))
+
+Model = rlasso(
+  x = X[Group == 1,],
+  y = Y[Group == 1])
+```
+
+## LASSO: Selected variable
+
+```{r}
+Model$index
+```
+
+## Evaluation
+
+```{r}
+PredLASSO = Model |> 
+  predict(
+    X,
+    post = FALSE)
+
+PredOLS = lm(Y ~ X, subset = Group == 1) |> 
+  predict(
+    X |> as_tibble())
+
+mean((Y - PredLASSO)[Group == 2]^2)/var(Y)
+
+mean((Y - PredOLS)[Group == 2]^2)/var(Y)
+```
+
+
+## Double Selection
+
+- サンプル分割は不要
+
+```{r}
+Model = rlassoEffect(
+  x = X,
+  y = Y,
+  d = D)
+
+Model |> summary()
+```
+
+
+## Double Selection: Selected Variable
+
+```{r}
+Model$selection.index
+```

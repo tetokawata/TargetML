@@ -1,0 +1,26 @@
+---
+title: "Reading List"
+author: "Keisuke Kawata"
+format: 
+  typst:
+    bibliography: "CleanRef.bib"
+    bibliographystyle: "apa"
+    section-numbering: 1.1.a
+---
+
+# Prediction
+
+## Point prediction
+
+- TextBook: @james2013introduction
+
+## Confirmal inference
+
+- TextBook: @angelopoulos2024theoreticalfoundationsconformalprediction
+
+# Comparison
+
+## Machine Learning for causal effects and dispality
+
+- TextBook: @wager2024causal, @chernozhukov2024appliedcausalinferencepowered, @ding2023coursecausalinference
+

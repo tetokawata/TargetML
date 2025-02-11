@@ -1,0 +1,249 @@
+---
+title: "Linear model for predictions"
+author: "川田恵介"
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    html-math-method: katex
+  pdf:
+    pdf-engine: lualatex
+    documentclass: ltjsarticle 
+    toc: true
+    toc-depth: 3
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+---
+
+```{r}
+#| eval: false
+set.seed(111)
+library(tidyverse)
+library(glmnet)
+library(recipes)
+
+Data = read_csv("Public/Data.csv") |> 
+  filter(
+    TradeYear == 2022,
+    TradeQ == 4
+  )
+
+Y = Data$Price |> log()
+
+X = recipe(
+  ~ Size + Distance + Tenure + Youseki + District + Reform + 
+    EmbedSize + EmbedDistance + EmbedTenure + EmbedYouseki +
+    EmbedReform + Area,
+  Data
+  ) |> 
+  step_dummy(
+    all_nominal_predictors()
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+X_Long = recipe(
+  ~ Size + Distance + Tenure + Youseki + District + Reform + 
+    EmbedSize + EmbedDistance + EmbedTenure + EmbedYouseki +
+    EmbedReform + Area,
+  Data
+  ) |> 
+  step_interact(
+    ~ all_predictors():all_predictors()
+  ) |> 
+  step_poly(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    EmbedSize,
+    EmbedDistance,
+    EmbedTenure,
+    EmbedYouseki,
+    EmbedReform,
+    degree = 6
+  ) |> 
+  step_dummy(
+    all_nominal_predictors()
+  ) |> 
+  step_zv(
+    all_predictors()
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+Group = sample(
+  1:2,
+  length(Y),
+  prob = c(0.8,0.2),
+  replace = TRUE
+)
+
+FitShort = lm(
+  Y ~ .,
+  X,
+  subset = Group == 1) |> 
+  predict(X)
+
+FitLong = lm(
+  Y ~ .,
+  X_Long,
+  subset = Group == 1) |> 
+  predict(X_Long)
+
+FitLASSO = hdm::rlasso(
+  x = X_Long[Group == 1,],
+  y = Y[Group == 1],
+  post = FALSE
+  ) |> 
+  predict(X_Long) |> 
+  as.numeric()
+
+MLmetrics::R2_Score(Y[Group == 2], FitShort[Group == 2])
+MLmetrics::R2_Score(Y[Group == 2], FitLong[Group == 2])
+MLmetrics::R2_Score(Y[Group == 2], FitLASSO[Group == 2])
+
+MLmetrics::R2_Score(Y[Group == 1], FitShort[Group == 1])
+MLmetrics::R2_Score(Y[Group == 1], FitLong[Group == 1])
+MLmetrics::R2_Score(Y[Group == 1], FitLASSO[Group == 1])
+
+gamlr::gamlr(
+  x = X_Long[Group == 1,],
+  y = Y[Group == 1]
+  ) |> 
+  coef()
+```
+
+# 予測問題
+
+## 定式化
+
+- 課題: データと同じ母集団からランダムサンプリングされる事例について、 $X$ から $Y$ を予測するモデル $g_Y(X)$ をデータから構築する
+
+    - 予測精度は二乗誤差の**母平均**で測定 $$E[(Y - g_Y(X))^2]$$
+
+## 予測精度の推定
+
+- あるモデルの予測精度は母集団上で定義されたEstimand
+
+    - データから推定する必要がある
+    
+- 代表的なアプローチは、**データ分割**
+
+    - データをTraining/Testデータにランダム分割し、Trainingデータに対してAlgorithを提供し、Testデータで予測精度を推定する
+    
+        - 80:20, 95:5などの比率が代表的
+        
+    - Linear Modelについては、伝統的な理論的指標であるAIC/BICや@も候補
+
+## 理想の予測モデル
+
+- $E[(Y - g_Y(X))^2]$ を最小化する予測モデルは母平均 $\mu_Y(X)$
+
+    - 母集団の特徴を推定する問題に帰結
+
+        - 事例数が多く、$X$ の数が少なければ、Linear ModelのOLS推定は有力候補
+
+- Estimandは $E[Y|X]$ としたい
+
+    - $\iff$ OLSは $E[Y|X]$ の(研究者が設定する)線形近似 (Linear approximation) がEstimand
+
+## 予測誤差の分解
+
+- $$Y-g_Y(X) = \underbrace{Y - E[Y|X]}_{母集団における個人差:\ Irreducible\ error}$$ $$+\underbrace{E[Y|X] - g_Y^*(X)}_{母平均とEstimandの乖離:\ Approximation\ error}$$ $$+\underbrace{g_Y^* - g_Y}_{EstimandとEstimatorの乖離:\ Estimation\ error}$$
+
+## 例
+
+- $Y\sim\beta_0 +\beta_1Size$ を$10$事例で推定
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{Size以外の決定要因があり、おそらく大きい}$$ $$+\underbrace{E[Y|X] - g_Y^*(X)}_{"一直線の関係"ではないので、おそらく大きい}$$ $$+\underbrace{g_Y^* - g_Y}_{事例数が少なすぎ、大きい可能性が高い}$$
+
+## 例
+
+- 事例数が$100$万に増やし、同じモデルを推定する
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変!!!}$$ $$+\underbrace{E[Y|X] - g_Y^*(X)}_{不変!!!}$$ $$+\underbrace{g_Y^* - g_Y}_{ほとんど0になることが期待できる}$$
+
+## 例
+
+- 10事例のまま、$Y\sim\beta_0 +\beta_1p(Size,15)$ を推定
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変!!!}$$ $$+\underbrace{E[Y|X] - g_Y^*(X)}_{減少}$$ $$+\underbrace{g_Y^* - g_Y}_{非常に大きくなる可能性が高い}$$
+
+## まとめ
+
+- モデルを複雑にすると、近似誤差は低下する一方で、推定誤差は増加することが多い
+
+    - OLSについては、Bias-variance トレードオフとして知られる
+
+        - 直感的には、モデルが複雑であれば、より多くをデータに決めさせるので、データの特徴により依存する
+        
+    - 推定に用いたデータへの適合度は高くなる: 過剰適合/過学習と呼ばれる現象
+
+## まとめ
+
+- 事例数の増加は、トレードオフを緩和
+
+    - ただし人間が適切にモデルを複雑化する介入が必要
+
+# Penalized Regression
+
+- 事例数に応じて、適切にモデルの複雑性を調整することは困難
+
+    - $X$ の数が多いと特に難しい
+
+- データ主導で"自動化"する
+
+    - 代表例はLASSO
+    
+## LASSO Algorithm
+
+0. 十分に複雑なモデルからスタート: (実践例) 元々の$X$ について、交差項と連続変数については二乗項を作成
+
+1. 何らかの基準(後述)に基づいて Hyper (Tuning) parameter $\lambda$ を設定
+
+2. 以下の最適化問題を解いて、 Linear model $g(X)=\beta_0 +\beta_1X_1+\beta_2X_1^2+...$ を推定 $$\min\sum (y_i-g(x_i))^2 + \lambda(|\beta_1| + |\beta_2| +..)$$
+
+## Constrained optimizationとしての書き換え
+
+1. 何らかの基準(後述)に基づいて Hyper parameter $A$ を設定
+
+2. 以下の最適化問題を解いて、 Linear model $g(X)=\beta_0 +\beta_1X_1+\beta_2X_1^2+...$ を推定 $$\min\sum (y_i-g(x_i))^2$$ where $$|\beta_1| + |\beta_2| +..\le A$$
+
+## $\lambda$ の役割
+
+- $\lambda=\infty$ と設定すれば、 必ず$\beta_1=\beta_2=0$となる
+
+    - $\beta0$ のみ、最小二乗法で推定: $g(X)=$ サンプル平均
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変}$$ $$+\underbrace{E[Y|X] - g_Y^*(X)}_{大きい}$$ $$+\underbrace{g_Y^* - g_Y}_{小さい傾向}$$
+
+
+## $\lambda$ の役割
+
+- $\lambda=0$ と設定すれば、 (複雑なモデルを)OLSで推定した推定結果と一致
+
+- $$Y-g_Y(X)=\underbrace{Y - E[Y|X]}_{不変}$$ $$+\underbrace{E[Y|X] - g_Y^*(X)}_{小さい}$$ $$+\underbrace{g_Y^* - g_Y}_{大きい傾向}$$
+
+## $\lambda$ の役割
+
+- 適切に設定できれば、単純すぎるモデル (Approximation errorが大きすぎる)と複雑すぎるモデル (Estimation errorが大きすぎる)の間の"ちょうどいい"モデルを推定できる
+
+- 設定方法: サンプル分割(交差推定, [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html)で実装)、情報基準([gamlr](https://cran.r-project.org/web/packages/gamlr/index.html)で採用)、理論値([hdm](https://cran.r-project.org/web/packages/hdm/index.html)で採用)
+
+## まとめ
+
+- ここまでの内容はCausalML Chap 1/3 参照

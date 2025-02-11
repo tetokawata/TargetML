@@ -1,0 +1,981 @@
+---
+title: "Untitled"
+format: revealjs
+execute: 
+  warning: false
+  message: false
+---
+
+# SetUp
+
+## Data
+
+```{r}
+HighOrder = 6
+set.seed(111)
+TestSize = seq(25,100,1)
+
+library(tidyverse)
+library(recipes)
+
+Raw = arrow::read_parquet(
+  "Public/Data.parquet"
+  ) |> 
+  mutate(
+    Price = Price |> log(),
+    TradeYear = TradeYear |> factor()
+  )
+```
+
+## Define
+
+```{r}
+EstStack = function(
+    y,
+    x,
+    x_long,
+    test_x,
+    test_x_long,
+    weight){
+  result = list()
+  result$OLS = lm(
+    y ~ .,
+    x,
+    weights = weight
+  ) |> 
+    predict(
+      test_x
+    ) |> 
+    as.numeric()
+  result$OLS_Long = lm(
+    y ~ .,
+    x_long,
+    weights = weight
+  ) |> 
+    predict(
+      test_x_long
+    ) |> 
+    as.numeric()
+  result$LASSO = gamlr::gamlr(
+    y = y,
+    x = x_long,
+    obsweight = weight
+  ) |> 
+    predict(
+      test_x_long
+    ) |> 
+    as.numeric()
+  result$Ranger = ranger::ranger(
+    y = y,
+    x = x,
+    case.weights = weight
+  ) |> 
+    predict(test_x) |> 
+    magrittr::extract2("predictions") |> 
+    as.numeric()
+  tempgroup = sample(
+    1:2,
+    length(y),
+    replace = TRUE,
+    prob = c(0.9,0.1)
+  )
+  temptrain = lightgbm::lgb.Dataset(
+    x[tempgroup == 1,] |> data.matrix(),
+    label = y[tempgroup == 1],
+    weight = weight[tempgroup == 1]
+  )
+  temptest = lightgbm::lgb.Dataset(
+    x[tempgroup == 2,] |> data.matrix(),
+    label = y[tempgroup == 2],
+    weight = weight[tempgroup == 2]
+  )
+  result$GBM = lightgbm::lgb.train(
+    data = temptrain,
+    params = list(
+      objective = "regression",
+      learning_rate = 1
+    ),
+    nrounds = 100000L,
+    valids = list(test = temptest),
+    early_stopping_rounds = 100,
+    verbose = 0
+  ) |> 
+    predict(
+      test_x |> 
+      data.matrix()
+    )
+  result$Mean = mean(y)
+  result = result |> 
+    as_tibble()
+  return(result)
+}
+
+
+Stack = function(
+    x,
+    y,
+    test_x){
+  result = list()
+  x = x |> as.matrix()
+  test_x = test_x |> as.matrix()
+  result$coef = x |> 
+    nnls::nnls(
+      y
+    )
+  result$term = x |> colnames()
+  result$pred = (test_x %*% result$coef$x) |> 
+    as.numeric()
+  return(result)
+}
+
+StackQ <- function(x, y, test_x) {
+  require(CVXR)
+  x = x |> as.matrix()
+  test_x = test_x |> as.matrix()
+  Result = list()
+  
+  BetaHat = Variable(ncol(x))
+  
+  MSE = (y - x)^2 |> colMeans()
+  
+  FitTau = Minimize(
+    mean((y - x %*% BetaHat)^2) +
+    sum(MSE * BetaHat)
+    ) |> 
+    Problem(
+      constraints = list(BetaHat >= 0, sum(BetaHat) == 1)
+    ) |> 
+    solve()
+  
+  Coef = FitTau$getValue(BetaHat) |> round(2)
+  
+  Result$Pred = test_x %*% Coef
+  Result$Coef = Coef
+  Result$Names = colnames(test_x)
+  Result$MSE = MSE
+  return(Result)
+}
+```
+
+
+# Prediction
+
+## SetUp
+
+```{r}
+set.seed(111)
+Data = Raw |> 
+  filter(
+    TradeYear %in% c(2020,2021,2022)
+  )
+
+Group = sample(
+  1:2,
+  nrow(Data),
+  
+  prob = c(0.8,0.2),
+  replace = TRUE
+)
+```
+
+## Estimation
+
+```{r}
+ResultInd = EstStack(
+  Data$Price[Group == 1],
+  Data[Group == 1,] |> 
+    model.matrix(
+      ~ 0 + Size + DistrictLarge,
+      data = _
+    ) |> 
+    as_tibble(),
+  Data[Group == 1,] |> 
+    model.matrix(
+      ~ 0 + poly(Size,HighOrder)*DistrictLarge,
+      data = _
+    ) |> 
+    as_tibble(),
+  Data |> 
+    model.matrix(
+      ~ 0 + Size + DistrictLarge,
+      data = _
+    ) |> 
+    as_tibble(),
+  Data |> 
+    model.matrix(
+      ~ 0 + poly(Size,HighOrder)*DistrictLarge,
+      data = _
+    ) |> 
+    as_tibble(),
+  weight = rep(1,nrow(Data[Group == 1,]))
+)
+
+ResultStack = ResultInd[Group == 2,] |> 
+  Stack(
+    Data$Price[Group == 2],
+    ResultInd
+  )
+
+MSE_OLS = (ResultInd$OLS - Data$Price)^2
+MSE_Stack = (ResultStack$pred - Data$Price)^2
+```
+
+## Example: OLS VS Stacking
+
+```{r, dev='ragg_png'}
+Data |> 
+  select(
+    Size,
+    DistrictLarge
+  ) |> 
+  mutate(
+    OLS = ResultInd$OLS,
+    Stack = ResultStack$pred
+  ) |> 
+  arrow::write_parquet(
+    "Figure/Slide01BackData01.parquet"
+  )
+
+TempFig = Data |> 
+  select(
+    Size,
+    DistrictLarge
+  ) |> 
+  mutate(
+    OLS = ResultInd$OLS,
+    Stack = ResultStack$pred
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = OLS
+    )
+  ) +
+  theme_bw() +
+  geom_line(
+    aes(
+      color = "OLS"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = Stack,
+      color = "Stacking"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  ) +
+  ylab("Predictied log-price") +
+  theme(
+    legend.position = "bottom"
+  )
+
+TempFig
+
+  ggsave(
+  "Figure/Slide01Figure01.png",
+  TempFig,
+  dpi = "retina"
+  )
+```
+
+## MSE
+
+```{r, dev ='ragg_png'}
+TempScore = (MSE_OLS - MSE_Stack)/mean(MSE_OLS)
+estimatr::lm_robust(
+  TempScore ~ 0 + Data$DistrictLarge,
+  subset = Group == 2) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Method = "OLS"
+  ) |> 
+  ggplot(
+    aes(
+      y = term,
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      color = Method
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange(
+    position = position_dodge(width = 0.5)
+  )
+```
+
+
+# Difference
+
+## SetUp
+
+```{r}
+library(tidyverse)
+library(recipes)
+
+set.seed(111)
+
+Raw = arrow::read_parquet(
+  "Public/Data.parquet"
+  ) |> 
+  mutate(
+    Price = Price |> log(),
+    TradeYear = TradeYear |> factor()
+  )
+
+Data = Raw |> 
+  filter(
+    TradeYear %in% c(2017,2022),
+    TradeQ == 4
+    )
+
+Y = Data$Price
+
+D = case_when(
+  Data$TradeYear == 2022 ~ 1,
+  .default = 0
+)
+
+X = Data |> 
+  recipe(
+    ~ Size + DistrictLarge
+  ) |> 
+  step_dummy(
+    all_nominal_predictors()
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+X_Long = Data |> 
+  recipe(
+    ~ Size + DistrictLarge
+  ) |> 
+  step_poly(
+    all_numeric_predictors(),
+    degree = 4
+  ) |> 
+  step_interact(
+    ~ all_predictors():DistrictLarge
+  ) |> 
+  step_dummy(
+    all_nominal_predictors(),
+    one_hot = TRUE
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+Z = Data |> 
+  select(
+    Size:Youseki,
+    EmbedSize:EmbedYouseki,
+    District
+  ) |> 
+  recipe(
+    ~ .
+  ) |> 
+  step_dummy(
+    all_nominal_predictors()
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+Z_Long = Data |> 
+  select(
+    Size:Youseki,
+    EmbedSize:EmbedYouseki,
+    District
+  ) |> 
+  recipe(
+    ~ .
+  ) |> 
+  step_interact(
+    ~ all_numeric_predictors():all_numeric_predictors()
+  ) |> 
+  step_poly(
+    all_numeric_predictors(),
+    degree = 2
+  ) |> 
+  step_interact(
+    ~ all_numeric_predictors():all_nominal_predictors()
+  ) |> 
+  step_dummy(
+    all_nominal_predictors()
+  ) |> 
+  step_normalize(
+    all_predictors()
+  ) |> 
+  step_nzv(
+    all_predictors()
+  ) |> 
+  step_corr(
+    all_predictors()
+  ) |> 
+  prep() |> 
+  bake(
+    new_data = NULL
+  )
+
+Group = sample(
+  1:3,
+  nrow(Data),
+  replace = TRUE
+)
+
+
+SubGroup = sample(
+  1:2,
+  nrow(Data),
+  replace = TRUE
+)
+```
+
+## Estimation
+
+```{r}
+PredIndY = EstStack(
+  Y[Group == 1],
+  Z[Group == 1,],
+  Z_Long[Group == 1,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(Y[Group == 1]))
+)
+
+PredIndY_D1 = EstStack(
+  Y[D == 1 & Group == 1],
+  Z[D == 1 & Group == 1,],
+  Z_Long[D == 1 & Group == 1,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(Y[D == 1 & Group == 1]))
+)
+
+PredIndY_D0 = EstStack(
+  Y[D == 0 & Group == 1],
+  Z[D == 0 & Group == 1,],
+  Z_Long[D == 0 & Group == 1,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(Y[D == 0 & Group == 1]))
+)
+
+PredIndD = EstStack(
+  D[Group == 1],
+  Z[Group == 1,],
+  Z_Long[Group == 1,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(D[Group == 1]))
+)
+
+StackY = StackQ(
+  PredIndY[Group == 2,],
+  Y[Group == 2],
+  PredIndY
+)
+
+StackY_D1 = StackQ(
+  PredIndY_D1[Group == 2 & D == 1,],
+  Y[Group == 2 & D == 1],
+  PredIndY_D1
+)
+
+StackY_D0 = StackQ(
+  PredIndY_D0[Group == 2 & D == 0,],
+  Y[Group == 2 & D == 0],
+  PredIndY_D0
+)
+
+StackD = StackQ(
+  PredIndD[Group == 2,],
+  D[Group == 2],
+  PredIndD
+)
+
+ScoreATE_DR = StackY_D1$Pred - StackY_D0$Pred +
+  case_when(
+    D == 1 ~ (Y - StackY_D1$Pred)/StackD$Pred,
+    D == 0 ~ -(Y - StackY_D0$Pred)/(1 - StackD$Pred)
+  )
+
+ScoreATE_T = StackY_D1$Pred - StackY_D0$Pred
+
+ScoreATE_X = (1 - StackD$Pred)*(Y - StackY_D0$Pred) + 
+  StackD$Pred*(StackY_D1$Pred - Y)
+
+ScoreR = (Y - StackY$Pred)/(D - StackD$Pred)
+ScoreWeight = (D - StackD$Pred)^2
+
+Pred_R = EstStack(
+  ScoreR[Group == 2],
+  X[Group == 2,],
+  X_Long[Group == 2,],
+  X,
+  X_Long,
+  weight = ScoreWeight[Group == 2]
+)
+
+PredATE_DR = EstStack(
+  ScoreATE_DR[Group == 2],
+  X[Group == 2,],
+  X_Long[Group == 2,],
+  X,
+  X_Long,
+  weight = rep(1,length(ScoreATE_DR[Group == 2]))
+)
+
+PredATE_T = EstStack(
+  ScoreATE_T[Group == 2],
+  X[Group == 2,],
+  X_Long[Group == 2,],
+  X,
+  X_Long,
+  weight = rep(1,length(ScoreATE_T[Group == 2]))
+)
+
+PredATE_X = EstStack(
+  ScoreATE_X[Group == 2],
+  X[Group == 2,],
+  X_Long[Group == 2,],
+  X,
+  X_Long,
+  weight = rep(1,length(ScoreATE_X[Group == 2]))
+)
+
+names(Pred_R) = str_c(
+  "R",
+  names(Pred_R)
+)
+
+names(PredATE_DR) = str_c(
+  "DR",
+  names(PredATE_DR)
+)
+
+names(PredATE_T) = str_c(
+  "T",
+  names(PredATE_T)
+)
+
+names(PredATE_X) = str_c(
+  "X",
+  names(PredATE_X)
+)
+
+PredTau = PredATE_DR |> 
+  bind_cols(PredATE_T,
+            PredATE_X,
+            Pred_R)
+
+StackTau = StackQ(
+  PredTau[Group == 3,],
+  ScoreATE_DR[Group == 3],
+  PredTau
+)
+```
+
+## Example: Final model
+
+```{r}
+tibble(StackTau$Names,
+       StackTau$Coef,
+       StackTau$MSE) |> 
+  arrange(-`StackTau$Coef`[,1])
+```
+
+
+## Example: BLP
+
+```{r}
+Fit_OLS_Y = Data |> 
+  select(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    DistrictLarge,
+    StationName
+  ) |> 
+  mutate(
+    D
+  ) |> 
+  lm(
+    Y ~ .,
+    data = _
+  )
+
+OLSY_D1 = Fit_OLS_Y |> 
+  predict(
+    Data |> 
+  select(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    DistrictLarge,
+    StationName
+  ) |> 
+  mutate(
+    D = 1
+  )
+  )
+
+OLSY_D0 = Fit_OLS_Y |> 
+  predict(
+    Data |> 
+  select(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    DistrictLarge,
+    StationName
+  ) |> 
+  mutate(
+    D = 0
+  )
+  )
+
+OLSD = Data |> 
+  select(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    DistrictLarge,
+    StationName
+  ) |> 
+  glm(
+    D ~ .,
+    data = _,
+    family = "binomial"
+  ) |> 
+  predict(
+    Data |> 
+  select(
+    Size,
+    Distance,
+    Tenure,
+    Youseki,
+    DistrictLarge,
+    StationName
+  ),
+  "response"
+  )
+
+OLSD |> boxplot()
+
+
+ScoreATE_Mean = PredIndY_D1$Mean - PredIndY_D0$Mean +
+  case_when(
+    D == 1 ~ (Y - PredIndY_D1$Mean)/PredIndD$Mean,
+    D == 0 ~ -(Y - PredIndY_D0$Mean)/(1 - PredIndD$Mean)
+  )
+
+ScoreATE_OLS = OLSY_D1 - OLSY_D0 +
+  case_when(
+    D == 1 ~ (Y - OLSY_D1)/OLSD,
+    D == 0 ~ -(Y - OLSY_D0)/(1 - OLSD)
+  )
+
+TempData = estimatr::lm_robust(
+  ScoreATE_DR[,1] ~ 0 + DistrictLarge,
+  Data,
+  subset = Group >= 3
+  ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Method = "Double/Debiased Machine Learning"
+  ) |> 
+  bind_rows(
+    estimatr::lm_robust(
+  ScoreATE_Mean ~ 0 + DistrictLarge,
+  Data,
+  subset = Group >= 3
+  ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Method = "No Control"
+  )
+  ) |> 
+  bind_rows(
+    estimatr::lm_robust(
+  ScoreATE_OLS ~ 0 + DistrictLarge,
+  Data,
+  subset = Group >= 3
+  ) |> 
+  estimatr::tidy() |> 
+  mutate(
+    Method = "OLS"
+  )
+  )
+
+TempData |> 
+  arrow::write_parquet(
+    "Figure/Slide01BackData02.parquet"
+  )
+
+TempData |> 
+  ggplot(
+    aes(
+      x = estimate,
+      xmin = conf.low,
+      xmax = conf.high,
+      y = term,
+      color = Method
+    )
+  ) +
+  theme_bw() +
+  geom_pointrange(
+    position = position_dodge(width = 0.5)
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  ylab("") +
+  xlab("")
+```
+
+
+
+## Example: Stack
+
+```{r, dev='ragg_png'}
+StackT = StackQ(
+  PredTau[Group == 3,] |> 
+    select(
+      starts_with("T")
+    ),
+  ScoreATE_DR[Group == 3],
+  PredTau |> 
+    select(
+      starts_with("T")
+    )
+)
+
+Data |> 
+  mutate(
+    ATE_DR = StackTau$Pred,
+    ATE_T = StackT$Pred
+  ) |> 
+  arrow::write_parquet(
+    "Figure/Slide01BackData03.parquet"
+  )
+
+TempFig = Data |> 
+  mutate(
+    ATE_DR = StackTau$Pred,
+    ATE_T = StackT$Pred
+  ) |> 
+  ggplot(
+    aes(
+      x = Size,
+      y = ATE_DR
+    )
+  ) +
+  theme_bw() +
+  geom_line(
+    aes(
+      color = "Stacking"
+    )
+  ) +
+  geom_line(
+    aes(
+      y = ATE_T,
+      color = "T"
+    )
+  ) +
+  facet_wrap(
+    ~ DistrictLarge
+  ) +
+  ylab("") +
+  theme(
+    legend.position = "bottom"
+  )
+
+TempFig
+
+ggsave(
+  "Figure/Slide01Figure03.png",
+  TempFig,
+  dpi = "retina"
+)
+```
+
+
+## Example: Risk
+
+```{r, dev='ragg_png'}
+PredATE_DR = EstStack(
+  ScoreATE_DR[Group == 2],
+  Z[Group == 2,],
+  Z_Long[Group == 2,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(ScoreATE_DR[Group == 2]))
+)
+
+PredATE_T = EstStack(
+  ScoreATE_T[Group == 2],
+  Z[Group == 2,],
+  Z_Long[Group == 2,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(ScoreATE_DR[Group == 2]))
+)
+
+PredATE_X = EstStack(
+  ScoreATE_X[Group == 2],
+  Z[Group == 2,],
+  Z_Long[Group == 2,],
+  Z,
+  Z_Long,
+  weight = rep(1,length(ScoreATE_DR[Group == 2]))
+)
+
+Pred_R = EstStack(
+  ScoreR[Group == 2],
+  Z[Group == 2,],
+  Z_Long[Group == 2,],
+  Z,
+  Z_Long,
+  weight = ScoreWeight[Group == 2]
+)
+
+names(Pred_R) = str_c(
+  "R",
+  names(Pred_R)
+)
+
+
+names(PredATE_DR) = str_c(
+  "DR",
+  names(PredATE_DR)
+)
+
+names(PredATE_T) = str_c(
+  "T",
+  names(PredATE_T)
+)
+
+names(PredATE_X) = str_c(
+  "X",
+  names(PredATE_X)
+)
+
+PredTau = PredATE_DR |> 
+  bind_cols(PredATE_T,
+            PredATE_X,
+            Pred_R)
+
+StackTau = StackQ(
+  PredTau[Group == 3,],
+  ScoreATE_DR[Group == 3],
+  PredTau
+)
+
+tibble(StackTau$Names,
+       StackTau$Coef,
+       StackTau$MSE) |> 
+  arrange(-`StackTau$Coef`[,1])
+
+EstRiskUp <- function(q) {
+  HatTau = StackTau$Pred
+  
+  Q = quantile(HatTau[Group ==3], probs = q)
+  
+  ScoreRisk = Q + case_when(
+    Q <= HatTau ~ (ScoreATE_DR - Q)/(1-q),
+    Q > HatTau ~ 0
+  )
+  
+  Result = estimatr::lm_robust(
+    ScoreRisk ~ 1,
+    subset = Group == 3
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      quantile = q
+    )
+  
+  return(Result)
+}
+
+EstRiskDown <- function(q) {
+  HatTau = StackTau$Pred
+  
+  Q = quantile(HatTau[Group ==3], probs = q)
+  
+  ScoreRisk = Q + case_when(
+    Q >= HatTau ~ (ScoreATE_DR - Q)/q,
+    Q < HatTau ~ 0
+  )
+  
+  Result = estimatr::lm_robust(
+    ScoreRisk ~ 1,
+    subset = Group == 3
+    ) |> 
+    generics::tidy() |> 
+    mutate(
+      quantile = q - 1
+    )
+  
+  return(Result)
+}
+
+map_dfr(seq(0,0.9,0.1),EstRiskUp) |> 
+  bind_rows(
+    map_dfr(seq(0.1,1,0.1),EstRiskDown)
+  ) |> 
+  arrow::write_parquet(
+    "Figure/Slide01BackData04.parquet"
+  )
+
+TempFig = map_dfr(seq(0,0.9,0.1),EstRiskUp) |> 
+  bind_rows(
+    map_dfr(seq(0.1,1,0.1),EstRiskDown)
+  ) |> 
+  ggplot(
+    aes(
+      x = quantile,
+      y = estimate,
+      ymin = conf.low,
+      ymax = conf.high
+    )
+  ) +
+  theme_bw() +
+  geom_line() +
+  geom_ribbon(
+    alpha = 0.2
+  )
+
+ggsave(
+  "Figure/Slide01Figure04.png",
+  TempFig,
+  dpi = "retina"
+)
+```
+
+## Example: Risk
+
+```{r}
+TempFig
+```
+
