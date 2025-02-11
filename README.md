@@ -1,5 +1,6 @@
+
 経済学のための機械学習入門用レポジトリです。
-Public folderから、講義資料と実習用データをダウンロードできます。
+Public folderから、2025年度用の講義資料と実習用データをダウンロードできます。
 
 - 予習/復習用の無料教材として、以下をお勧めします
 
@@ -7,9 +8,19 @@ Public folderから、講義資料と実習用データをダウンロードで�
 
         - [Introduction to Statistical Learning](https://www.statlearning.com/)
     
-    - 機械学習 + 比較研究
+    - 機械学習 + 比較研究(因果推論)
     
         - [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/)
+        
+        - [Causal Inference: A Statistical Learning Approach (Stefan Wager)](https://web.stanford.edu/~swager/causal_inf_book.pdf)
+        
+        - [Introduction to Modern Causal Inference (Alejandro Schuler, Mark van der Laan)](https://alejandroschuler.github.io/mci/introduction-to-modern-causal-inference.html)
+    
+        - [A first course in causal inference (Peng Ding)](https://arxiv.org/abs/2305.18793)
+
+    - 統計学
+    
+        - [StatLect](https://www.statlect.com/)
 
     - R
     
@@ -17,6 +28,7 @@ Public folderから、講義資料と実習用データをダウンロードで�
         
         - [R for Data Science](https://r4ds.had.co.nz/)
         
+
 - 日本語の参考書としては、以下をお勧めします
 
     - [データ駆動型回帰分析](https://www.nippyo.co.jp/shop/book/9267.html)
@@ -39,4 +51,4 @@ Public folderから、講義資料と実習用データをダウンロードで�
     
     - [DoubleMLを使った因果/格差推定](https://youtu.be/BCEVt-QgNko)
     
-- 2023年の講義アーカイブリンクは2023/LinkArxivに記載してます
+- 2023/2024年の講義資料は、フォルダーに移動しています。
