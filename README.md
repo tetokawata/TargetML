@@ -2,21 +2,37 @@
 経済学のための機械学習入門用レポジトリです。
 Public folderから、2025年度用の講義資料と実習用データをダウンロードできます。
 
-- 予習/復習用の無料教材として、以下をお勧めします
+- 予習/復習用の無料教材 (含むOpen Access チュートリアル論文) として、以下を紹介します。
 
-    - 機械学習(教師付き学習)
+    - 機械学習 (教師付き学習) with R
 
-        - [Introduction to Statistical Learning](https://www.statlearning.com/)
-    
-    - 機械学習 + 比較研究(因果推論)
-    
-        - [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/)
+        - [Introduction to Statistical Learning (James, Witten, Hastie, Tibshirani)](https://www.statlearning.com/)
         
-        - [Causal Inference: A Statistical Learning Approach (Stefan Wager)](https://web.stanford.edu/~swager/causal_inf_book.pdf)
+            - [Deep Learning and Scientific Computing with R torch](https://skeydan.github.io/Deep-Learning-and-Scientific-Computing-with-R-torch/)
+    
+    - 機械学習 + 比較研究 (因果推論)
+    
+        - [Applied Causal Inference Powered by ML and AI (Chernozhukov, Hansen, Kallus, Spindler, Syrgkanis)](https://causalml-book.org/)
         
-        - [Introduction to Modern Causal Inference (Alejandro Schuler, Mark van der Laan)](https://alejandroschuler.github.io/mci/introduction-to-modern-causal-inference.html)
+        - [Causal Inference: A Statistical Learning Approach (Wager)](https://web.stanford.edu/~swager/causal_inf_book.pdf)
+        
+        - [Introduction to Modern Causal Inference (Schuler, Mark van der Laan)](https://alejandroschuler.github.io/mci/introduction-to-modern-causal-inference.html)
     
         - [A first course in causal inference (Peng Ding)](https://arxiv.org/abs/2305.18793)
+        
+    - Balancing Weights
+    
+        - [Causation, Comparison, and Regression (Chattopadhyay, Zubizarreta)](https://hdsr.mitpress.mit.edu/pub/1ybwbmlw/release/2?readingCollection=3a653084)
+
+    - Efficient Influence function
+    
+        - [Fisher and Kennedy (2021)](https://www.tandfonline.com/doi/full/10.1080/00031305.2020.1717620)
+        
+        - [Hines et al. (2022)](https://www.tandfonline.com/doi/full/10.1080/00031305.2021.2021984)
+        
+        - [Renson et al. (2025)](https://arxiv.org/abs/2502.05363)
+        
+        - [Ichimura and Newey (2022)](https://onlinelibrary.wiley.com/doi/full/10.3982/QE826)
 
     - 統計学
     
@@ -29,9 +45,11 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
         - [R for Data Science](https://r4ds.had.co.nz/)
         
 
-- 日本語の参考書としては、以下をお勧めします
+- 日本語の参考教材としては、以下をお勧めします
 
-    - [データ駆動型回帰分析](https://www.nippyo.co.jp/shop/book/9267.html)
+    - [データ駆動型回帰分析 (末石)](https://www.nippyo.co.jp/shop/book/9267.html)
+
+    - [格差/因果/比較分析のためのデータ分析 (川田)](https://tetokawata.github.io/NoteBalance/)
 
 - R実習についての講義アーカイブは以下です。
 
