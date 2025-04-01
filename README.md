@@ -4,7 +4,13 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
 
 - 予習/復習用の無料教材 (含むOpen Access チュートリアル論文) として、以下を紹介します。
 
-    - 機械学習 (教師付き学習) with R
+    - 講師作成のノート
+    
+        - [母平均の「補助線」の推定](https://github.com/tetokawata/NoteBLP)
+        
+        - [格差/因果/比較分析のためのデータ分析](https://github.com/tetokawata/NoteBalance)
+
+    - 機械学習 (教師付き学習) with R/Python
 
         - [Introduction to Statistical Learning (James, Witten, Hastie, Tibshirani)](https://www.statlearning.com/)
         
@@ -39,17 +45,19 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
         - [StatLect](https://www.statlect.com/)
 
     - R
+
+        - [Statistical Inference via Data Science](https://moderndive.com/v2/thinking-with-data.html) : データ分析の入門者を念頭に、非常に丁寧にコンセプトとRによる実装を紹介しており、基礎の確認も兼ねておすすめ
     
         - [Tidyverse Style Guide](https://style.tidyverse.org/)
         
         - [R for Data Science](https://r4ds.had.co.nz/)
         
+        - [Advanced R](https://adv-r.hadley.nz/)
+        
 
 - 日本語の参考教材としては、以下をお勧めします
 
     - [データ駆動型回帰分析 (末石)](https://www.nippyo.co.jp/shop/book/9267.html)
-
-    - [格差/因果/比較分析のためのデータ分析 (川田)](https://tetokawata.github.io/NoteBalance/)
 
 - R実習についての講義アーカイブは以下です。
 
@@ -69,4 +77,11 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
     
     - [DoubleMLを使った因果/格差推定](https://youtu.be/BCEVt-QgNko)
     
+
+- その他 
+
+    - [Models, Measurement, and the Language of Empirical Economics (Philip A. Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
+
+    - [Logical methods for AI (Johannes Korbmacher)](https://logicalmethods.ai/textbook/)
+
 - 2023/2024年の講義資料は、フォルダーに移動しています。
