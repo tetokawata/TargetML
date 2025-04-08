@@ -1,0 +1,815 @@
+---
+title: "Introduction"
+author: 
+  - name: "川田恵介"
+    email: keisukekawata@iss.u-tokyo.ac.jp
+    url: https://github.com/tetokawata/TargetML
+date: now
+format:
+  typst:
+    fig-format: retina
+    bibliographystyle: apa
+    mainfont: "Hiragino Mincho ProN"
+    number-sections: true
+  revealjs:
+    incremental: true 
+    slide-number: true
+    bibliographystyle: apa
+    html-math-method: katex
+    chalkboard: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+# 概要
+
+## 講義の動機
+
+- 「社会科学/医学 $+$ 統計学 $+$ 機械学習(AI)」に対して
+
+    - 実務研究から高い関心 ([Amazon](https://www.amazon.science/tag/causal-inference), [Cyber Agent](https://www.cyberagent.co.jp/techinfo/ai/tech/detail/id=24953), [Microsoft](https://www.microsoft.com/en-us/research/group/alice/),  [Mizuho](https://www.mizuho-fg.co.jp/dx/articles/ft-icml/index.html),
+    [Netflix](https://research.netflix.com/research-area/experimentation-and-causal-inference), [Uber](https://www.uber.com/en-JP/blog/causal-inference-at-uber/))
+    
+    - 学術研究からも高い関心 [@brand2023recent; @athey2019machine; @grimmer2021machine; @imbens2024causal; @dell2025deep]
+
+- 本講義の主要内容である、「Semiparametric Theory $+$ 教師付き学習」を用いた「(因果/格差を含む)比較研究」が大きく進展
+
+## おすすめ無料(英語)教材
+
+- **教師付き学習 + 比較研究:** [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/)
+
+  - 特に[PREDICTION],[INFERENCE]のタグがついている章
+
+- 補助として
+
+  - **比較研究:** [Causation, Comparison, and Regression](https://hdsr.mitpress.mit.edu/pub/1ybwbmlw/release/2?readingCollection=3a653084)
+
+    - 事前に目を通すことを強く推奨
+
+  - **教師付き学習:** [Introduction to Statistical Learning](https://www.statlearning.com/)
+
+- 他は[講義レポジトリ](https://github.com/tetokawata/TargetML)に記載
+
+## 講義の特色
+
+- 「修士/卒業論文で、機械学習の手法を適切に使用する」ことが主目標
+
+    - 分析の信頼性改善、大量の変数のバランス、多様な異質性分析などが可能になる
+    
+    - 機械学習により推定された"AI"についても生じる、誤差が焦点
+
+    - どのような誤差なのかを理解し、極力、不確実性を評価/悪影響を減らす
+
+- 概念や統計的性質の直感的理解に注力し、詳細な議論は省略
+
+# 作業工程
+
+## 議論の混乱
+
+- "機械学習/OLSを用いると、因果効果を識別できる/できない"
+  
+  - 因果効果の識別と用いる推定手法は、本質的に別問題
+  
+- "機械学習を用いると、OLSよりも良いモデルが推定できる/できない"
+
+  - そもそも良いモデルとは???
+
+- 整理された議論が理解/応用に必須
+
+## 論点整理の方法
+
+- 「研究目標について、データから回答する」を細分化した分析工程に落とし込む
+
+  - 分析工程の中に、概念/手法を位置付ける
+
+- 経済理論、因果推論や機械学習に対応可能な工程表に基づき議論 [@manski1995identification ; @lundberg2021your ; @lu2025four]
+
+## 本講義の作業工程: 以下を設定
+
+1. 研究目標 (Research question) $=$ 関心となる**社会**の特徴
+
+2. 推定目標(Estimand) $=$ 研究目標に対応する**母集団 (Source Population)**の特徴
+
+- 以上から「データが回答すべきこと」が明確化
+    
+3. 推定値(Estimator) $=$ **データ**から推定目標の推論値の計算方法
+
+4. コーディング $\rightarrow$ 推定結果 $\rightarrow$ 発信...
+
+## 例: ゲームの因果効果: @egami2024causal
+
+- 研究課題: ゲームは、健康状態を（因果的に）悪化させるのか？
+
+- 推定対象: コロナ下で生じた"ゲーム機購入権くじ参加者"について、居住地を含む背景属性の分布を均一化した後に、精神的健康状態の比較
+
+- 推定値: 点推定量 $+$ 信頼区間 
+
+  - 精神的健康状態は平均的に改善する明確な傾向が見られる
+
+
+## 識別/推定
+
+- 「研究目標、推定対象、推定値」の接続方法が重要
+
+- 識別 (Identification) $$研究課題\underbrace{\iff}_{経済理論/因果推論などを用いた接続} 推定目標$$
+
+- 推定 (Estimation/Inference/Learning) $$推定目標\underbrace{\iff}_{統計学/機械学習などを用いた接続} 推定値$$
+
+## 例: ゲームの因果効果: @egami2024causal
+
+- 研究課題: ゲームは、健康状態を（因果的に）悪化させるのか？
+
+    - 識別: コロナ下で生じた「ゲーム機の過小供給」と、それに対応するための「購入券くじ」を自然実験として活用
+
+- 推定対象: くじ引き参加者について、居住地を含む背景属性分布を均一化し、比較
+
+    - 推定: Causal/Targeted Machine Learningを活用
+
+- 推定値: 点推定量 $+$ 信頼区間
+
+## まとめ
+
+- 分析工程の全体像をまず把握することが重要
+
+    - 伝統的な教科書は、特定のパートを焦点としていることに注意
+    
+        - "因果推論の教科書" $\rightarrow$ 識別に焦点
+        
+        - "統計学/機械学習の教科書" $\rightarrow$ 推定に焦点
+        
+        - "経済学の教科書" $\rightarrow$ 研究目標/識別に焦点
+
+- 本講義の主題は、「機械学習を活用した推定方法」だが、識別の議論にも適宜言及
+
+# 実習例: 不動産価格の予測研究
+
+## 不動産価格予測モデル
+
+- 研究課題: 物件の属性 $X=[$広さ,立地$]$ から東京の中古マンションの取引価格を予測
+
+  - 予測対象とデータは同じ集団からランダムサンプリングされている
+
+- 推定対象: 平均取引価格 $E[Y=価格\mid X]$
+
+  - OLS/LASSO/Boosting/DeepLearning...を用いた柔軟な推定を行う
+
+- 推定値: $X$ から取引価格を計算する式 (モデル)
+
+## 推定戦略: 回帰木モデルの推定
+
+- $X$ に応じて、サブグループに分け、サブグループごとの平均価格を予測値とする
+
+- 問題はサブグループをどのように定義するか
+
+  - 研究者主導: 背景知識や"長年のかん"などに基づき決定
+
+  - データ主導: データに最も適合するように決定
+
+## 研究者主導のモデル
+
+```{r, dev='ragg_png'}
+R2 <- function(pred, y) {
+  1 - mean((pred - y)^2) / var(y)
+}
+
+Temp <- nanoparquet::read_parquet(
+  "Result/Nuisance.parquet"
+) |>
+  filter(T == 1) |>
+  mutate(
+    District = if_else(
+      District %in% c("中央区", "港区", "千代田区"),
+      "中心3区",
+      "中心3区以外"
+    ),
+    Size = if_else(
+      Size <= 55,
+      "55平米以下",
+      "55平米以上"
+    )
+  )
+
+Temp |>
+  rpart::rpart(
+    Price ~ Size + District,
+    data = _,
+    control = rpart::rpart.control(
+      maxdepth = 2,
+      cp = 0
+    )
+  ) |>
+  rpart.plot::rpart.plot()
+```
+
+## データ主導のモデル
+
+```{r, dev='ragg_png'}
+Temp <- nanoparquet::read_parquet(
+  "Result/Nuisance.parquet"
+) |>
+  filter(T == 1) |>
+  mutate(District = str_sub(District, 1, -2))
+
+Temp |>
+  rpart::rpart(
+    Price ~ Size + SmallArea,
+    data = _,
+    control = rpart::rpart.control(
+      maxdepth = 2,
+      cp = 0,
+      minbucket = 1,
+      minsplit = 1
+    )
+  ) |>
+  rpart.plot::rpart.plot()
+```
+
+
+## 教師付き学習
+
+- 本講義で紹介する機械学習: 「教師付き学習における回帰/分類問題」に関する手法群
+
+- (本講義の範囲内では)、以下の認識でOK
+
+  - flexible nonparametric estimation ([Vasilis Syrgkanis](https://vsyrgkanis.com/lecture_notes.html))
+      
+  - new generation of nonparametric estimators that seem to do well in some empirical applications ([Jiafeng Chen](https://github.com/jiafengkevinchen/semiparametrics-tutorial))
+  
+## 予測価格 (上位5物件)
+
+```{r, dev='ragg_png'}
+Name_Var <- nanoparquet::read_parquet_metadata("Result/Nuisance.parquet")$schema$name
+
+OLS <- fixest::feols(
+  Price ~ Tenure + Size + Distance + Tenure + SmallArea + Station + Room + Zone + Kenpei +
+    Youseki,
+  nanoparquet::read_parquet("Result/Nuisance.parquet")
+) |>
+  magrittr::extract2("fitted.values")
+
+Pred <- nanoparquet::read_parquet(
+  "Result/Nuisance.parquet",
+  col_select = c("Period_cal_y_d1", "Price")
+) |>
+  mutate(
+    Pred = Period_cal_y_d1 |> exp(),
+    Pred = (Pred / 1000000) |> round(0)
+  )
+
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet",
+  col_select = c(
+    "Price",
+    "Period_cal_y_d1",
+    "Group",
+    "T",
+    "Tenure",
+    "SmallArea",
+    "Room",
+    "Size",
+    "District"
+  )
+) |>
+  mutate(
+    `予測(Stacking)` = `Period_cal_y_d1` |> exp(),
+    `予測(Stacking)` = (`予測(Stacking)` / 1000000) |> round(0),
+    `予測(OLS)` = OLS |> round(0)
+  ) |>
+  filter(Group >= 3, T == 1) |>
+  select(Price, `予測(Stacking)`, `予測(OLS)`, SmallArea, Size, District) |>
+  arrange(-`予測(Stacking)`) |>
+  head(5) |>
+  tinytable::tt()
+```
+
+## 予測価格 (下位5物件)
+
+```{r, dev='ragg_png'}
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet",
+  col_select = c(
+    "Price",
+    "Period_cal_y_d1",
+    "Group",
+    "T",
+    "Tenure",
+    "SmallArea",
+    "Room",
+    "Size",
+    "District"
+  )
+) |>
+  mutate(
+    `予測(Stacking)` = `Period_cal_y_d1` |> exp(),
+    `予測(Stacking)` = (`予測(Stacking)` / 1000000) |> round(0),
+    `予測(OLS)` = OLS |> round(0)
+  ) |>
+  filter(Group >= 3, T == 1) |>
+  select(Price, `予測(Stacking)`, `予測(OLS)`, SmallArea, Size, District) |>
+  arrange(`予測(Stacking)`) |>
+  head(5) |>
+  tinytable::tt()
+```
+
+## 補論: 改装の因果効果予測
+
+- 研究課題: 改装の因果効果を物件単位で予測
+
+  - $X$が同じであれば、改装はランダムに生じていると見做せる
+
+- 推定対象: 対数取引価格の平均差 $E[Y\mid 済,X]-E[Y\mid 未 , X]$
+
+  - Causal Forest [@athey2019estimating]
+
+- 推定値: 取引履歴データから計算
+
+## 補論: 19-24の変化 (上位5物件)
+
+```{r, dev='ragg_png'}
+# nanoparquet::read_parquet_metadata("Result/Nuisance.parquet")$schema$name
+
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet",
+  col_select = c(
+    "Reform_hat_tau",
+    "Group",
+    "Tenure",
+    "SmallArea",
+    "Room",
+    "Distance",
+    "Size",
+    "District"
+  )
+) |>
+  rename(因果効果 = `Reform_hat_tau`) |>
+  filter(Group >= 2) |>
+  select(因果効果, SmallArea, Room, Tenure, District) |>
+  arrange(-因果効果) |>
+  mutate(因果効果 = 因果効果 |> round(0)) |>
+  head(5) |>
+  tinytable::tt()
+```
+
+
+## 補論: 19-24の変化 (下位5物件)
+
+```{r, dev='ragg_png'}
+# nanoparquet::read_parquet_metadata("Result/Nuisance.parquet")$schema$name
+
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet",
+  col_select = c(
+    "Reform_hat_tau",
+    "Group",
+    "Tenure",
+    "SmallArea",
+    "Room",
+    "Distance",
+    "Size",
+    "District"
+  )
+) |>
+  rename(因果効果 = `Reform_hat_tau`) |>
+  filter(Group >= 2) |>
+  select(因果効果, SmallArea, Room, Tenure, District) |>
+  arrange(因果効果) |>
+  mutate(因果効果 = 因果効果 |> round(0)) |>
+  head(5) |>
+  tinytable::tt()
+```
+
+
+## 社会分析への応用
+
+- 一般に、Social outcome (社会的な活動の帰結として決まる変数)の予測は難しい
+
+    - @narayanan2024ai, @einav2018predictive
+    
+    - "個人差"の大きさを考えると、"当たり前"
+
+- 予測できたとしても、実装の際には、倫理的問題が生じる可能性も高い
+
+## @narayanan2024ai
+
+![AI=偽薬?](Figure/SnakeOil.png)
+
+## 寿命予測: @einav2018predictive
+
+- 研究対象: １年後の生存率を予測できるか?
+
+  - 予測対象とデータは同じ母集団からサンプリングされている
+
+- 推定対象: 平均生存率
+
+  - 複数の予測モデルを組み合わせるStacking
+
+- 推定値: 医療機関領収書データを用いた予測モデルは、生存率を上手く予測できない
+
+## まとめ
+
+- 機械学習等を活用した予測分析は、注目され、多くの応用が存在する
+
+    - ただし、Social outcomeの予測は一般に困難
+    
+    - @narayanan2024ai : 画像やテキストへの応用の"成功"イメージを、安易に適用すべきではない
+    
+        - 社会分析への便益は限定的???
+
+- 応用には、直面している意思決定問題から、研究課題と推定対象を再考する必要がある
+
+# 意思決定問題
+
+## 判断 $+$ 状況把握
+
+- 経済学における事実解明的/規範的分析は、**意思決定問題**と深く関連
+
+- 意思決定問題は、(事例、データ、経験などに基づく) 現状把握や予測 $+$ (価値判断やPreferenceなどに基づく) 判断、に分解できる [@agrawal2022prediction]
+
+  - 状況把握については、データ分析の結果が活用できる
+
+## ミクロな意思決定
+
+- "事例レベル"の予測は、"事例レベル"での意思決定に有効
+
+    - 活用する必要がある予測値が少数なため
+    
+        - 「今日の服装」 $\rightarrow$ 生活圏以外の天気予報はどうでもいい
+        
+        - 「あるマンションの下取り交渉」 $\rightarrow$ 当該物件の価格が重要であり、他の物件は比較的どうでもいい
+
+- 社会科学の伝統的な関心は、より"マクロな"意思決定であることが多い
+
+## マクロな意思決定
+
+- マクロな意思決定: 政策/投票/企業の戦略...
+
+    - 大量の事例が一度に影響を受ける
+    
+      - 大量の利害関係者が存在
+    
+      - 一般に集団的意思決定が求められる
+    
+      - 様々な"結果変数" (賃金、就業状態、消費、家族形成、幸福感、等々) を考慮する必要がある
+
+## 予測モデルの直接的応用
+
+- 意思決定者が認知できないほどの大量の事例レベルの予測値が発生
+  
+- 例: "大国"の貿易政策は、80億人以上に影響を与えうる
+        
+    - 80億個以上の予測値を活用する必要があるが、不可能
+
+- 例: 東京の資産価値/居住費用は、どの程度上昇しているか
+
+    - 講義でも用いるデータだけでも、1万個以上の予測取引価格が存在
+
+## まとめ
+
+- 事例レベルの予測を、マクロな意思決定に直接活用することには、困難が多い
+
+  - 情報量が、意思決定者の認知能力を超える
+
+- 大量の事例が影響を受ける意思決定を論じる場合、個別事例ではなく事例集団($\simeq$ 社会)の特徴把握が有益
+
+  - 推定値の信頼性を担保することも重要
+
+# 社会の特徴把握
+
+## 実務例
+
+- [セブン&ホールディングス: 中期経営計画](https://www.7andi.com/company/middleplan.html)
+
+- [内閣府: 経済財政白書](https://www5.cao.go.jp/keizai3/whitepaper.html)
+
+## 比較研究
+
+- 本講義では、比較(含む因果推論/格差研究)に焦点
+
+- 研究対象: 2024/19年の取引価格を比較
+
+  - データはランダムサンプリングされている
+
+- 推定対象: $E[Y\mid 2024] - E[Y\mid 2019]$
+
+  - 24/19年のサブサンプル平均値の差 $+$ 信頼区間の近似計算
+
+- 推定値: 点推定量 $+$ 信頼区間
+
+
+## 伝統的な方法の優位性
+
+```{r}
+Data <- nanoparquet::read_parquet(
+  "Result/Nuisance.parquet",
+  col_select = c(
+    "Y",
+    "T"
+  )
+)
+
+Threshold <- qnorm(1 - (0.001 / 2))
+
+Model <- fixest::feols(Y ~ T, Data)
+
+Low <- Model$coeftable[2, 1] - Threshold * Model$coeftable[2, 2]
+High <- Model$coeftable[2, 1] + Threshold * Model$coeftable[2, 2]
+
+CI <- str_c("[", round(Low, 2), ",", round(High, 2), "]")
+```
+
+- "サブサンプル平均値の差"は、有益な統計的推論 (緩やかな前提のもとで、"ほぼ"真かつ価値のある情報を導出)が可能
+
+    - 漸近正規性に基づく信頼区間の近似計算が可能
+    
+    - ”99.9%の確率"で、信頼区間 `r CI` は、推定対象を含む
+    
+      - "マンション価格は、少なくとも20 $\%$ 上昇している可能性が極めて高い"
+    
+## 予測モデルのNaiveな応用
+
+- 機械学習が生み出す予測値を集計することもできる
+
+    - 例: 2024年の平均予測価格 $-$ 2019年の平均予測価格
+
+- 社会の特徴について、有益な統計的推論が難しい
+
+    - 複雑なbiased estimatorである場合多く、統計的性質が不透明
+
+    - 信頼区間計算が難しい
+
+## まとめ
+
+- 機械学習 $=$ 個別予測研究に比較優位
+
+- 平均値などのシンプルな推定方法 $=$ シンプルな特徴の把握に比較優位
+
+# 社会の複雑な特徴把握
+
+## 複雑な特徴把握
+
+- マクロな意思決定において、"What if" を含むような、複雑な特徴把握も求められる
+
+    - [合計特殊出生率](https://ja.wikipedia.org/wiki/%E5%90%88%E8%A8%88%E7%89%B9%E6%AE%8A%E5%87%BA%E7%94%9F%E7%8E%87) $=$ 子育て政策等における基礎的指標
+
+    - [消費者物価指数](https://ja.wikipedia.org/wiki/%E6%B6%88%E8%B2%BB%E8%80%85%E7%89%A9%E4%BE%A1%E6%8C%87%E6%95%B0) $=$ マクロ政策における基礎的指標
+    
+    - 平均因果効果、平均格差...
+
+- 「バランス後の比較」により計算されている
+
+## バランス後の比較
+
+- 単純比較の推定対象: $D$ 間で$Y$の分布がどのように異なるのか?
+
+  - バランス後の比較: 「もし$D$ 間で、$X$ の分布に違いがない場合」、$Y$の分布がどのように異なるのか?
+
+    - 合計特殊出生率: $D=$ 地域や時点、$X=$ 年齢
+  
+    - 消費者物価指数: $D=$ 時点、$X=$ 消費項目
+    
+    - @egami2024causal: $D=$ くじ引きへの当選、$X=$ 居住地や年齢などの背景属性
+
+# 実習例: 比較研究
+
+## 実習例
+
+- 単純な比較の推定対象: 2024/2019で、平均取引価格がどの程度変化するか？
+
+    - $X=$ [部屋の広さ、駅からの距離、立地等]も変化している
+    
+- バランス後の比較の推定対象: $X$ についての違いがない場合に、平均取引価格はどのように変化するか?
+
+  - 中古マンション限定の"ヘドニック的物価指数"
+
+## 実習例
+
+- 研究課題 「同じような住環境に対して、必要な住宅コストはどのように変化したか」
+
+  - 住環境は、$X$ のみで規定される
+
+- 推定対象: $E[Y\mid 2024,X] - E[Y\mid 2019,X]$ の重要な特徴
+
+  - Double/Targeted Machine Learning
+
+- 推定値: 点推定値 $+$ 信頼区間
+
+## バランス後の平均対数取引価格比較
+
+```{r, dev='ragg_png'}
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet"
+) |>
+  filter(Group >= 2) |>
+  fixest::feols(
+    `Period_score` ~ 1,
+    data = _
+  ) |>
+  magrittr::extract2("coeftable") |>
+  as_tibble(rownames = "X") |>
+  mutate(Method = "DMLによるバランス") |>
+  bind_rows(
+    nanoparquet::read_parquet(
+      "Result/Nuisance.parquet"
+    ) |>
+      fixest::feols(
+        Y ~ T,
+        data = _
+      ) |>
+      magrittr::extract2("coeftable") |>
+      as_tibble(rownames = "X") |>
+      filter(X == "T") |>
+      mutate(Method = "バランスなし")
+  ) |>
+  bind_rows(
+    nanoparquet::read_parquet(
+      "Result/Nuisance.parquet"
+    ) |>
+      fixest::feols(
+        Y ~ T + Size + Distance + Tenure + SmallArea + Zone + Room +
+          Kenpei + Youseki + Reform,
+        data = _
+      ) |>
+      magrittr::extract2("coeftable") |>
+      as_tibble(rownames = "X") |>
+      filter(X == "T") |>
+      mutate(Method = "OLSによるバランス")
+  ) |>
+  mutate(Label = Estimate |> round(3)) |>
+  ggplot(
+    aes(
+      y = Method,
+      x = Estimate,
+      xmin = Estimate - 1.96 * `Std. Error`,
+      xmax = Estimate + 1.96 * `Std. Error`,
+      label = Label
+    )
+  ) +
+  theme_minimal() +
+  geom_pointrange() +
+  ggrepel::geom_label_repel() +
+  xlab("") +
+  ylab("")
+```
+
+## 異質性分析: GATE
+
+```{r, dev='ragg_png'}
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet"
+) |>
+  filter(Group == 3) |>
+  mutate(
+    G = cut(
+      Period_hat_tau,
+      quantile(
+        Period_hat_tau,
+        seq(0, 1, 0.2)
+      ),
+      include.lowest = TRUE,
+      labels = FALSE
+    ) |> factor()
+  ) |>
+  fixest::feols(
+    Period_score ~ 0 + G,
+    data = _
+  ) |>
+  magrittr::extract2("coeftable") |>
+  as_tibble(rownames = "X") |>
+  mutate(
+    Label = Estimate |> round(3),
+    X = case_when(
+      X == "G5" ~ "上昇率上位80%",
+      X == "G4" ~ "80-60%",
+      X == "G3" ~ "60-40%",
+      X == "G2" ~ "40-20%",
+      X == "G1" ~ "20-0%",
+      .default = X
+    )
+  ) |>
+  ggplot(
+    aes(
+      y = X,
+      x = Estimate,
+      xmin = Estimate - 1.96 * `Std. Error`,
+      xmax = Estimate + 1.96 * `Std. Error`,
+      label = Label
+    )
+  ) +
+  theme_minimal() +
+  geom_pointrange() +
+  ggrepel::geom_label_repel() +
+  xlab("") +
+  ylab("")
+```
+
+
+## 異質性分析: Best Linear Projection
+
+```{r, dev='ragg_png'}
+nanoparquet::read_parquet(
+  "Result/Nuisance.parquet"
+) |>
+  filter(Group >= 2) |>
+  fixest::feols(
+    Period_score ~ 0 + District,
+    data = _
+  ) |>
+  magrittr::extract2("coeftable") |>
+  as_tibble(rownames = "X") |>
+  mutate(
+    Label = Estimate |> round(3)
+  ) |>
+  mutate(
+    X = X |> str_sub(9)
+  ) |>
+  ggplot(
+    aes(
+      y = X,
+      x = Estimate,
+      xmin = Estimate - 1.96 * `Std. Error`,
+      xmax = Estimate + 1.96 * `Std. Error`
+    )
+  ) +
+  theme_minimal() +
+  geom_pointrange() +
+  xlab("") +
+  ylab("")
+```
+
+
+## 物価指数: @bajari2023hedonic
+
+- 研究課題: 「去年と同じような生活」を送るために必要な支出
+
+    - 識別: $X$ によって、質が測定できる
+    
+- 推定対象:  $X$ (画像や文章などを含む)を均一化した後に、必要な支出金額
+
+    - 推定: Deep learningを活用
+
+## 要因分解: @vafa2024estimating
+
+- 研究課題: 職歴が同じであったとしても、男女間賃金格差は存在するのか?
+
+    - 採用時や企業内部における男女間格差は、どの程度存在するのか
+    
+    - 識別: 過去に経験した職種 $=$ 職歴
+
+- 推定対象: 職歴等の背景属性を均一化した後に、賃金の比較
+
+    - 推定: Foundation modelを活用
+
+## 医療機関評価: @keele2023hospital 
+
+- 研究課題: 患者の背景や病状を均質化した上で、医療機関を評価したい
+
+    - 識別: 観察できる属性を均一化したら、患者の搬送はランダムに決まっている
+    
+- 推定対象: 患者の背景属性を均一化した後に、健康状態を比較
+
+    - 推定: Balancing Weightsを活用
+
+# 講義準備
+
+## 成績評価
+
+- ３回のレポート
+
+    - 理解を確認するために、講義中にミニクイズも行うが成績には反映しない
+
+- 受講者は次回までに**R/Rstudioの設定**/**パッケージ(tidyverse/styler)のダウンロード**/**データのダウンロード**/**プロジェクトフォルダの作成**/**データの格納**まで行うこと
+
+- 講義資料やアーカイブは、すべてのレポジトリ(https://github.com/tetokawata/TargetML)から入手可能
+
+## 実習環境
+
+- 講義ではR $+$ Rstuidoをサポート
+
+    - R: 4.4.3以降のバージョン
+
+    - Rstuido: 2024.12.0以降のバージョン
+
+    - package: styler/tidyverse のインストール
+
+- 他のIDEやPythonを活用してもOK
+
+    - Juliaなどの他言語を、課題で使用したい場合は要相談
+
+## オフィスアワー
+
+- 講義終了後 (水曜４限)
+
+  - 講義の内容/実習への質問はもちろん、自身のデータへの応用方法についての相談も歓迎です
+
+    - 理解を深め、実践に繋げるために、さまざまなデータに対して積極的に試してみることを強く推奨します。
+
+## Reference
