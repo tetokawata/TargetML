@@ -27,6 +27,8 @@ library(tidyverse)
 
 # 概要
 
+## 概要
+
 - 機械学習初学者向けに、コンセプトの紹介と社会分析への応用を紹介
 
 1. 教師付き学習の紹介と予測への応用
@@ -39,13 +41,9 @@ library(tidyverse)
 
 - Supervised Learning: [Introduction to Statistical Learning](https://www.statlearning.com/)
               
-- Supervised Learning + 比較研究 ("因果効果"): [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/)
+- Supervised Learning + 比較研究 ("因果効果の推定"): [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/)
 
-- R
-
-    - [Tidyverse Style Guide](https://style.tidyverse.org/)
-
-    - [R for Data Science](https://r4ds.had.co.nz/)
+-
 
 ## 将来の学習
 
