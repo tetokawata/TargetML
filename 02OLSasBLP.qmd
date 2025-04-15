@@ -1,0 +1,997 @@
+---
+title: "OLS as BLP estimator"
+author: 
+  - name: "川田恵介"
+    email: keisukekawata@iss.u-tokyo.ac.jp
+    url: https://github.com/tetokawata/TargetML
+date: now
+format:
+  revealjs:
+    incremental: true 
+    slide-number: true
+    bibliographystyle: apa
+    html-math-method: katex
+    chalkboard: true
+  typst:
+    fig-format: retina
+    bibliographystyle: apa
+    mainfont: "Hiragino Mincho ProN"
+    number-sections: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+```{r, dev='ragg_png'}
+library(tidyverse)
+
+data(CPS1985, package = "AER")
+```
+
+# OLS
+
+## 動機
+
+- OLS $=$ 現代的な予測/比較研究においても、代表的**推定方法**
+
+  - 研究者が**事前**に設定した**線型モデル**を、データから**推定する計算方法**
+
+  - **推定対象** について、**複数の解釈** がある [@angrist2009mostly ; @chattopadhyay2023implied]
+
+  - 多くの発展的手法が、OLSの特定の問題点を改善する方法である、と解釈できる
+
+
+## OLSの入門書的解釈
+
+- 賃金を年齢でOLSで計算した**推定値**は、
+
+```{r, dev='ragg_png'}
+#| echo: true
+#| eval: false
+
+lm(wage ~ age, CPS1985) # Price ~ beta_0 + beta_1*Size
+```
+
+- 以上の**推定対象**は
+
+  - Price の(条件付き)母平均 $\mu(age)=E[wage\mid age]$ [@stock2020introduction ; @wooldridge_introductory]
+
+    - $\mu(wage) = \beta_0 + \beta_1\times age$ を仮定する必要があり、非現実的
+
+
+## OLSの別解釈
+
+- 二つの別解釈: OLSの推定対象は
+
+  1. 母平均 $\mu(X)$ の**母集団上**での線形近似モデル
+  
+  2. $\mu(D=1,X) - \mu(D=0,X)$ の母集団上での近似的なBalancing comparison
+  
+- モデルが"正しくない"場合でも、明確な推定対象を定義でき、解釈が容易
+
+- 本ノートでは、線形近似モデルの推定値であることを紹介
+
+## 構成
+
+- OLSについて、
+
+  1. **データ上**で行なっている計算
+
+  2. **母集団上**での推定対象
+
+- 次のスライドで、社会上での研究目標 (予測問題)、への活用を議論
+
+  - 先取りすると、標準的な設定において、"最善の予測モデルは母平均 $\mu(X)$" であり、OLSは予測問題においても有益
+
+## まとめ
+
+- OLSの推定対象は、複数存在する
+
+  - 母平均の最善の線型モデル (Best Linear Projection)
+
+- 母平均そのものの優れた推定値であるとは**限らない**
+
+# データ上の計算
+
+## 線形近似モデル
+
+- モデル $=$ データや社会、母集団の特徴を要約する"式"
+
+- 例 "単回帰": $$g(Age)=\beta_0 + \beta_1\times Age$$
+
+- 例 "重回帰": $$g(Age,Educ)=\beta_0 + \beta_1\times Age + \beta_2\times Educ$$
+
+## 線形近似モデル
+
+- $\beta$ について足し算であれば、$X$ を変形しても線型モデル
+
+- 例 $X$ について非線形モデル: $$g(Age)=\beta_0 + \beta_1\times Age + \beta_2\times Age^2$$
+
+  - 予測問題において、非常に重要
+
+## OLS  
+
+- データに極力適合するように、**推定モデル**を計算する方法
+
+  - 以下を最小化するように $\beta$ を推定する $$(Y - g(X))^2のデータ上の平均値$$
+
+- $Y$ を近似するモデルと解釈できる
+
+  - [**多重共線性**](https://ja.wikipedia.org/wiki/%E5%A4%9A%E9%87%8D%E5%85%B1%E7%B7%9A%E6%80%A7#:~:text=%E7%B5%B1%E8%A8%88%E5%AD%A6%E3%81%AB%E3%81%8A%E3%81%84%E3%81%A6%E3%80%81%E5%A4%9A%E9%87%8D%E5%85%B1,%E4%BE%8B%3A%20%E4%BD%93%E9%87%8D%E3%81%A8BMI%EF%BC%89%E3%80%82)がなければ計算できる
+
+## 推定値
+
+- データから、何らかの方法で $\beta$ の推定値 $\hat{\beta}$ を決める。
+
+- 推定されたモデル (推定モデル)も以下のように表すことができる $$\hat{g}(X)=\hat{\beta}_0 + .. + \hat\beta_LX_L$$
+
+## データ上の平均値
+
+- (条件つき)平均値 $(\hat{\mu}(X))$ : $X_i=x$ である事例内での$Y$の平均値  $$\hat{\mu}(X)=\frac{1}{(X_i=x) である事例数}(Y_1 + Y_2 +..)$$ 
+
+## 別解釈
+
+- 以下を最小化しても、同じモデル $\hat{g}(X)$ が計算される
+
+- 全ての$X$の組み合わせ $[x_1,..]$について、 $$\biggr[\underbrace{(\hat{\mu}(x) - g(x))^2}_{平均からの乖離}$$ $$\times [X=xとなる事例割合]\biggr]の平均値$$
+
+- " $Y$ の**平均値** "を近似するモデルと解釈できる
+
+## 例 $g(Age)=\beta_0 + \beta_1 Age$
+
+```{r, dev='ragg_png'}
+CPS1985 |>
+  mutate(
+    Mean = mean(wage),
+    事例数 = n(),
+    .by = age
+  ) |>
+  distinct(
+    Mean,
+    age,
+    wage,
+    事例数
+  ) |>
+  ggplot(
+    aes(
+      x = age,
+      y = wage
+    )
+  ) +
+  geom_point() +
+  geom_point(
+    aes(
+      y = Mean,
+      size = 事例数,
+      color = "平均"
+    )
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  theme_minimal()
+```
+
+## 例 $g(Age)=\beta_0 + .. + \beta_2 Age^2$
+
+```{r, dev='ragg_png'}
+CPS1985 |>
+  mutate(
+    Mean = mean(wage),
+    事例数 = n(),
+    .by = age
+  ) |>
+  distinct(
+    Mean,
+    age,
+    wage,
+    事例数
+  ) |>
+  ggplot(
+    aes(
+      x = age,
+      y = wage
+    )
+  ) +
+  geom_point() +
+  geom_point(
+    aes(
+      y = Mean,
+      size = 事例数
+    ),
+    color = "red"
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x, 2)
+  ) +
+  theme_minimal()
+```
+
+## $Y$ のモデル VS 平均値のモデル
+
+- 実際に計算される推定値は同じ
+
+  - あくまで"解釈"の問題
+
+- 研究対象次第で、有益な解釈は変化する
+
+  - 経済学研究においては、平均値のモデルと解釈した方が有益な場面が多い
+  
+    - 個人差が大きく、$Y$のモデルに見えない
+    
+    - 平均値は、予測/比較研究における中核的関心
+
+## OLSの特性
+
+- 「どのようなモデルを推定するのか」によって、推定されうるパターンがある程度決まってしまう
+
+  - $g(Age)=\beta_0 + \beta_1Age$ をデータに当てはめると、年齢と平均賃金の間に"一直線"の関係性しか推定されない
+  
+    - $g(Age)=\beta_0 + \beta_1Age + \beta_2Age^2$ について、 $\beta_2 = 0$ と事前に研究者が決めてしまっている
+    
+    - "研究者主導"の方法
+
+## モデルの複雑化 {#sec-introduction}
+
+- より$\beta$が多い、複雑なモデルをOLSで推定することもできる
+
+  - 例: $\beta_0 + \beta_1\times X + ..+\beta_10\times X^{10}$
+
+- より多くの$\beta$をデータで決める
+
+  - $\beta$ の数を増やすと、平均 $\hat\mu(X)$ により近づく
+
+## 例 $g(Age)=\beta_0 + .. +  \beta_{20} Age^{20}$
+
+```{r, dev='ragg_png'}
+CPS1985 |>
+  mutate(
+    Mean = mean(wage),
+    事例数 = n(),
+    .by = age
+  ) |>
+  distinct(
+    Mean,
+    age,
+    wage,
+    事例数
+  ) |>
+  ggplot(
+    aes(
+      x = age,
+      y = wage
+    )
+  ) +
+  geom_point() +
+  geom_point(
+    aes(
+      y = Mean,
+      size = 事例数
+    ),
+    color = "red"
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    formula = y ~ poly(x, 20)
+  ) +
+  theme_minimal()
+```
+
+
+## まとめ
+
+- OLS $=$ $Y$ の要約値である平均値 $\hat{\mu}(X)$ を、さらに要約したモデル $\hat{g}(X)$ ("線")を算出
+
+- 要約しているので、一般に、$\hat{g}(X)\neq\hat{\mu}(X)$ 
+
+  - モデルを複雑化すると、$\hat{g}(X)\simeq\hat{\mu}(X)$
+
+  - 平均値に近づけることの弊害はあるのか?
+  
+      - 母集団を導入し、推定精度を定義する必要がある
+
+# 母集団上での推定対象
+
+## 議論の枠組み: 頻度論
+
+- 研究課題/推定対象/推定方法は同じだが、**データは独立して収集する**、仮想的研究者群をイメージ
+
+  - 自分はその中の一人
+  
+- 同じ手法を用いても、データが偶然異なるので、推定値は異なる
+
+  - 自分の結果は、「偶然生じた」信用できないものと考える方が合理的
+
+- 詳細: @sec-Freq , [StatLec](https://www.statlect.com/fundamentals-of-probability/probability) などを参照 
+
+## 推定対象と推定値
+
+- データ分析法を、建設的に議論するために
+
+  - 全ての研究者が原理的に合意できる正答 (推定対象) と 自身のデータから得られる回答 (推定値)を個別に定義する
+
+    - 推定対象を定義するために、母集団を導入する
+
+## 母集団
+
+- 手元にあるデータに含まれる事例を、ランダムに選んできた仮想的な集団
+
+  - 本講義の範囲内では、手元にあるデータと同じ変数が観察できる"超巨大データ"をイメージしてもOK
+
+- 注: 時系列などの独立ではないデータは、本講義の対象外
+
+## 推定対象
+
+- 推定対象 $=$ 母集団を用いて**仮想的に**計算される値
+
+- 例: 母集団上で計算されるOLSの**仮想的**な結果 (Population OLS)
+
+  - 同じ方法でデータ収集するのであれば、母集団は全ての研究者で共通
+
+## まとめ
+
+- 分析計画が確定したとしても、実際に取集される事例が異なるため、異なる推定値が算出される
+
+  - データ"くじ"に伴う不確実性
+  
+    - Sampling Uncertainly
+  
+  - 信頼区間やp値、機械学習におけるさまざまな工夫などは、この不確実性への対処がメイン
+  
+    - よい統計的手法 $\simeq$ データくじの影響を受けにくい/影響を適切に評価できる
+
+## 注意点
+
+- データ分析は入門段階から、**「厳密に定義されるが、根本的に測定不可能な推定対象を、頑張って推定したい」**という複雑な問題を論じる必要がある
+
+  - 初学者が混乱するのは当たり前
+
+  - 随時質問しながら、ゆっくり消化してください
+
+# Population OLS
+
+## Population OLS
+
+- OLSの推定対象 $=$ 母集団上で仮想的に行われるOLS (Population OLS)の結果 $$g^{Pop}(Y)=\beta_0^{Pop} + .. + \beta_L^{Pop}X_L$$
+
+- 以下、Population OLSは定義できる、と仮定する
+
+## Population OLSの推定
+
+- OLSの推定値 $\hat{g}(X)$ $=$ Population OLS $g^{Pop}(X)$ の推定値
+
+  - $\beta$ の数に比べて、事例数が大きければ、$g^{Pop}(X)$ とよく似た推定結果 $\hat{g}(X)$ を得る可能性が高い ([@sec-Appnedix])
+  
+    - Threorem 1.2.1 (Chapter 1, CausalML)
+
+## 複雑なモデルの推定対象
+
+- モデルの複雑化 $\rightarrow$ 推定対象が変化する
+
+```{r, dev='ragg_png'}
+#| echo: true
+#| eval: false
+
+lm(Price ~ poly(Size, 2), Data) # Price ~ beta_0 + beta_1*Size  + beta_2*Size^2
+```
+
+- 推定対象は、$\beta_0 + \beta_1\times Size$ ではなく、$\beta_0 + \beta_1\times Size + \beta_2\times Size^2$ のPopulation OLS
+
+## 十分に複雑なモデル: 推定対象
+
+- モデルを複雑にすれば、**Population OLSは**、母平均に近づく
+
+  - @sec-introduction と同じ理屈
+
+- OLSの推定対象 $\underbrace{=}_{常に}$ Population OLS $g^{Pop}(X)$
+
+  - $\underbrace{\simeq}_{十分に複雑であれば}$ 母平均 $\mu(X)$
+
+## モデルの複雑化: 推定
+
+- モデルの複雑化 $\rightarrow$ 推定値の性質が変化し、**推定誤差**が拡大する 
+
+  - Population OLSとデータ上でのOLSとの乖離が広がる傾向が大きくなる
+  
+- OLSの推定値 $\hat{g}(X)\underbrace{\simeq}_{十分に単純であれば}$ Population OLS 
+
+## データ上の平均値 $\hat{\mu}(X)$
+
+- $X$ の組み合わせが多いと、$\hat{\mu}(X)$ は$\mu(X)$ の複雑すぎる推定値
+
+- 例: 年齢 $\times$ 性別 $\times$ 教育年数 $=$ `r length(unique(CPS1985$age)) * length(unique(CPS1985$education)) * length(unique(CPS1985$gender))`
+
+- 1事例で平均値を計算する組み合わせが頻出する
+
+  - 母平均と大きく乖離する可能性が高い
+
+## 数値例: 母平均
+
+
+```{r, dev='ragg_png'}
+library(tidyverse)
+library(patchwork)
+
+SimData <- function(seed, n) {
+  set.seed(seed)
+  X <- sample(
+    seq(0, 1, 0.1),
+    n,
+    replace = TRUE
+  )
+
+  TrueY <- if_else(
+    X >= 0.4,
+    10,
+    0
+  )
+
+  Y <- TrueY + runif(n, -30, 30)
+
+  Data <- tibble(
+    X,
+    TrueY,
+    Y,
+    seed
+  ) |>
+    mutate(
+      MeanY = mean(Y),
+      .by = X
+    )
+  return(Data)
+}
+
+SimData(1, 100) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  geom_point(
+    color = "red"
+  ) +
+  ylim(-10, 15) +
+  theme_bw() +
+  ylab("Y")
+```
+
+## 数値例: Population OLS
+
+```{r, dev='ragg_png'}
+SimData(1, 1000) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  geom_point(
+    color = "red"
+  ) +
+  geom_smooth(
+    method = "lm",
+    color = "red",
+    se = FALSE
+  ) +
+  ylim(-10, 15) +
+  theme_bw() +
+  ylab("Y")
+```
+
+## 数値例: データ上の平均値
+
+```{r, dev='ragg_png'}
+FigPop <- SimData(1, 5000) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  geom_point(
+    color = "red"
+  ) +
+  ylim(-15, 25) +
+  theme_minimal() +
+  ylab("Y")
+
+FigData <- map_dfr(
+  1:4,
+  function(i) {
+    SimData(i, 200)
+  }
+) |>
+  mutate(
+    seed = str_c("研究者", seed)
+  ) |>
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  geom_point(
+    aes(
+      y = MeanY
+    ),
+    color = "blue"
+  ) +
+  geom_point(
+    aes(
+      y = TrueY
+    ),
+    color = "red"
+  ) +
+  facet_wrap(~seed) +
+  theme_bw() +
+  ylab("Y")
+
+FigPop + FigData
+```
+
+
+## 数値例: データ上の単純なOLS
+
+```{r, dev='ragg_png'}
+FigPop <- SimData(1, 5000) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    ),
+    color = "red"
+  ) +
+  geom_point(
+    color = "red"
+  ) +
+  geom_smooth(
+    method = "lm",
+    color = "red"
+  ) +
+  ylim(-15, 25) +
+  theme_minimal() +
+  ylab("Y")
+
+FigData <- map_dfr(
+  1:4,
+  function(i) {
+    SimData(i, 200)
+  }
+) |>
+  mutate(
+    seed = str_c("研究者", seed)
+  ) |>
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  geom_point(
+    aes(
+      y = MeanY
+    ),
+    color = "blue"
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = TrueY
+    ),
+    color = "red",
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~seed) +
+  theme_bw() +
+  ylab("Y")
+
+FigPop + FigData
+```
+
+## 数値例: データ上の複雑なOLS
+
+```{r, dev='ragg_png'}
+FigPop <- SimData(1, 5000) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    ),
+    color = "red"
+  ) +
+  geom_point(
+    color = "red"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ poly(x, 6),
+    color = "red"
+  ) +
+  ylim(-15, 25) +
+  theme_minimal() +
+  ylab("Y")
+
+FigData <- map_dfr(
+  1:4,
+  function(i) {
+    SimData(i, 200)
+  }
+) |>
+  mutate(
+    seed = str_c("研究者", seed)
+  ) |>
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  geom_point(
+    aes(
+      y = MeanY
+    ),
+    color = "blue"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ poly(x, 6),
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = TrueY
+    ),
+    color = "red",
+    formula = y ~ poly(x, 6),
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_wrap(~seed) +
+  theme_bw() +
+  ylab("Y")
+
+FigPop + FigData
+```
+
+## まとめ
+
+- Population OLSは**常に**、データ上でのOLSの推定対象
+
+  - 十分に複雑なPopulation OLSは、母平均を近似するので、母平均も推定対象
+
+- 複雑なPopulation OLSを、データから推定しようとすると、推定精度が悪化する
+
+## まとめ
+
+- 推定対象: $$母平均 \underbrace{\simeq}_{モデルが十分に複雑} Populaiton OLS$$
+
+- 推定値: $$\underbrace{\simeq}_{モデルが十分に単純} データ上のOLS$$
+
+## 関連文献
+
+- BLPとしての解釈
+
+  - [Applied Causal Inference Powered by ML and AI](https://causalml-book.org/) : 第１章
+
+  - @angrist2009mostly
+
+  - @aronow2019foundations
+  
+  - [川田作成のノート](https://github.com/tetokawata/NoteBLP)
+
+# 補論: 頻度論  {#sec-Freq}
+
+## Replicability
+
+- "科学的事実"を検証する黄金戦略: 独立した研究者が、同じ研究計画を実行すると、"同じ"結果を得る
+
+  - 例: 水の沸騰温度を測定する実験室実験
+
+- より複雑な社会/人間を対象とした研究でも、同じ戦略を適用したい
+
+## 実証研究の研究計画
+
+- 研究計画: 研究目標 (含む対象地域/時点)、推定目標、推定値の算出方法、データの収集方法やCordingすべき分析の内容
+
+- 研究計画が確定しているのであれば、あとはデータを実際に入手し、パソコンにデータを流し込むだけ
+
+  - 同じ結果を得ることができるか?
+
+## 実証研究のReplicability
+
+- ここまでは議論は、「同じ分析計画 $\rightarrow$ 同じデータ  $\rightarrow$ OLSの推定値」
+
+  - 同じデータなので、全員が必ず同じ推定値
+  
+- これからの議論は、「同じ分析計画 $\rightarrow$ データの入手 $\rightarrow$ OLSの計算」
+
+  - どのようなデータが入手できるのかは、偶然(Sampling, データくじ)に決まる
+  
+    - 人によってデータが異なるので、異なる結果となる
+
+## 手法検証/応用上の含意
+
+- 多くの応用で、同じ研究計画を実施する研究者は自分達しか存在しない
+
+  - 仮想的に、無数の"独立した"研究者をイメージする必要がある
+  
+  - あるいは、異なるデータを入手した場合の計算結果をイメージする
+
+## 例
+
+- 労働力調査を利用した推定: 日本全体から選ばれた4万家計を調査
+
+  - 現実は一つの調査しか存在しないが、もし独立した研究者が同じ調査をやっていた場合、OLSの結果はどのように異なるのか?
+
+- 国勢調査を利用した推定: 日本の全家計を調査
+
+  - 労働力調査と同じイメージ
+  
+    - 対象家計は同じだが、回答が変化するかもしれない (測定誤差)
+
+## まとめ
+
+- 同じ分析計画を実行する、"独立した"研究者をイメージ
+
+- 同じ研究計画を採用したとしても、データを独立して取集すると、**推定値は異なる**
+
+  - データに含まれる事例が、"偶然"異なるため
+
+- 自身の推定結果は、「"偶然"計算された信用できない値」、と考える方が合理的
+
+- 頻度論の枠組み
+
+# 補論: 推定値の分布 {#sec-Appnedix}
+
+## サンプリングに伴う分布
+
+- 分析計画 $=$ データを推定値に変換
+
+  - データくじの結果によって、推定値も異なる
+  
+    - 推定値の分布
+
+- 現実に実現し、自身が観察する値はその中の一つだが、どれになるかは操作できない
+
+## 推定値の分布についての性質
+
+- 推定手法に応じて、推定値の**分布**の性質は操作できる
+
+  - 研究者は、良い性質の**分布**を持つ手法を採用したい
+  
+- 現実生活の例: 旅行保険に入るかどうか
+  
+  - 現実に事故に遭うかどうかはわからないので、結果の分布を"良く"するように決定 (保険に入った場合の被害、事故確率など)から判断
+  
+## OLSの分布
+
+- Population OLSの計算式 $$\hat{\mu}(X)^{Pop}=\hat{\beta}_0^{Pop} + ... + \hat{\beta}_L^{Pop}X_L$$
+
+  - $\hat{\beta}^{Pop}$ は全員共通
+
+- データ上のOLS $$\hat{\mu}(X)=\hat{\beta}_0 + ... + \hat{\beta}_LX_L$$
+
+  - データが異なるので、$\hat{\beta}$ の値も異なる
+  
+    - **推定値** の平均などを定義できる
+
+## イメージ: 3事例
+
+```{r, dev='ragg_png'}
+N <- 3
+
+map_dfr(
+  1:50,
+  function(i) {
+    set.seed(i)
+    tibble(
+      Y = c(1, 0, sample(0:1, N - 2, replace = TRUE)),
+      X = c(sample(0:1, N, replace = TRUE))
+    ) |>
+      fixest::feols(
+        Y ~ X
+      ) |>
+      magrittr::extract2("coeftable") |>
+      as_tibble(rownames = "X") |>
+      filter(
+        X == "X"
+      ) |>
+      mutate(
+        ID = i
+      )
+  }
+) |>
+  ggplot(
+    aes(
+      y = ID,
+      x = Estimate
+    )
+  ) +
+  geom_vline(
+    aes(
+      color = "Population OLS",
+      xintercept = 0
+    )
+  ) +
+  geom_point(
+    aes(
+      color = "OLS"
+    )
+  ) +
+  theme_minimal() +
+  xlab("推定値")
+```
+
+
+## OLSの分布: 収束
+
+- 事例数が大きくなれば、Population OLSに近い推定値を、ほとんどの研究者が得ることができる (収束する)
+
+  - 「自分もそのような値を得ている可能性が高い」と考えられる
+
+## OLSの分布: 二つの収束性質
+
+- 事例数が $\beta$ の数に比べて、非常に大きければ、 $$(\hat\beta^{Pop}_{l} - \hat\beta_{l})^2の平均値\rightarrow 0$$
+
+- 事例数が $\beta$ の数に比べて、**ある程度**大きければ、 $$(\hat\beta^{Pop}_{l} - \hat\beta_{l})\rightarrow 正規分布 N(0,\sigma^2)$$
+
+  - 統計的推論の基礎となる
+
+## イメージ: 5万事例
+
+```{r, dev='ragg_png'}
+N <- 1e5 |> as.numeric()
+
+map_dfr(
+  1:50,
+  function(i) {
+    set.seed(i)
+    tibble(
+      Y = c(1, 0, sample(0:1, N - 2, replace = TRUE)),
+      X = c(sample(0:1, N, replace = TRUE))
+    ) |>
+      fixest::feols(
+        Y ~ X
+      ) |>
+      magrittr::extract2("coeftable") |>
+      as_tibble(rownames = "X") |>
+      filter(
+        X == "X"
+      ) |>
+      mutate(
+        ID = i
+      )
+  }
+) |>
+  ggplot(
+    aes(
+      y = ID,
+      x = Estimate
+    )
+  ) +
+  geom_vline(
+    aes(
+      color = "Population OLS",
+      xintercept = 0
+    )
+  ) +
+  geom_point(
+    aes(
+      color = "OLS"
+    )
+  ) +
+  theme_minimal() +
+  xlim(-1, 1) +
+  xlab("推定値")
+```
+
+
+## イメージ: 200事例
+
+```{r, dev='ragg_png'}
+N <- 200 |> as.numeric()
+
+map_dfr(
+  1:50,
+  function(i) {
+    set.seed(i)
+    tibble(
+      Y = c(sample(0:1, N, replace = TRUE)),
+      X = c(sample(0:1, N, replace = TRUE))
+    ) |>
+      fixest::feols(
+        Y ~ X
+      ) |>
+      magrittr::extract2("coeftable") |>
+      as_tibble(rownames = "X") |>
+      filter(
+        X == "X"
+      ) |>
+      mutate(
+        ID = i
+      )
+  }
+) |>
+  ggplot(
+    aes(
+      y = ID,
+      x = Estimate
+    )
+  ) +
+  geom_vline(
+    aes(
+      color = "Population OLS",
+      xintercept = 0
+    )
+  ) +
+  geom_point(
+    aes(
+      color = "OLS"
+    )
+  ) +
+  theme_minimal() +
+  xlim(-1, 1) +
+  xlab("推定値")
+```
+
+## イメージ: 1000事例
+
+```{r, dev='ragg_png'}
+N <- 1000 |> as.numeric()
+
+map_dfr(
+  1:50,
+  function(i) {
+    set.seed(i)
+    tibble(
+      Y = c(sample(0:1, N, replace = TRUE)),
+      X = c(sample(0:1, N, replace = TRUE))
+    ) |>
+      fixest::feols(
+        Y ~ X
+      ) |>
+      magrittr::extract2("coeftable") |>
+      as_tibble(rownames = "X") |>
+      filter(
+        X == "X"
+      ) |>
+      mutate(
+        ID = i
+      )
+  }
+) |>
+  ggplot(
+    aes(
+      y = ID,
+      x = Estimate
+    )
+  ) +
+  geom_vline(
+    aes(
+      color = "Population OLS",
+      xintercept = 0
+    )
+  ) +
+  geom_point(
+    aes(
+      color = "OLS"
+    )
+  ) +
+  theme_minimal() +
+  xlim(-1, 1) +
+  xlab("推定値")
+```
+
+## Reference
