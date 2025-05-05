@@ -1,0 +1,174 @@
+---
+title: "Penalized regression"
+author: 
+  - name: "川田恵介"
+    email: keisukekawata@iss.u-tokyo.ac.jp
+    url: https://github.com/tetokawata/TargetML
+date: now
+format:
+  typst:
+    fig-format: retina
+    bibliographystyle: apa
+    mainfont: "Hiragino Mincho ProN"
+    number-sections: true
+  revealjs:
+    incremental: true 
+    slide-number: true
+    bibliographystyle: apa
+    html-math-method: katex
+    chalkboard: true
+execute: 
+  warning: false
+  message: false
+  eval: true
+  echo: false
+bibliography: "ref.bib"
+---
+
+```{r}
+library(tidyverse)
+```
+
+# 罰則付き回帰
+
+## 背景: 過剰適合
+
+- 多くの推定方法が、基本的に、モデルとデータの矛盾 (empirical risk) を減らすように、予想モデル $g(X)$ を推定する
+
+- 複雑なモデル (線型モデル $g(X)=\beta_0 + .. + \beta_LX_L$ では、$\beta$ の数が多いモデル) を推定すると、
+
+  - より多くのパラメタをデータに合うように調整できる
+  
+    - データへの当てはまりは改善するが、**やりすぎる**と母平均から乖離する
+    
+## 背景: 予測問題の要求
+
+- OLSにおいて高性能の予測モデルを推定するためには、Populaiton OLS $\simeq$ 母平均、を目指す必要がある
+
+- 十分に複雑なモデルを推定する必要があるが、Populaiton OLSを高い精度で推定するためには、単純化する必要がある
+
+  - 伝統的には、研究者の"背景知識(含む思い込み、惰性)"を用いてきた
+  
+  - 罰則付き回帰は、よりデータ主導の方法を提案する
+
+## 罰則付き回帰
+
+1. 十分に複雑なモデル $g(X)$ を研究者が設定
+
+2. 何らかの基準 (後述) に基づいて複雑性への罰則を設定
+
+3. 以下を最小化するように $\beta$ を推定
+
+- $(Y - g(X))^2$のデータ上の平均 $+$ 複雑性への罰則
+
+## LASSO
+
+- 複雑性への罰則 $=$ $\underbrace{\lambda}_{\textit{Tunning Parameter}}\times$ 複雑性の指標
+
+  - LASSO: 複雑性の指標 $=|\beta_1| + ..+|\beta_L|$ 
+  
+  - Ridge: 複雑性の指標 $=\beta_1^2 + ..+\beta_L^2$ 
+
+- どちらも $g(X)=\beta_0$ を最も単純なモデルとして評価
+
+  - データに当てはまるように推定すると、$\beta_0=$ データ上の$Y$の平均
+  
+    - 単純平均を最も単純なモデルとして評価
+
+## OLS
+
+- $(Y - g(X))^2$のデータ上の平均 $+$ ~~複雑性への罰則~~
+
+## 例え話: 環境税/補助金
+
+  - 企業が費用を最小化するように生産計画を立てること自体は有益だが、"自由放任"では環境負荷が過度に高まる (負の外部性)
+  
+    - 環境負荷 $=$ 複雑性
+    
+    - 税額 $= \lambda$
+    
+    - 自由放任 $=$ OLS
+    
+    - 環境負荷への税/補助金 $=$ 罰則付き回帰
+
+## $\lambda$ の役割
+
+- $\lambda$ を無限大に大きくすると、$\beta_1=..=\beta_L=0$
+
+  - 推定された予測モデル $\hat{g}(X)=$ データ上の平均
+
+- $\lambda=0$ にすると、$\hat{g}(X)=$ OLS
+
+- $\lambda$ を変更することで、OLSと単純平均の間のモデルとなる
+
+## $\lambda$ の選び方
+
+- 推定されたモデル $\hat{g}(X)$ と母平均 $\mu(X)=E[Y\mid X]$ の乖離を小さくするように設定したい
+
+- いくつかの方法が提案
+
+  - @taddy2017one: 赤池情報基準の利用 ([gamlr package](https://github.com/TaddyLab/gamlr))
+  
+  - @tibshirani1996regression : 交差推定の利用 (後述, [glmnet package](https://cran.r-project.org/web/packages/glmnet/index.html))
+  
+  - @belloni2014inference : 理論指標の利用 ([hdm package](https://cran.r-project.org/web/packages/hdm/index.html))
+  
+    - 詳細は [CausalMLBook 第３章](https://causalml-book.org/) 参照
+
+## LASSOの推定対象
+
+- 母集団 (無限大の事例数を持つランダムサンプリングデータ)にLASSOを適用すると、**緩やかな条件**のもとでPopulation OLSが算出される
+
+  - LASSOは、Population OLSの一致推定量
+
+- 緩やかな条件: 事例数が増加するにつれて、$\lambda$ が十分な速度で0に収束する
+
+  - 無限大の事例数のもとでは、実質的にOLSが行われる
+
+## LASSOの性質
+
+- LASSOおよびRidgeは、$\beta$ の数が事例数を上回る(!!!)モデルも推定できる
+
+  - OLSでは不可能
+
+- LASSOでは、$\beta$ の値が厳密に0になり得る
+
+  - 変数がモデルから、"データ主導"で脱落する (変数選択が行われる)
+  
+  - Ridge/OLSでは行われない
+
+## まとめ
+
+- 罰則付き回帰 : 過剰適合を抑えながら、十分に複雑なモデルを推定する手法
+
+  - LASSO はその代表例
+  
+    - 変数選択が行われることも注目されてきた
+
+# 実践
+
+## 予測問題: 他の推定方法との併用
+
+- 常に優れた予測モデルを生み出せるとは限らない
+
+  - $\beta$ の数は多いが、その大部分は重要ではない ($\beta$ の値が0に近い)場合に有効
+  
+    - 事前には判断できない
+
+  - OLSやRandomForest, Bootingなどと、(Test dataを用いて)比較、ないしStacking法(後述)を活用する必要がある
+  
+- 上記を行うのであれば、比較的安心して用いることができる
+
+## 記述問題: 厳重注意
+
+- LASSOにより推定された $\beta$ を、社会の特徴を捉えるものとして活用する
+
+- 推定対象はOLSと同じなので、OLSと同じような解釈ができそうな**気がするが**
+
+  - 一般にバイアスがあり、信頼区間計算ができない
+  
+  - 変数選択についても、誤った変数選択が生じる
+
+- さまざまな試み [@fan2011sparse ; @chernozhukov2015valid ; @kuchibhotla2022post] があるが、母平均を、"なんとなく"近似する"Black box"モデルと捉えた方が、(私見では) 実践的
+
+## Reference
