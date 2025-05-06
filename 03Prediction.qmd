@@ -119,6 +119,8 @@ lm(wage ~ education + age, CPS1985)
 
 1. データをランダムに２分割する (Training/Test データ)
 
+  - よく用いられる比率は8:2、ないし95:5
+
 2. $\hat{g}(X)$ は、**Training**のみを使用して、推定
 
 3. $(Y - \hat{g}(X))^2$ の**Test**上での平均値を計算し、評価指標とする
@@ -191,6 +193,8 @@ lm(wage ~ education + age, CPS1985)
 - $Y$ の値を完璧に予測するための、**社会に対する**前提条件は、$最善の予測値 \mu(X)=Y$
 
   - 社会において、$X$ が同じであれば、$Y$ についての個人差がない
+  
+    - 削減不可能な誤差 $(Y - \mu(X))$ がないことが前提
 
 - 人間行動についてあり得えない場合が高い
 
@@ -208,17 +212,7 @@ lm(wage ~ education + age, CPS1985)
 
 - [詳細な解説とチャレンジの紹介](https://ying531.github.io/research/predictive-shift/)
 
-## 推定対象 $\rightarrow$ 推定値
-
-- $予測誤差 = Y - 予測値$
-
-- $$=\underbrace{Y - Target上での平均値}_{\text{Irreducible Error}}$$
-
-- $$+Target上での平均値 - Source上での平均値$$
-  
-- $$+\underbrace{Source上での平均値 - 推定されたモデル}_{推定の問題}$$
-
-## OLSの問題
+## 推定対象 $\rightarrow$ 推定値: OLSの問題
 
 - 大きな問題は、$$\underbrace{\mu(X)}_{\text{予測問題が求める推定対象: 母平均}}\neq \underbrace{g^{Pop}(X)}_{\text{OLSの実質的な推定対象: Population OLS}}$$
 
@@ -284,10 +278,22 @@ X1 <- CPS1985 |>
   
 - 次回以降、データ主導の解決策を議論
 
+## まとめ
+
+- $予測誤差 = Y - 予測値$
+
+- $$=\underbrace{Y - Target上での平均値}_{\text{削減不可能な誤差}}$$
+
+- $$+\underbrace{Target上での平均値 - Source上での平均値}_{\text{サンプリング問題}}$$
+  
+- $$+\underbrace{Source上での平均値 - 推定されたモデル}_{推定の問題}$$
+
 ## 推定値 $\rightarrow$
 
 - "機械学習による予測性能の改善"を研究対象とするのであれば、ベンチマークとなる予測モデルと比較する必要がある
 
   - 単純なOLSや単純平均値など
+
+
 
 ## Reference

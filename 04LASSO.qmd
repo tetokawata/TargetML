@@ -89,7 +89,7 @@ library(tidyverse)
     
     - 自由放任 $=$ OLS
     
-    - 環境負荷への税/補助金 $=$ 罰則付き回帰
+    - 環境負荷への税/補助金 $=$ 罰則
 
 ## $\lambda$ の役割
 
@@ -100,6 +100,135 @@ library(tidyverse)
 - $\lambda=0$ にすると、$\hat{g}(X)=$ OLS
 
 - $\lambda$ を変更することで、OLSと単純平均の間のモデルとなる
+
+## 数値例: 200サンプル
+
+```{r,dev='ragg_png'}
+library(tidyverse)
+library(patchwork)
+
+N <- 200
+degree <- 6
+
+SimData <- function(seed, n) {
+  set.seed(seed)
+  X <- sample(
+    seq(0, 1, 0.1),
+    n,
+    replace = TRUE
+  )
+
+  TrueY <- if_else(
+    X >= 0.4,
+    10,
+    0
+  )
+
+  Y <- TrueY + runif(n, -30, 30)
+
+  Data <- tibble(
+    X,
+    TrueY,
+    Y,
+    seed
+  ) |>
+    mutate(
+      MeanY = mean(Y),
+      .by = X
+    )
+  return(Data)
+}
+
+FigPop <- SimData(1, 5000) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ poly(x, degree)
+  ) +
+  ylim(-15, 25) +
+  theme_minimal() +
+  ylab("Y")
+
+
+
+FigData <- map_dfr(
+  1:4,
+  function(i) {
+    SimData(i, N) |>
+      mutate(
+        LASSO = hdm::rlasso(
+          Y ~ poly(X, degree),
+          pick(everything()),
+          post = FALSE
+        ) |>
+          predict(pick(everything())) |>
+          as.numeric(),
+        OLS = lm(
+          Y ~ poly(X, degree),
+          pick(everything())
+        ) |>
+          predict(pick(everything())) |>
+          as.numeric(),
+        Mean = lm(Y ~ 1, pick(everything())) |>
+          predict(pick(everything())) |>
+          as.numeric(),
+        seed = str_c("研究者", seed)
+      )
+  }
+) |>
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  geom_point(
+    aes(
+      y = MeanY
+    ),
+    color = "blue"
+  ) +
+  geom_smooth(
+    aes(
+      y = LASSO,
+      color = "LASSO"
+    ),
+    method = "lm",
+    formula = y ~ poly(x, degree),
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = OLS,
+      color = "OLS"
+    ),
+    method = "lm",
+    formula = y ~ poly(x, degree),
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = Mean,
+      color = "Mean"
+    ),
+    method = "lm",
+    formula = y ~ poly(x, degree),
+    se = FALSE
+  ) +
+  facet_wrap(~seed) +
+  theme_bw() +
+  ylab("Y") +
+  ylim(-10, 25)
+
+FigPop + FigData
+```
+
 
 ## $\lambda$ の選び方
 
@@ -125,7 +254,135 @@ library(tidyverse)
 
   - 無限大の事例数のもとでは、実質的にOLSが行われる
 
-## LASSOの性質
+## 数値例: 200000サンプル
+
+```{r,dev='ragg_png'}
+library(tidyverse)
+library(patchwork)
+
+N <- 200000
+degree <- 6
+
+SimData <- function(seed, n) {
+  set.seed(seed)
+  X <- sample(
+    seq(0, 1, 0.1),
+    n,
+    replace = TRUE
+  )
+
+  TrueY <- if_else(
+    X >= 0.4,
+    10,
+    0
+  )
+
+  Y <- TrueY + runif(n, -30, 30)
+
+  Data <- tibble(
+    X,
+    TrueY,
+    Y,
+    seed
+  ) |>
+    mutate(
+      MeanY = mean(Y),
+      .by = X
+    )
+  return(Data)
+}
+
+FigPop <- SimData(1, 5000) |>
+  ggplot(
+    aes(
+      x = X,
+      y = TrueY
+    )
+  ) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ poly(x, degree)
+  ) +
+  ylim(-15, 25) +
+  theme_minimal() +
+  ylab("Y")
+
+
+
+FigData <- map_dfr(
+  1:4,
+  function(i) {
+    SimData(i, N) |>
+      mutate(
+        LASSO = hdm::rlasso(
+          Y ~ poly(X, degree),
+          pick(everything()),
+          post = FALSE
+        ) |>
+          predict(pick(everything())) |>
+          as.numeric(),
+        OLS = lm(
+          Y ~ poly(X, degree),
+          pick(everything())
+        ) |>
+          predict(pick(everything())) |>
+          as.numeric(),
+        Mean = lm(Y ~ 1, pick(everything())) |>
+          predict(pick(everything())) |>
+          as.numeric(),
+        seed = str_c("研究者", seed)
+      )
+  }
+) |>
+  ggplot(
+    aes(
+      x = X,
+      y = Y
+    )
+  ) +
+  geom_point(
+    aes(
+      y = MeanY
+    ),
+    color = "blue"
+  ) +
+  geom_smooth(
+    aes(
+      y = LASSO,
+      color = "LASSO"
+    ),
+    method = "lm",
+    formula = y ~ poly(x, degree),
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = OLS,
+      color = "OLS"
+    ),
+    method = "lm",
+    formula = y ~ poly(x, degree),
+    se = FALSE
+  ) +
+  geom_smooth(
+    aes(
+      y = Mean,
+      color = "Mean"
+    ),
+    method = "lm",
+    formula = y ~ poly(x, degree),
+    se = FALSE
+  ) +
+  facet_wrap(~seed) +
+  theme_bw() +
+  ylab("Y") +
+  ylim(-10, 25)
+
+FigPop + FigData
+```
+
+## LASSOの推定値
 
 - LASSOおよびRidgeは、$\beta$ の数が事例数を上回る(!!!)モデルも推定できる
 
