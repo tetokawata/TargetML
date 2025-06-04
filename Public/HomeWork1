@@ -3,7 +3,7 @@
 
 1. 講義で用いたデータを使い、改築(Reform)後/前で平均的な取引価格(Price)がどの程度異なるのか、標準誤差(Sandard Error) ともに報告せよ
 
-    - Size, Distance, Tenure, District をコントロール
+    - Size, Distance, Tenure, Youseki をコントロール
 
     - OLSとDouble Selectionを用い、それぞれ報告
     
@@ -11,10 +11,10 @@
         
         - Pythonであれば、sklernを使用しLASSOを行い自身で変数選択を行う
         
-2. 講義で用いたデータを使い、E[Price | Size, Distance, Tenure, District] を推定目標とした推定を行うとする。この際にLASSOを用いる利点は何か? 
+2. 講義で用いたデータを使い、E[Price | Size, Distance, Tenure, Youseki] を推定目標とした推定を行うとする。この際にLASSOを用いる利点は何か? 
 削減不可能な誤差/推定誤差を用いながら答えよ
 
-3. 講義で用いたデータを使い、Reform = 1と0の間での平均取引価格 Priceを、{Size, Distance, Tenure, District} をバランスさせた後に、 比較したいとする。この際に
+3. 講義で用いたデータを使い、Reform = 1と0の間での平均取引価格 Priceを、{Size, Distance, Tenure, Youseki} をバランスさせた後に、 比較したいとする。この際に
 
     - LASSOを用いる際の注意点は何か? 
     
