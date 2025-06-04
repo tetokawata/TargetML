@@ -1,27 +1,31 @@
 
 - 講義の内容を踏まえて、以下に回答せよ
 
-1. 2022年第四四半期のData.parquet または Data.csv を用いて、改築(Reform)後/前で平均的な取引価格(Price)がどの程度異なるのか、標準誤差(Sandard Error) ともに報告せよ
+1. 講義で用いたデータを使い、改築(Reform)後/前で平均的な取引価格(Price)がどの程度異なるのか、標準誤差(Sandard Error) ともに報告せよ
 
     - Size, Distance, Tenure, District をコントロール
 
-    - Double Selectionを用いること
+    - OLSとDouble Selectionを用い、それぞれ報告
     
         - Rであれば、hdmパッケージを使用
         
         - Pythonであれば、sklernを使用しLASSOを行い自身で変数選択を行う
         
-    - PCの環境に応じて、データを2022年第四四半期のみに限定しても良い
+2. 講義で用いたデータを使い、E[Price | Size, Distance, Tenure, District] を推定目標とした推定を行うとする。この際にLASSOを用いる利点は何か? 
+削減不可能な誤差/推定誤差を用いながら答えよ
 
-2. 変数選択を行う利点を述べよ。その際にIrreducible Error, Approximation Error, Estimation Errorを用語として用いること
+3. 講義で用いたデータを使い、Reform = 1と0の間での平均取引価格 Priceを、{Size, Distance, Tenure, District} をバランスさせた後に、 比較したいとする。この際に
 
-3. 通常のLASSO推定と比べた際に、Double Selectionが持つ特徴を述べよ。その際にLASSOに比べた利点も説明せよ。
+    - LASSOを用いる際の注意点は何か? 
+    
+    - Post-Double Selectionを用いる利点は何か?
+
 
 - 提出: utol上で提出
 
     - スクリプトファイルに1を実装するコード、および2,3の回答をコメントで書き込む
     
-- 締切: 5月14日(火曜日)の23:59
+- 締切: 2025/6/10
 
 - 参照: いっさいを可
 
