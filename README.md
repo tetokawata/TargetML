@@ -1,6 +1,4 @@
 
-- **次回の講義は、5月7日です。 (4月30日は月曜日の講義の振替日でした)**
-
 経済学のための機械学習入門用レポジトリです。
 Public folderから、2025年度用の講義資料と実習用データをダウンロードできます。
 
@@ -27,6 +25,8 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
         - [Introduction to Modern Causal Inference (Schuler, Mark van der Laan)](https://alejandroschuler.github.io/mci/introduction-to-modern-causal-inference.html)
     
         - [A first course in causal inference (Peng Ding)](https://arxiv.org/abs/2305.18793)
+        
+        - [An Introduction to Double/Debiased Machine Learning](https://arxiv.org/abs/2504.08324)
         
     - Balancing Weights
     
