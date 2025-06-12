@@ -20,7 +20,7 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
     
         - [Applied Causal Inference Powered by ML and AI (Chernozhukov, Hansen, Kallus, Spindler, Syrgkanis)](https://causalml-book.org/)
         
-        - [Causal Inference: A Statistical Learning Approach (Wager)](https://web.stanford.edu/~swager/causal_inf_book.pdf)
+        - [Causal Inference: A Statistical Learning Approach (Wager)](https://web.stanford.edu/~swager/research.html)
         
         - [Introduction to Modern Causal Inference (Schuler, Mark van der Laan)](https://alejandroschuler.github.io/mci/introduction-to-modern-causal-inference.html)
     
