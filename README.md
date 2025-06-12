@@ -26,7 +26,7 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
     
         - [A first course in causal inference (Peng Ding)](https://arxiv.org/abs/2305.18793)
         
-        - [An Introduction to Double/Debiased Machine Learning](https://arxiv.org/abs/2504.08324)
+        - [An Introduction to Double/Debiased Machine Learning (Achim Ahrens, Victor Chernozhukov, Christian Hansen, Damian Kozbur, Mark Schaffer, Thomas Wiemann)](https://arxiv.org/abs/2504.08324)
         
     - Balancing Weights
     
@@ -56,6 +56,12 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
         
         - [Advanced R](https://adv-r.hadley.nz/)
         
+    - その他参考資料
+
+        - [Models, Measurement, and the Language of Empirical Economics (Philip A. Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
+
+        - [Logical methods for AI (Johannes Korbmacher)](https://logicalmethods.ai/textbook/)
+
 
 - 日本語の参考教材としては、以下をお勧めします
 
@@ -79,11 +85,4 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
     
     - [DoubleMLを使った因果/格差推定](https://youtu.be/BCEVt-QgNko)
     
-
-- その他 
-
-    - [Models, Measurement, and the Language of Empirical Economics (Philip A. Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
-
-    - [Logical methods for AI (Johannes Korbmacher)](https://logicalmethods.ai/textbook/)
-
 - 2023/2024年の講義資料は、フォルダーに移動しています。
