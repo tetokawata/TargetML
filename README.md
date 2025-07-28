@@ -38,9 +38,11 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
         
         - [Hines et al. (2022)](https://www.tandfonline.com/doi/full/10.1080/00031305.2021.2021984)
         
+        - [Ichimura and Newey (2022)](https://onlinelibrary.wiley.com/doi/full/10.3982/QE826)
+        
         - [Renson et al. (2025)](https://arxiv.org/abs/2502.05363)
         
-        - [Ichimura and Newey (2022)](https://onlinelibrary.wiley.com/doi/full/10.3982/QE826)
+        - [Williams et al. (2025)](https://arxiv.org/abs/2507.19413)
 
     - 統計学
     
