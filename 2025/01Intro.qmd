@@ -8,13 +8,11 @@ date: now
 format:
   typst:
     fig-format: retina
-    bibliographystyle: apa
     mainfont: "Hiragino Mincho ProN"
     number-sections: true
   revealjs:
     incremental: true 
     slide-number: true
-    bibliographystyle: apa
     html-math-method: katex
     chalkboard: true
 execute: 
@@ -23,6 +21,7 @@ execute:
   eval: true
   echo: false
 bibliography: "ref.bib"
+bibliographystyle: harvard-cite-them-right
 ---
 
 ```{r}
@@ -97,17 +96,17 @@ library(tidyverse)
 
 1. 研究目標 (Research question) $=$ 関心となる**社会**の特徴
 
-2. 推定目標(Estimand) $=$ 研究目標に対応する**母集団 (Source Population)**の特徴
+2. 推定目標 (Estimand) $=$ 研究目標に対応する**母集団 (Source Population)**の特徴
 
 - 以上から「データが回答すべきこと」が明確化
     
-3. 推定値(Estimator) $=$ **データ**から推定目標の推論値の計算方法
+3. 推定値 (Estimator) $=$ **データ**から推定目標の推論値の計算方法
 
 4. コーディング $\rightarrow$ 推定結果 $\rightarrow$ 発信...
 
 ## 例: ゲームの因果効果: @egami2024causal
 
-- 研究課題: ゲームは、健康状態を（因果的に）悪化させるのか？
+- 研究課題: ゲームは、健康状態を (因果的に) 悪化させるのか？
 
 - 推定対象: コロナ下で生じた"ゲーム機購入権くじ参加者"について、居住地を含む背景属性の分布を均一化した後に、精神的健康状態の比較
 

@@ -1,10 +1,12 @@
 
 経済学のための機械学習入門用レポジトリです。
-Public folderから、2025年度用の講義資料と実習用データをダウンロードできます。
+Public folderから、2026年度用の講義資料と実習用データをダウンロードできます。
 
 - 予習/復習用の無料教材 (含むOpen Access チュートリアル論文) として、以下を紹介します。
 
     - 講師作成のノート
+    
+        - [データ分析入門](https://github.com/tetokawata/BookEntry)
     
         - [母平均の「補助線」の推定](https://github.com/tetokawata/NoteBLP)
         
@@ -47,22 +49,28 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
     - 統計学
     
         - [StatLect](https://www.statlect.com/)
+        
+        - [A Gentle Introduction to Empirical Process Theory and Applications (Lecture note by Bodhisattva Sen)](https://sites.stat.columbia.edu/bodhi/Talks/Emp-Proc-Lecture-Notes.pdf)
 
     - R
+    
+        - [私たちのR](https://www.jaysong.net/RBook/)
 
-        - [Statistical Inference via Data Science](https://moderndive.com/v2/thinking-with-data.html) : データ分析の入門者を念頭に、非常に丁寧にコンセプトとRによる実装を紹介しており、基礎の確認も兼ねておすすめ
+        - [Statistical Inference via Data Science](https://moderndive.com/v2/thinking-with-data.html)
     
         - [Tidyverse Style Guide](https://style.tidyverse.org/)
         
         - [R for Data Science](https://r4ds.had.co.nz/)
         
-        - [Advanced R](https://adv-r.hadley.nz/)
+            - より深い学びたい人向け: [Advanced R](https://adv-r.hadley.nz/)
         
     - その他参考資料
 
         - [Models, Measurement, and the Language of Empirical Economics (Philip A. Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
 
         - [Logical methods for AI (Johannes Korbmacher)](https://logicalmethods.ai/textbook/)
+        
+        - [A Practical Guide to Estimating Conditional Marginal Effects: Modern Approaches](https://arxiv.org/abs/2504.01355)
 
 
 - 日本語の参考教材としては、以下をお勧めします
@@ -87,4 +95,4 @@ Public folderから、2025年度用の講義資料と実習用データをダウ
     
     - [DoubleMLを使った因果/格差推定](https://youtu.be/BCEVt-QgNko)
     
-- 2023/2024年の講義資料は、フォルダーに移動しています。
+- 2023/2024年の講義資料は、同名のフォルダーに移動しています。
