@@ -26,7 +26,7 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
         
         - [Introduction to Modern Causal Inference (Schuler, Mark van der Laan)](https://alejandroschuler.github.io/mci/introduction-to-modern-causal-inference.html)
     
-        - [A first course in causal inference (Ding)](https://arxiv.org/abs/2305.18793)
+        - [A First Course in Causal Inference (Ding)](https://arxiv.org/abs/2305.18793)
         
         - [An Introduction to Double/Debiased Machine Learning (Ahrens, Chernozhukov, Hansen, Kozbur, Schaffer, Wiemann)](https://arxiv.org/abs/2504.08324)
         
@@ -54,6 +54,10 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
 
     - R
     
+        - [Applied Machine Learning Using mlr3 in R](https://mlr3book.mlr-org.com/)
+        
+        - [DoubleML](https://docs.doubleml.org/stable/index.html)
+    
         - [私たちのR](https://www.jaysong.net/RBook/)
 
         - [Statistical Inference via Data Science](https://moderndive.com/v2/thinking-with-data.html)
@@ -70,11 +74,15 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
         
     - その他参考資料
 
+        - [Information and Learning in Economic Theory (Liang)](https://anniehliang.com/#teaching)
+
         - [Models, Measurement, and the Language of Empirical Economics (Philip A. Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
 
         - [Logical methods for AI (Korbmacher)](https://logicalmethods.ai/textbook/)
         
         - [A Practical Guide to Estimating Conditional Marginal Effects: Modern Approaches](https://arxiv.org/abs/2504.01355)
+        
+        - [Elements of Causal Inference Foundations and Learning Algorithms (Peters, Janzing, and Schölkopf)](https://mitpress.mit.edu/9780262037310/elements-of-causal-inference/)
 
 
 - 日本語の参考教材としては、以下をお勧めします
