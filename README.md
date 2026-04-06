@@ -2,7 +2,7 @@
 経済学のための機械学習入門用レポジトリです。
 Public folderから、2026年度用の講義資料と実習用データをダウンロードできます。
 
-- 予習/復習用の無料教材 (含むOpen Access チュートリアル論文) として、以下を紹介します。
+- 予習/復習用の無料教材 (含むOpen Access チュートリアル論文)
 
     - 講師作成のノート
     
@@ -16,7 +16,7 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
 
         - [Introduction to Statistical Learning (James, Witten, Hastie, Tibshirani)](https://www.statlearning.com/)
         
-            - [Deep Learning and Scientific Computing with R torch](https://skeydan.github.io/Deep-Learning-and-Scientific-Computing-with-R-torch/)
+            - [Deep Learning and Scientific Computing with R torch (Keydana)](https://skeydan.github.io/Deep-Learning-and-Scientific-Computing-with-R-torch/)
     
     - 機械学習 + 比較研究 (因果推論)
     
@@ -54,11 +54,13 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
 
     - R
     
-        - [Applied Machine Learning Using mlr3 in R](https://mlr3book.mlr-org.com/)
+        - [Applied Machine Learning Using mlr3 in R (Bischl, Sonabend, Kotthoff, Lang)](https://mlr3book.mlr-org.com/)
         
         - [DoubleML](https://docs.doubleml.org/stable/index.html)
+        
+        - [renv](https://rstudio.github.io/renv/index.html)
     
-        - [私たちのR](https://www.jaysong.net/RBook/)
+        - [私たちのR (宋、矢内)](https://www.jaysong.net/RBook/)
 
         - [Statistical Inference via Data Science](https://moderndive.com/v2/thinking-with-data.html)
     
@@ -76,14 +78,13 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
 
         - [Information and Learning in Economic Theory (Liang)](https://anniehliang.com/#teaching)
 
-        - [Models, Measurement, and the Language of Empirical Economics (Philip A. Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
+        - [Models, Measurement, and the Language of Empirical Economics (Haile)](https://sites.google.com/view/philhaile/home/teaching?authuser=0)
 
         - [Logical methods for AI (Korbmacher)](https://logicalmethods.ai/textbook/)
         
-        - [A Practical Guide to Estimating Conditional Marginal Effects: Modern Approaches](https://arxiv.org/abs/2504.01355)
+        - [A Practical Guide to Estimating Conditional Marginal Effects: Modern Approaches (Liu, Liu, Xu)](https://arxiv.org/abs/2504.01355)
         
-        - [Elements of Causal Inference Foundations and Learning Algorithms (Peters, Janzing, and Schölkopf)](https://mitpress.mit.edu/9780262037310/elements-of-causal-inference/)
-
+        - [Elements of Causal Inference Foundations and Learning Algorithms (Peters, Janzing, Schölkopf)](https://mitpress.mit.edu/9780262037310/elements-of-causal-inference/)
 
 - 日本語の参考教材としては、以下をお勧めします
 
