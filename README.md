@@ -51,6 +51,8 @@ Public folderから、2026年度用の講義資料と実習用データをダウ
         - [StatLect](https://www.statlect.com/)
         
         - [A Gentle Introduction to Empirical Process Theory and Applications (Lecture note by Bodhisattva Sen)](https://sites.stat.columbia.edu/bodhi/Talks/Emp-Proc-Lecture-Notes.pdf)
+        
+        - [Improving Your Statistical Inferences](https://lakens.github.io/statistical_inferences/)
 
     - R
     
