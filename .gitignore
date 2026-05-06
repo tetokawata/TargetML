@@ -1,5 +1,6 @@
 /*
 
 !/.gitignore
-
-!/src/Public
+!/Public
+!/renv.lock
+!/README.md
